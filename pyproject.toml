@@ -1,0 +1,8 @@
+[project]
+name = "career-track"
+version = "0.1.0"
+description = "A professional job and internship application tracking system."
+requires-python = ">=3.13,<3.14"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
