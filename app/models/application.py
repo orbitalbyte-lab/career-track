@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from datetime import date
 from enum import Enum
 
+from app.models.company import Company
+
 
 class ApplicationStatus(str, Enum):
     WISHLIST = "Wishlist"
@@ -23,7 +25,7 @@ class ApplicationType(str, Enum):
 
 @dataclass
 class Application:
-    company: str
+    company: Company
     position: str
     application_type: ApplicationType
     date_applied: date
@@ -34,7 +36,7 @@ class Application:
     notes: str | None = None
 
     def __post_init__(self) -> None:
-        if not self.company.strip():
+        if not self.company.name.strip():
             raise ValueError("Company name cannot be empty.")
 
         if not self.position.strip():

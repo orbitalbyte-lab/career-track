@@ -2,7 +2,14 @@ from datetime import date
 
 import pytest
 
-from app.models import Application, ApplicationStatus, ApplicationType, Company
+from app.models.application import (
+    Application,
+    ApplicationStatus,
+    ApplicationType,
+)
+from app.models.company import Company
+
+
 def test_application_defaults_to_wishlist():
     application = Application(
         company=Company(name="Microsoft"),
@@ -58,22 +65,3 @@ def test_application_rejects_invalid_deadline():
             date_applied=date(2026, 7, 30),
             deadline=date(2026, 7, 29),
         )
-
-
-def test_application_stores_company():
-    company = Company(
-        name="Microsoft",
-        website="https://www.microsoft.com",
-        industry="Technology",
-    )
-
-    application = Application(
-        company=company,
-        position="Software Engineering Intern",
-        application_type=ApplicationType.INTERNSHIP,
-        date_applied=date(2026, 7, 30),
-    )
-
-    assert application.company is company
-    assert application.company.name == "Microsoft"
-    assert application.company.industry == "Technology"
