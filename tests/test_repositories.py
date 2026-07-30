@@ -1,0 +1,107 @@
+from datetime import date
+
+from app.database.connection import Base, SessionLocal, engine
+from app.database.init_db import initialize_database
+from app.database.models.application import ApplicationDB
+from app.database.models.company import CompanyDB
+from app.repositories.application_repository import ApplicationRepository
+from app.repositories.company_repository import CompanyRepository
+
+
+def setup_database():
+    Base.metadata.drop_all(bind=engine)
+    initialize_database()
+
+
+def test_company_repository_create_and_get():
+    setup_database()
+
+    with SessionLocal() as session:
+        repository = CompanyRepository(session)
+
+        company = CompanyDB(
+            name="Microsoft",
+            industry="Technology",
+        )
+
+        created_company = repository.create(company)
+
+        assert created_company.id is not None
+
+        found_company = repository.get_by_id(created_company.id)
+
+        assert found_company is not None
+        assert found_company.name == "Microsoft"
+
+
+def test_application_repository_create_and_get_by_company():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_repository = CompanyRepository(session)
+        application_repository = ApplicationRepository(session)
+
+        company = company_repository.create(
+            CompanyDB(
+                name="Google",
+                industry="Technology",
+            )
+        )
+
+        application = ApplicationDB(
+            company_id=company.id,
+            position="Software Engineering Intern",
+            application_type="Internship",
+            date_applied=date(2026, 7, 30),
+            status="Applied",
+        )
+
+        created_application = application_repository.create(application)
+
+        assert created_application.id is not None
+
+        applications = application_repository.get_by_company_id(
+            company.id
+        )
+
+        assert len(applications) == 1
+        assert applications[0].position == "Software Engineering Intern"
+
+
+def test_company_repository_get_all():
+    setup_database()
+
+    with SessionLocal() as session:
+        repository = CompanyRepository(session)
+
+        repository.create(CompanyDB(name="Microsoft"))
+        repository.create(CompanyDB(name="Google"))
+
+        companies = repository.get_all()
+
+        assert len(companies) == 2
+
+
+def test_application_repository_get_all():
+    setup_database()
+
+    with SessionLocal() as session:
+        company = CompanyRepository(session).create(
+            CompanyDB(name="Microsoft")
+        )
+
+        repository = ApplicationRepository(session)
+
+        repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Software Engineer",
+                application_type="Full-time",
+                date_applied=date(2026, 7, 30),
+                status="Applied",
+            )
+        )
+
+        applications = repository.get_all()
+
+        assert len(applications) == 1
