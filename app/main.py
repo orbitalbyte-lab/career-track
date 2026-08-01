@@ -1,5 +1,10 @@
+from app.cli.menu import run
+from app.database.init_db import initialize_database
+
+
 def main() -> None:
-    print("Welcome to CareerTrack!")
+    initialize_database()
+    run()
 
 
 if __name__ == "__main__":
