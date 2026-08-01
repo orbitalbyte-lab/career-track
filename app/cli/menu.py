@@ -1,9 +1,10 @@
 from datetime import date
 
 from app.database.connection import SessionLocal
+from app.models.application import ApplicationStatus, ApplicationType
 from app.services.application_service import ApplicationService
 from app.services.company_service import CompanyService
-from app.models.application import ApplicationStatus, ApplicationType
+
 
 def show_menu() -> None:
     print()
@@ -76,14 +77,18 @@ def add_application() -> None:
 
     application_types = list(ApplicationType)
 
-    for index, application_type_option in enumerate(application_types, start=1):
+    for index, application_type_option in enumerate(
+        application_types, start=1
+    ):
         print(f"{index}. {application_type_option.value}")
 
     application_type_choice = input("Application type: ").strip()
 
     try:
         application_type_index = int(application_type_choice) - 1
-        application_type = application_types[application_type_index].value
+        application_type = application_types[
+            application_type_index
+        ].value
     except (ValueError, IndexError):
         print("Invalid application type selection.")
         return
@@ -105,8 +110,6 @@ def add_application() -> None:
     except (ValueError, IndexError):
         print("Invalid status selection.")
         return
-
-    from datetime import date
 
     try:
         parsed_date = date.fromisoformat(date_applied)
@@ -131,6 +134,8 @@ def add_application() -> None:
 
         except ValueError as error:
             print(f"\nError: {error}")
+
+
 def list_applications() -> None:
     print("\n--- Applications ---")
 
@@ -148,7 +153,9 @@ def list_applications() -> None:
                 f"[{application.id}] "
                 f"{application.position} | "
                 f"Company ID: {application.company_id} | "
-                f"{application.status}"
+                f"Type: {application.application_type} | "
+                f"Status: {application.status} | "
+                f"Applied: {application.date_applied}"
             )
 
 
@@ -171,4 +178,3 @@ def run() -> None:
             break
         else:
             print("\nInvalid choice. Please choose 1-5.")
-
