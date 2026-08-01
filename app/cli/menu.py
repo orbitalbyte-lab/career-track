@@ -1,6 +1,9 @@
+from datetime import date
+
 from app.database.connection import SessionLocal
 from app.services.application_service import ApplicationService
 from app.services.company_service import CompanyService
+from app.models.application import ApplicationStatus
 
 
 def show_menu() -> None:
@@ -34,7 +37,7 @@ def add_company() -> None:
             website=website,
         )
 
-        print(f"\nCompany created successfully!")
+        print("\nCompany created successfully!")
         print(f"Company ID: {company.id}")
 
 
@@ -71,7 +74,22 @@ def add_application() -> None:
     position = input("Position: ").strip()
     application_type = input("Application type: ").strip()
     date_applied = input("Date applied (YYYY-MM-DD): ").strip()
-    status = input("Status: ").strip()
+
+    print("\nSelect application status:")
+
+    statuses = list(ApplicationStatus)
+
+    for index, application_status in enumerate(statuses, start=1):
+        print(f"{index}. {application_status.value}")
+
+    status_choice = input("Status: ").strip()
+
+    try:
+        status_index = int(status_choice) - 1
+        status = statuses[status_index].value
+    except (ValueError, IndexError):
+        print("Invalid status selection.")
+        return
 
     from datetime import date
 
@@ -98,8 +116,6 @@ def add_application() -> None:
 
         except ValueError as error:
             print(f"\nError: {error}")
-
-
 def list_applications() -> None:
     print("\n--- Applications ---")
 
@@ -140,3 +156,4 @@ def run() -> None:
             break
         else:
             print("\nInvalid choice. Please choose 1-5.")
+
