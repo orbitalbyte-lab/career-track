@@ -3,8 +3,7 @@ from datetime import date
 from app.database.connection import SessionLocal
 from app.services.application_service import ApplicationService
 from app.services.company_service import CompanyService
-from app.models.application import ApplicationStatus
-
+from app.models.application import ApplicationStatus, ApplicationType
 
 def show_menu() -> None:
     print()
@@ -72,7 +71,23 @@ def add_application() -> None:
         return
 
     position = input("Position: ").strip()
-    application_type = input("Application type: ").strip()
+
+    print("\nSelect application type:")
+
+    application_types = list(ApplicationType)
+
+    for index, application_type_option in enumerate(application_types, start=1):
+        print(f"{index}. {application_type_option.value}")
+
+    application_type_choice = input("Application type: ").strip()
+
+    try:
+        application_type_index = int(application_type_choice) - 1
+        application_type = application_types[application_type_index].value
+    except (ValueError, IndexError):
+        print("Invalid application type selection.")
+        return
+
     date_applied = input("Date applied (YYYY-MM-DD): ").strip()
 
     print("\nSelect application status:")
