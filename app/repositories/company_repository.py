@@ -20,6 +20,12 @@ class CompanyRepository:
     def get_all(self) -> list[CompanyDB]:
         return list(self.session.query(CompanyDB).all())
 
+    def update(self, company: CompanyDB) -> CompanyDB:
+        self.session.commit()
+        self.session.refresh(company)
+
+        return company
+
     def delete(self, company: CompanyDB) -> None:
         self.session.delete(company)
         self.session.commit()

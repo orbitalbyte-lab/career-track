@@ -14,9 +14,10 @@ def show_menu() -> None:
     print("1. Add company")
     print("2. List companies")
     print("3. View company")
-    print("4. Add application")
-    print("5. List applications")
-    print("6. Exit")
+    print("4. Update company")
+    print("5. Add application")
+    print("6. List applications")
+    print("7. Exit")
     print("=" * 40)
 
 
@@ -87,8 +88,67 @@ def view_company() -> None:
         print(f"Location: {company.location or 'N/A'}")
         print(f"Website:  {company.website or 'N/A'}")
         print(f"Notes:    {company.notes or 'N/A'}")
-        print("-" * 30)            
+        print("-" * 30)
 
+def update_company() -> None:
+    print("\n--- Update Company ---")
+
+    try:
+        company_id = int(input("Company ID: ").strip())
+    except ValueError:
+        print("Company ID must be a number.")
+        return
+
+    with SessionLocal() as session:
+        service = CompanyService(session)
+
+        company = service.get_company(company_id)
+
+        if company is None:
+            print("Company not found.")
+            return
+
+        print("\nPress Enter to keep the current value.")
+
+        name = input(
+            f"Name [{company.name}]: "
+        ).strip()
+
+        industry = input(
+            f"Industry [{company.industry or 'N/A'}]: "
+        ).strip()
+
+        location = input(
+            f"Location [{company.location or 'N/A'}]: "
+        ).strip()
+
+        website = input(
+            f"Website [{company.website or 'N/A'}]: "
+        ).strip()
+
+        notes = input(
+            f"Notes [{company.notes or 'N/A'}]: "
+        ).strip()
+
+        try:
+            updated_company = service.update_company(
+                company_id=company_id,
+                name=name if name else None,
+                industry=industry if industry else None,
+                location=location if location else None,
+                website=website if website else None,
+                notes=notes if notes else None,
+            )
+
+            if updated_company is None:
+                print("Company not found.")
+                return
+
+            print("\nCompany updated successfully!")
+
+        except ValueError as error:
+            print(f"\nError: {error}")                    
+ 
 
 def add_application() -> None:
     print("\n--- Add Application ---")
@@ -200,11 +260,13 @@ def run() -> None:
         elif choice == "3":
             view_company()
         elif choice == "4":
-            add_application()
+            update_company()
         elif choice == "5":
-            list_applications()
+            add_application()
         elif choice == "6":
+            list_applications()
+        elif choice == "7":
             print("\nGoodbye! 👋")
             break
         else:
-            print("\nInvalid choice. Please choose 1-6.")
+            print("\nInvalid choice. Please choose 1-7.")

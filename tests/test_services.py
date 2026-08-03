@@ -111,3 +111,147 @@ def test_application_service_gets_company_applications():
 
         assert len(applications) == 1
         assert applications[0].position == "Backend Engineering Intern"
+
+def test_company_service_updates_company():
+    setup_database()
+
+    with SessionLocal() as session:
+        service = CompanyService(session)
+
+        company = service.create_company(
+            name="Google",
+            industry="Technology",
+            location="Mountain View",
+        )
+
+        updated = service.update_company(
+            company_id=company.id,
+            name="Google LLC",
+            industry="Internet Technology",
+            location="California",
+            website="https://google.com",
+            notes="Target company",
+        )
+
+        assert updated is not None
+        assert updated.name == "Google LLC"
+        assert updated.industry == "Internet Technology"
+        assert updated.location == "California"
+        assert updated.website == "https://google.com"
+        assert updated.notes == "Target company"
+
+
+def test_company_service_update_keeps_existing_values():
+    setup_database()
+
+    with SessionLocal() as session:
+        service = CompanyService(session)
+
+        company = service.create_company(
+            name="Microsoft",
+            industry="Technology",
+            location="Redmond",
+        )
+
+        updated = service.update_company(
+            company_id=company.id,
+            name="Microsoft Corporation",
+        )
+
+        assert updated is not None
+        assert updated.name == "Microsoft Corporation"
+        assert updated.industry == "Technology"
+        assert updated.location == "Redmond"
+
+
+def test_company_service_update_unknown_company():
+    setup_database()
+
+    with SessionLocal() as session:
+        service = CompanyService(session)
+
+        updated = service.update_company(
+            company_id=9999,
+            name="Unknown Company",
+        )
+
+        assert updated is None        
+def test_company_service_updates_company():
+    setup_database()
+
+    with SessionLocal() as session:
+        service = CompanyService(session)
+
+        company = service.create_company(
+            name="Google",
+            industry="Technology",
+            location="Mountain View",
+        )
+
+        updated = service.update_company(
+            company_id=company.id,
+            name="Google LLC",
+            industry="Internet Technology",
+            location="California",
+            website="https://google.com",
+            notes="Target company",
+        )
+
+        assert updated is not None
+        assert updated.name == "Google LLC"
+        assert updated.industry == "Internet Technology"
+        assert updated.location == "California"
+        assert updated.website == "https://google.com"
+        assert updated.notes == "Target company"
+
+
+def test_company_service_update_keeps_existing_values():
+    setup_database()
+
+    with SessionLocal() as session:
+        service = CompanyService(session)
+
+        company = service.create_company(
+            name="Microsoft",
+            industry="Technology",
+            location="Redmond",
+        )
+
+        updated = service.update_company(
+            company_id=company.id,
+            name="Microsoft Corporation",
+        )
+
+        assert updated is not None
+        assert updated.name == "Microsoft Corporation"
+        assert updated.industry == "Technology"
+        assert updated.location == "Redmond"
+
+
+def test_company_service_update_unknown_company():
+    setup_database()
+
+    with SessionLocal() as session:
+        service = CompanyService(session)
+
+        updated = service.update_company(
+            company_id=9999,
+            name="Unknown Company",
+        )
+
+        assert updated is None  
+def test_company_service_rejects_empty_updated_name():
+    setup_database()
+
+    with SessionLocal() as session:
+        service = CompanyService(session)
+
+        company = service.create_company(
+            name="Google",
+        )
+
+        with pytest.raises(ValueError, match="Company name cannot be empty"):
+            service.update_company(
+                company_id=company.id,
+                name="   ",
+            )              
