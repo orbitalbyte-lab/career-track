@@ -13,9 +13,10 @@ def show_menu() -> None:
     print("=" * 40)
     print("1. Add company")
     print("2. List companies")
-    print("3. Add application")
-    print("4. List applications")
-    print("5. Exit")
+    print("3. View company")
+    print("4. Add application")
+    print("5. List applications")
+    print("6. Exit")
     print("=" * 40)
 
 
@@ -60,6 +61,33 @@ def list_companies() -> None:
                 f"{company.industry or 'N/A'} | "
                 f"{company.location or 'N/A'}"
             )
+
+def view_company() -> None:
+    print("\n--- View Company ---")
+
+    try:
+        company_id = int(input("Company ID: ").strip())
+    except ValueError:
+        print("Company ID must be a number.")
+        return
+
+    with SessionLocal() as session:
+        service = CompanyService(session)
+        company = service.get_company(company_id)
+
+        if company is None:
+            print("Company not found.")
+            return
+
+        print("\nCompany Details")
+        print("-" * 30)
+        print(f"ID:       {company.id}")
+        print(f"Name:     {company.name}")
+        print(f"Industry: {company.industry or 'N/A'}")
+        print(f"Location: {company.location or 'N/A'}")
+        print(f"Website:  {company.website or 'N/A'}")
+        print(f"Notes:    {company.notes or 'N/A'}")
+        print("-" * 30)            
 
 
 def add_application() -> None:
@@ -170,11 +198,13 @@ def run() -> None:
         elif choice == "2":
             list_companies()
         elif choice == "3":
-            add_application()
+            view_company()
         elif choice == "4":
-            list_applications()
+            add_application()
         elif choice == "5":
+            list_applications()
+        elif choice == "6":
             print("\nGoodbye! 👋")
             break
         else:
-            print("\nInvalid choice. Please choose 1-5.")
+            print("\nInvalid choice. Please choose 1-6.")
