@@ -471,3 +471,56 @@ def test_application_service_delete_unknown_application():
         result = application_service.delete_application(9999)
 
         assert result is False
+
+
+def test_application_service_searches_applications():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Google",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Software Engineering Intern",
+            application_type="Internship",
+            date_applied=date(2026, 8, 4),
+            status="Applied",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Backend Engineering Intern",
+            application_type="Internship",
+            date_applied=date(2026, 8, 4),
+            status="Applied",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Data Analyst Intern",
+            application_type="Internship",
+            date_applied=date(2026, 8, 4),
+            status="Applied",
+        )
+
+        results = application_service.search_applications("engineering")
+
+        assert len(results) == 2
+        assert results[0].position == "Backend Engineering Intern"
+        assert results[1].position == "Software Engineering Intern"
+
+
+def test_application_service_search_returns_empty_for_blank_query():
+    setup_database()
+
+    with SessionLocal() as session:
+        application_service = ApplicationService(session)
+
+        results = application_service.search_applications("   ")
+
+        assert results == []

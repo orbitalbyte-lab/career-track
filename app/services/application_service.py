@@ -52,6 +52,15 @@ class ApplicationService:
     def get_applications(self) -> list[ApplicationDB]:
         return self.application_repository.get_all()
 
+    def search_applications(
+        self,
+        query: str,
+    ) -> list[ApplicationDB]:
+        if not query.strip():
+            return []
+
+        return self.application_repository.search(query.strip())
+
     def update_application(
         self,
         application_id: int,
@@ -78,13 +87,13 @@ class ApplicationService:
             application.application_type = application_type.strip()
 
         if date_applied is not None:
-           application.date_applied = date_applied
+            application.date_applied = date_applied
 
         if status is not None:
-           application.status = status.strip()
+            application.status = status.strip()
 
         if location is not None:
-           application.location = location.strip() or None
+            application.location = location.strip() or None
 
         if deadline is not None:
             if deadline < application.date_applied:

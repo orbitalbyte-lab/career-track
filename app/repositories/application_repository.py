@@ -27,6 +27,14 @@ class ApplicationRepository:
             .all()
         )
 
+    def search(self, query: str) -> list[ApplicationDB]:
+        return (
+            self.session.query(ApplicationDB)
+            .filter(ApplicationDB.position.ilike(f"%{query}%"))
+            .order_by(ApplicationDB.position)
+            .all()
+        )
+
     def update(self, application: ApplicationDB) -> ApplicationDB:
         self.session.commit()
         self.session.refresh(application)
