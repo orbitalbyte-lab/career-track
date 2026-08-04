@@ -157,3 +157,89 @@ def test_company_repository_search_orders_by_name():
             "Google",
             "Microsoft",
         ]
+
+def test_application_repository_searches_by_position():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_repository = CompanyRepository(session)
+        application_repository = ApplicationRepository(session)
+
+        company = company_repository.create(
+            CompanyDB(name="Google")
+        )
+
+        application_repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Software Engineering Intern",
+                application_type="Internship",
+                date_applied=date(2026, 8, 4),
+                status="Applied",
+            )
+        )
+
+        application_repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Data Analyst Intern",
+                application_type="Internship",
+                date_applied=date(2026, 8, 4),
+                status="Applied",
+            )
+        )
+
+        results = application_repository.search("engineering")
+
+        assert len(results) == 1
+        assert results[0].position == "Software Engineering Intern"
+
+
+def test_application_repository_search_orders_by_position():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_repository = CompanyRepository(session)
+        application_repository = ApplicationRepository(session)
+
+        company = company_repository.create(
+            CompanyDB(name="Google")
+        )
+
+        application_repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Software Engineer",
+                application_type="Full-time",
+                date_applied=date(2026, 8, 4),
+                status="Applied",
+            )
+        )
+
+        application_repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Backend Engineer",
+                application_type="Full-time",
+                date_applied=date(2026, 8, 4),
+                status="Applied",
+            )
+        )
+
+        application_repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Data Analyst",
+                application_type="Full-time",
+                date_applied=date(2026, 8, 4),
+                status="Applied",
+            )
+        )
+
+        results = application_repository.search("")
+
+        assert [application.position for application in results] == [
+            "Backend Engineer",
+            "Data Analyst",
+            "Software Engineer",
+        ]
