@@ -255,3 +255,45 @@ def test_company_service_rejects_empty_updated_name():
                 company_id=company.id,
                 name="   ",
             )              
+def test_company_service_deletes_company_without_applications():
+    setup_database()
+
+    with SessionLocal() as session:
+        service = CompanyService(session)
+
+        company = service.create_company(
+            name="Microsoft",
+        )
+
+        result = service.delete_company(company.id)
+
+        assert result is True
+        assert service.get_company(company.id) is None
+
+
+def test_company_service_rejects_deleting_company_with_applications():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Google",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Software Engineering Intern",
+            application_type="Internship",
+            date_applied=date(2026, 7, 30),
+            status="Applied",
+        )
+
+        with pytest.raises(
+            ValueError,
+            match="Cannot delete company with 1 application",
+        ):
+            company_service.delete_company(company.id)
+
+        assert company_service.get_company(company.id) is not None            
