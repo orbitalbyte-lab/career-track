@@ -105,3 +105,55 @@ def test_application_repository_get_all():
         applications = repository.get_all()
 
         assert len(applications) == 1
+
+
+def test_company_repository_searches_by_name():
+    setup_database()
+
+    with SessionLocal() as session:
+        repository = CompanyRepository(session)
+
+        repository.create(
+            CompanyDB(
+                name="Microsoft",
+                industry="Technology",
+            )
+        )
+
+        repository.create(
+            CompanyDB(
+                name="Google",
+                industry="Technology",
+            )
+        )
+
+        repository.create(
+            CompanyDB(
+                name="Amazon",
+                industry="Technology",
+            )
+        )
+
+        results = repository.search("micro")
+
+        assert len(results) == 1
+        assert results[0].name == "Microsoft"
+
+
+def test_company_repository_search_orders_by_name():
+    setup_database()
+
+    with SessionLocal() as session:
+        repository = CompanyRepository(session)
+
+        repository.create(CompanyDB(name="Microsoft"))
+        repository.create(CompanyDB(name="Apple"))
+        repository.create(CompanyDB(name="Google"))
+
+        results = repository.search("")
+
+        assert [company.name for company in results] == [
+            "Apple",
+            "Google",
+            "Microsoft",
+        ]
