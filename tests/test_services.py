@@ -436,3 +436,38 @@ def test_application_service_update_keeps_existing_values():
         assert updated.status == "Applied"
         assert updated.location == "Redmond"
         assert updated.notes == "Original notes"
+
+def test_application_service_deletes_application():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Google",
+        )
+
+        application = application_service.create_application(
+            company_id=company.id,
+            position="Software Engineering Intern",
+            application_type="Internship",
+            date_applied=date(2026, 8, 4),
+            status="Applied",
+        )
+
+        result = application_service.delete_application(application.id)
+
+        assert result is True
+        assert application_service.get_application(application.id) is None
+
+
+def test_application_service_delete_unknown_application():
+    setup_database()
+
+    with SessionLocal() as session:
+        application_service = ApplicationService(session)
+
+        result = application_service.delete_application(9999)
+
+        assert result is False

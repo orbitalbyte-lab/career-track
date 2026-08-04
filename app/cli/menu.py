@@ -19,7 +19,8 @@ def show_menu() -> None:
     print("6. List applications")
     print("7. View application")
     print("8. Update application")
-    print("9. Exit")
+    print("9. Delete application")
+    print("10. Exit")
     print("=" * 40)
 
 
@@ -356,6 +357,43 @@ def update_application() -> None:
         except ValueError as error:
             print(f"\nError: {error}")
 
+def delete_application() -> None:
+    print("\n--- Delete Application ---")
+
+    try:
+        application_id = int(input("Application ID: ").strip())
+    except ValueError:
+        print("Application ID must be a number.")
+        return
+
+    with SessionLocal() as session:
+        service = ApplicationService(session)
+
+        application = service.get_application(application_id)
+
+        if application is None:
+            print("Application not found.")
+            return
+
+        print("\nApplication to delete:")
+        print(f"Position: {application.position}")
+        print(f"Status:   {application.status}")
+
+        confirmation = input(
+            "Are you sure you want to delete this application? (y/n): "
+        ).strip().lower()
+
+        if confirmation != "y":
+            print("Deletion cancelled.")
+            return
+
+        deleted = service.delete_application(application_id)
+
+        if deleted:
+            print("\nApplication deleted successfully!")
+        else:
+            print("Application not found.")
+
 
 def run() -> None:
     while True:
@@ -380,7 +418,9 @@ def run() -> None:
         elif choice == "8":
             update_application()
         elif choice == "9":
-            print("\nGoodbye! ðŸ‘‹")
+            delete_application()
+        elif choice == "10":
+            print("\nGoodbye!")
             break
         else:
-            print("\nInvalid choice. Please choose 1-9.")
+            print("\nInvalid choice. Please choose 1-10.")

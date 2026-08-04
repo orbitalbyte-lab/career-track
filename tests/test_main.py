@@ -1,8 +1,8 @@
 from app.main import main
 
 
-def test_main_exits_with_option_9(capsys, monkeypatch):
-    monkeypatch.setattr("builtins.input", lambda _: "9")
+def test_main_exits_with_option_10(capsys, monkeypatch):
+    monkeypatch.setattr("builtins.input", lambda _: "10")
 
     main()
 
