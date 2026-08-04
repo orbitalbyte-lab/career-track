@@ -71,6 +71,12 @@ class CompanyService:
         if company is None:
             return False
 
+        if company.applications:
+            raise ValueError(
+                f"Cannot delete company with {len(company.applications)} "
+                "application(s)."
+            )
+
         self.repository.delete(company)
 
         return True
