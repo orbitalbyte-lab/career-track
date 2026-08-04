@@ -20,7 +20,8 @@ def show_menu() -> None:
     print("7. View application")
     print("8. Update application")
     print("9. Delete application")
-    print("10. Exit")
+    print("10. Search applications")
+    print("11. Exit")
     print("=" * 40)
 
 
@@ -357,6 +358,37 @@ def update_application() -> None:
         except ValueError as error:
             print(f"\nError: {error}")
 
+def search_applications() -> None:
+    print("\n--- Search Applications ---")
+
+    query = input("Search by position: ").strip()
+
+    if not query:
+        print("Search query cannot be empty.")
+        return
+
+    with SessionLocal() as session:
+        service = ApplicationService(session)
+
+        applications = service.search_applications(query)
+
+        if not applications:
+            print("No applications found.")
+            return
+
+        print(f"\nSearch results for '{query}':")
+        print("-" * 60)
+
+        for application in applications:
+            print(
+                f"[{application.id}] "
+                f"{application.position} | "
+                f"Company ID: {application.company_id} | "
+                f"Status: {application.status}"
+            )
+
+        print("-" * 60)
+
 def delete_application() -> None:
     print("\n--- Delete Application ---")
 
@@ -420,7 +452,9 @@ def run() -> None:
         elif choice == "9":
             delete_application()
         elif choice == "10":
+            search_applications()
+        elif choice == "11":
             print("\nGoodbye!")
             break
         else:
-            print("\nInvalid choice. Please choose 1-10.")
+            print("\nInvalid choice. Please choose 1-11.")
