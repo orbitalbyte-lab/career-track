@@ -15,13 +15,14 @@ def show_menu() -> None:
     print("2. List companies")
     print("3. View company")
     print("4. Update company")
-    print("5. Add application")
-    print("6. List applications")
-    print("7. View application")
-    print("8. Update application")
-    print("9. Delete application")
-    print("10. Search applications")
-    print("11. Exit")
+    print("5. Delete company")
+    print("6. Add application")
+    print("7. List applications")
+    print("8. View application")
+    print("9. Update application")
+    print("10. Delete application")
+    print("11. Search applications")
+    print("12. Exit")
     print("=" * 40)
 
 
@@ -153,6 +154,47 @@ def update_company() -> None:
         except ValueError as error:
             print(f"\nError: {error}")
 
+def delete_company() -> None:
+    print("\n--- Delete Company ---")
+
+    try:
+        company_id = int(input("Company ID: ").strip())
+    except ValueError:
+        print("Company ID must be a number.")
+        return
+
+    with SessionLocal() as session:
+        service = CompanyService(session)
+
+        company = service.get_company(company_id)
+
+        if company is None:
+            print("Company not found.")
+            return
+
+        print("\nCompany to delete:")
+        print(f"Name:     {company.name}")
+        print(f"Industry: {company.industry or 'N/A'}")
+        print(f"Location: {company.location or 'N/A'}")
+
+        confirmation = input(
+            "Are you sure you want to delete this company? (y/n): "
+        ).strip().lower()
+
+        if confirmation != "y":
+            print("Deletion cancelled.")
+            return
+
+        try:
+            deleted = service.delete_company(company_id)
+
+            if deleted:
+                print("\nCompany deleted successfully!")
+            else:
+                print("Company not found.")
+
+        except ValueError as error:
+            print(f"\nError: {error}")
 
 def add_application() -> None:
     print("\n--- Add Application ---")
@@ -442,19 +484,21 @@ def run() -> None:
         elif choice == "4":
             update_company()
         elif choice == "5":
-            add_application()
+            delete_company()
         elif choice == "6":
-            list_applications()
+            add_application()
         elif choice == "7":
-            view_application()
+            list_applications()
         elif choice == "8":
-            update_application()
+            view_application()
         elif choice == "9":
-            delete_application()
+            update_application()
         elif choice == "10":
-            search_applications()
+            delete_application()
         elif choice == "11":
+            search_applications()
+        elif choice == "12":
             print("\nGoodbye!")
             break
         else:
-            print("\nInvalid choice. Please choose 1-11.")
+            print("\nInvalid choice. Please choose 1-12.")
