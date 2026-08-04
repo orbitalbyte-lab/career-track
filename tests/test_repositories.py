@@ -330,3 +330,79 @@ def test_application_repository_searches_by_position_or_company_name():
 
         assert len(results) == 1
         assert results[0].company.name == "Microsoft"
+
+
+def test_application_repository_searches_by_status():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_repository = CompanyRepository(session)
+        application_repository = ApplicationRepository(session)
+
+        company = company_repository.create(
+            CompanyDB(name="Google")
+        )
+
+        application_repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Software Engineer",
+                application_type="Full-time",
+                date_applied=date(2026, 8, 4),
+                status="Interview",
+            )
+        )
+
+        application_repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Data Analyst",
+                application_type="Internship",
+                date_applied=date(2026, 8, 4),
+                status="Applied",
+            )
+        )
+
+        results = application_repository.search("interview")
+
+        assert len(results) == 1
+        assert results[0].status == "Interview"
+        assert results[0].position == "Software Engineer"
+
+
+def test_application_repository_searches_by_application_type():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_repository = CompanyRepository(session)
+        application_repository = ApplicationRepository(session)
+
+        company = company_repository.create(
+            CompanyDB(name="Microsoft")
+        )
+
+        application_repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Software Engineer",
+                application_type="Full-time",
+                date_applied=date(2026, 8, 4),
+                status="Applied",
+            )
+        )
+
+        application_repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Software Engineering Intern",
+                application_type="Internship",
+                date_applied=date(2026, 8, 4),
+                status="Applied",
+            )
+        )
+
+        results = application_repository.search("internship")
+
+        assert len(results) == 1
+        assert results[0].application_type == "Internship"
+        assert results[0].position == "Software Engineering Intern"

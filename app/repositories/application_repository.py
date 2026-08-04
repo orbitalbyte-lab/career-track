@@ -28,17 +28,21 @@ class ApplicationRepository:
         )
 
     def search(self, query: str) -> list[ApplicationDB]:
-        search_term = f"%{query}%"
+        search_pattern = f"%{query}%"
 
         return (
             self.session.query(ApplicationDB)
             .join(ApplicationDB.company)
             .filter(
-                ApplicationDB.position.ilike(search_term)
-                | CompanyDB.name.ilike(search_term)
-            )
-            .order_by(ApplicationDB.position)
-            .all()
+                (ApplicationDB.position.ilike(search_pattern))
+                | (ApplicationDB.company.has(
+                    CompanyDB.name.ilike(search_pattern)
+                ))
+                | (ApplicationDB.status.ilike(search_pattern))
+                | (ApplicationDB.application_type.ilike(search_pattern))
+         )
+         .order_by(ApplicationDB.position)
+         .all()
         )
 
     def update(self, application: ApplicationDB) -> ApplicationDB:
