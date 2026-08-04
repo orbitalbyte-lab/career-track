@@ -20,6 +20,14 @@ class CompanyRepository:
     def get_all(self) -> list[CompanyDB]:
         return list(self.session.query(CompanyDB).all())
 
+    def search(self, query: str) -> list[CompanyDB]:
+        return (
+            self.session.query(CompanyDB)
+            .filter(CompanyDB.name.ilike(f"%{query}%"))
+            .order_by(CompanyDB.name)
+            .all()
+        )
+
     def update(self, company: CompanyDB) -> CompanyDB:
         self.session.commit()
         self.session.refresh(company)

@@ -17,7 +17,8 @@ def show_menu() -> None:
     print("4. Update company")
     print("5. Add application")
     print("6. List applications")
-    print("7. Exit")
+    print("7. View application")
+    print("8. Exit")
     print("=" * 40)
 
 
@@ -246,6 +247,40 @@ def list_applications() -> None:
                 f"Applied: {application.date_applied}"
             )
 
+def view_application() -> None:
+    print("\n--- View Application ---")
+
+    try:
+        application_id = int(input("Application ID: ").strip())
+    except ValueError:
+        print("Application ID must be a number.")
+        return
+
+    with SessionLocal() as session:
+        service = ApplicationService(session)
+        application = service.get_application(application_id)
+
+        if application is None:
+            print("Application not found.")
+            return
+
+        print("\nApplication Details")
+        print("-" * 35)
+        print(f"ID:             {application.id}")
+        print(
+            f"Company:        "
+            f"{application.company.name if application.company else 'N/A'}"
+        )
+        print(f"Position:       {application.position}")
+        print(f"Type:            {application.application_type}")
+        print(f"Status:          {application.status}")
+        print(f"Date Applied:   {application.date_applied}")
+        print(f"Location:       {application.location or 'N/A'}")
+        print(f"Deadline:       {application.deadline or 'N/A'}")
+        print(f"Job URL:        {application.job_url or 'N/A'}")
+        print(f"Notes:          {application.notes or 'N/A'}")
+        print("-" * 35)            
+
 
 def run() -> None:
     while True:
@@ -266,7 +301,9 @@ def run() -> None:
         elif choice == "6":
             list_applications()
         elif choice == "7":
+            view_application()
+        elif choice == "8":
             print("\nGoodbye! 👋")
             break
         else:
-            print("\nInvalid choice. Please choose 1-7.")
+            print("\nInvalid choice. Please choose 1-8.")

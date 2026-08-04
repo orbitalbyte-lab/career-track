@@ -2,7 +2,7 @@ from app.main import main
 
 
 def test_main(capsys, monkeypatch):
-    monkeypatch.setattr("builtins.input", lambda _: "7")
+    monkeypatch.setattr("builtins.input", lambda _: "8")
 
     main()
 

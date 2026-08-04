@@ -296,4 +296,68 @@ def test_company_service_rejects_deleting_company_with_applications():
         ):
             company_service.delete_company(company.id)
 
-        assert company_service.get_company(company.id) is not None            
+        assert company_service.get_company(company.id) is not None   
+
+def test_company_service_searches_companies():
+    setup_database()
+
+    with SessionLocal() as session:
+        service = CompanyService(session)
+
+        service.create_company(name="Microsoft")
+        service.create_company(name="Google")
+        service.create_company(name="Microsoft Azure")
+
+        results = service.search_companies("microsoft")
+
+        assert len(results) == 2
+        assert results[0].name == "Microsoft"
+        assert results[1].name == "Microsoft Azure"
+
+
+def test_company_service_search_returns_empty_for_blank_query():
+    setup_database()
+
+    with SessionLocal() as session:
+        service = CompanyService(session)
+
+        service.create_company(name="Microsoft")
+
+        results = service.search_companies("   ")
+
+        assert results == []      
+
+def test_application_service_gets_application():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Google",
+            industry="Technology",
+        )
+
+        created = application_service.create_application(
+            company_id=company.id,
+            position="Software Engineering Intern",
+            application_type="Internship",
+            date_applied=date(2026, 7, 30),
+            status="Applied",
+            location="Remote",
+            deadline=date(2026, 8, 15),
+            job_url="https://careers.google.com",
+            notes="Excellent internship opportunity.",
+        )
+
+        found = application_service.get_application(created.id)
+
+        assert found is not None
+        assert found.id == created.id
+        assert found.position == "Software Engineering Intern"
+        assert found.status == "Applied"
+        assert found.location == "Remote"
+        assert found.deadline == date(2026, 8, 15)
+        assert found.job_url == "https://careers.google.com"
+        assert found.notes == "Excellent internship opportunity."                   

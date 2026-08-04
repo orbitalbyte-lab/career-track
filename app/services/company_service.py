@@ -32,6 +32,14 @@ class CompanyService:
     def get_companies(self) -> list[CompanyDB]:
         return self.repository.get_all()
 
+    def search_companies(self, query: str) -> list[CompanyDB]:
+        query = query.strip()
+
+        if not query:
+            return []
+
+        return self.repository.search(query)    
+
     def update_company(
         self,
         company_id: int,
