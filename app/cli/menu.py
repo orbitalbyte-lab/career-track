@@ -16,13 +16,14 @@ def show_menu() -> None:
     print("3. View company")
     print("4. Update company")
     print("5. Delete company")
-    print("6. Add application")
-    print("7. List applications")
-    print("8. View application")
-    print("9. Update application")
-    print("10. Delete application")
-    print("11. Search applications")
-    print("12. Exit")
+    print("6. Search companies")
+    print("7. Add application")
+    print("8. List applications")
+    print("9. View application")
+    print("10. Update application")
+    print("11. Delete application")
+    print("12. Search applications")
+    print("13. Exit")
     print("=" * 40)
 
 
@@ -67,6 +68,37 @@ def list_companies() -> None:
                 f"{company.industry or 'N/A'} | "
                 f"{company.location or 'N/A'}"
             )
+
+def search_companies() -> None:
+    print("\n--- Search Companies ---")
+
+    query = input("Search company name: ").strip()
+
+    if not query:
+        print("Search query cannot be empty.")
+        return
+
+    with SessionLocal() as session:
+        service = CompanyService(session)
+
+        companies = service.search_companies(query)
+
+        if not companies:
+            print("No companies found.")
+            return
+
+        print(f"\nSearch results for: {query}")
+        print("-" * 60)
+
+        for company in companies:
+            print(
+                f"[{company.id}] "
+                f"{company.name} | "
+                f"{company.industry or 'N/A'} | "
+                f"{company.location or 'N/A'}"
+            )
+
+        print("-" * 60)
 
 def view_company() -> None:
     print("\n--- View Company ---")
@@ -486,19 +518,21 @@ def run() -> None:
         elif choice == "5":
             delete_company()
         elif choice == "6":
-            add_application()
+            search_companies()
         elif choice == "7":
-            list_applications()
+            add_application()
         elif choice == "8":
-            view_application()
+            list_applications()
         elif choice == "9":
-            update_application()
+            view_application()
         elif choice == "10":
-            delete_application()
+            update_application()
         elif choice == "11":
-            search_applications()
+            delete_application()
         elif choice == "12":
+            search_applications()
+        elif choice == "13":
             print("\nGoodbye!")
             break
         else:
-            print("\nInvalid choice. Please choose 1-12.")
+            print("\nInvalid choice. Please choose 1-13.")
