@@ -52,6 +52,55 @@ class ApplicationService:
     def get_applications(self) -> list[ApplicationDB]:
         return self.application_repository.get_all()
 
+    def update_application(
+        self,
+        application_id: int,
+        position: str | None = None,
+        application_type: str | None = None,
+        date_applied: date | None = None,
+        status: str | None = None,
+        location: str | None = None,
+        deadline: date | None = None,
+        job_url: str | None = None,
+        notes: str | None = None,
+    ) -> ApplicationDB | None:
+        application = self.application_repository.get_by_id(application_id)
+
+        if application is None:
+            return None
+
+        if position is not None:
+            if not position.strip():
+                raise ValueError("Position cannot be empty.")
+            application.position = position.strip()
+
+        if application_type is not None:
+            application.application_type = application_type.strip()
+
+        if date_applied is not None:
+           application.date_applied = date_applied
+
+        if status is not None:
+           application.status = status.strip()
+
+        if location is not None:
+           application.location = location.strip() or None
+
+        if deadline is not None:
+            if deadline < application.date_applied:
+                raise ValueError(
+                    "Deadline cannot be before the application date"
+                )
+            application.deadline = deadline
+
+        if job_url is not None:
+            application.job_url = job_url.strip() or None
+
+        if notes is not None:
+            application.notes = notes.strip() or None
+
+        return self.application_repository.update(application)
+
     def get_company_applications(
         self,
         company_id: int,

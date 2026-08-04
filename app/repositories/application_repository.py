@@ -27,6 +27,12 @@ class ApplicationRepository:
             .all()
         )
 
+    def update(self, application: ApplicationDB) -> ApplicationDB:
+        self.session.commit()
+        self.session.refresh(application)
+
+        return application
+
     def delete(self, application: ApplicationDB) -> None:
         self.session.delete(application)
         self.session.commit()

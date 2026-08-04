@@ -175,7 +175,7 @@ def test_company_service_update_unknown_company():
             name="Unknown Company",
         )
 
-        assert updated is None        
+        assert updated is None
 def test_company_service_updates_company():
     setup_database()
 
@@ -239,7 +239,7 @@ def test_company_service_update_unknown_company():
             name="Unknown Company",
         )
 
-        assert updated is None  
+        assert updated is None
 def test_company_service_rejects_empty_updated_name():
     setup_database()
 
@@ -254,7 +254,7 @@ def test_company_service_rejects_empty_updated_name():
             service.update_company(
                 company_id=company.id,
                 name="   ",
-            )              
+            )
 def test_company_service_deletes_company_without_applications():
     setup_database()
 
@@ -296,7 +296,7 @@ def test_company_service_rejects_deleting_company_with_applications():
         ):
             company_service.delete_company(company.id)
 
-        assert company_service.get_company(company.id) is not None   
+        assert company_service.get_company(company.id) is not None
 
 def test_company_service_searches_companies():
     setup_database()
@@ -325,7 +325,7 @@ def test_company_service_search_returns_empty_for_blank_query():
 
         results = service.search_companies("   ")
 
-        assert results == []      
+        assert results == []
 
 def test_application_service_gets_application():
     setup_database()
@@ -360,4 +360,79 @@ def test_application_service_gets_application():
         assert found.location == "Remote"
         assert found.deadline == date(2026, 8, 15)
         assert found.job_url == "https://careers.google.com"
-        assert found.notes == "Excellent internship opportunity."                   
+        assert found.notes == "Excellent internship opportunity."
+
+
+def test_application_service_updates_application():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Google",
+        )
+
+        application = application_service.create_application(
+            company_id=company.id,
+            position="Software Engineering Intern",
+            application_type="Internship",
+            date_applied=date(2026, 7, 30),
+            status="Applied",
+            location="Remote",
+            deadline=date(2026, 8, 15),
+            job_url="https://careers.google.com",
+            notes="Original notes",
+        )
+
+        updated = application_service.update_application(
+            application_id=application.id,
+            position="Backend Engineering Intern",
+            status="Interview",
+            location="Mountain View",
+            deadline=date(2026, 8, 20),
+            job_url="https://careers.google.com/backend",
+            notes="Passed initial screening.",
+        )
+
+        assert updated is not None
+        assert updated.position == "Backend Engineering Intern"
+        assert updated.status == "Interview"
+        assert updated.location == "Mountain View"
+        assert updated.deadline == date(2026, 8, 20)
+        assert updated.job_url == "https://careers.google.com/backend"
+        assert updated.notes == "Passed initial screening."
+
+
+def test_application_service_update_keeps_existing_values():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Microsoft",
+        )
+
+        application = application_service.create_application(
+            company_id=company.id,
+            position="Software Engineering Intern",
+            application_type="Internship",
+            date_applied=date(2026, 7, 30),
+            status="Applied",
+            location="Redmond",
+            notes="Original notes",
+        )
+
+        updated = application_service.update_application(
+            application_id=application.id,
+            position="Software Engineer Intern",
+        )
+
+        assert updated is not None
+        assert updated.position == "Software Engineer Intern"
+        assert updated.status == "Applied"
+        assert updated.location == "Redmond"
+        assert updated.notes == "Original notes"

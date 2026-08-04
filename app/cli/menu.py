@@ -18,7 +18,8 @@ def show_menu() -> None:
     print("5. Add application")
     print("6. List applications")
     print("7. View application")
-    print("8. Exit")
+    print("8. Update application")
+    print("9. Exit")
     print("=" * 40)
 
 
@@ -148,8 +149,8 @@ def update_company() -> None:
             print("\nCompany updated successfully!")
 
         except ValueError as error:
-            print(f"\nError: {error}")                    
- 
+            print(f"\nError: {error}")
+
 
 def add_application() -> None:
     print("\n--- Add Application ---")
@@ -279,7 +280,81 @@ def view_application() -> None:
         print(f"Deadline:       {application.deadline or 'N/A'}")
         print(f"Job URL:        {application.job_url or 'N/A'}")
         print(f"Notes:          {application.notes or 'N/A'}")
-        print("-" * 35)            
+        print("-" * 35)
+
+def update_application() -> None:
+    print("\n--- Update Application ---")
+
+    try:
+        application_id = int(input("Application ID: ").strip())
+    except ValueError:
+        print("Application ID must be a number.")
+        return
+
+    with SessionLocal() as session:
+        service = ApplicationService(session)
+
+        application = service.get_application(application_id)
+
+        if application is None:
+            print("Application not found.")
+            return
+
+        print("\nPress Enter to keep the current value.")
+
+        position = input(
+            f"Position [{application.position}]: "
+        ).strip()
+
+        status = input(
+            f"Status [{application.status}]: "
+        ).strip()
+
+        location = input(
+            f"Location [{application.location or 'N/A'}]: "
+        ).strip()
+
+        deadline = input(
+            f"Deadline [{application.deadline or 'N/A'}] "
+            "(YYYY-MM-DD): "
+        ).strip()
+
+        job_url = input(
+            f"Job URL [{application.job_url or 'N/A'}]: "
+        ).strip()
+
+        notes = input(
+            f"Notes [{application.notes or 'N/A'}]: "
+        ).strip()
+
+        parsed_deadline = None
+
+        if deadline:
+            try:
+                parsed_deadline = date.fromisoformat(deadline)
+            except ValueError:
+                print("Invalid deadline. Use YYYY-MM-DD.")
+                return
+
+        try:
+            updated = service.update_application(
+                application_id=application_id,
+                position=position if position else None,
+                status=status if status else None,
+                location=location if location else None,
+                deadline=parsed_deadline,
+                job_url=job_url if job_url else None,
+                notes=notes if notes else None,
+            )
+
+            if updated is None:
+                print("Application not found.")
+                return
+
+            print("\nApplication updated successfully!")
+
+        except ValueError as error:
+            print(f"\nError: {error}")
 
 
 def run() -> None:
@@ -303,7 +378,9 @@ def run() -> None:
         elif choice == "7":
             view_application()
         elif choice == "8":
-            print("\nGoodbye! 👋")
+            update_application()
+        elif choice == "9":
+            print("\nGoodbye! ðŸ‘‹")
             break
         else:
-            print("\nInvalid choice. Please choose 1-8.")
+            print("\nInvalid choice. Please choose 1-9.")
