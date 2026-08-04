@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.database.models.application import ApplicationDB
-
+from app.database.models.company import CompanyDB
 
 class ApplicationRepository:
     def __init__(self, session: Session) -> None:
@@ -28,9 +28,15 @@ class ApplicationRepository:
         )
 
     def search(self, query: str) -> list[ApplicationDB]:
+        search_term = f"%{query}%"
+
         return (
             self.session.query(ApplicationDB)
-            .filter(ApplicationDB.position.ilike(f"%{query}%"))
+            .join(ApplicationDB.company)
+            .filter(
+                ApplicationDB.position.ilike(search_term)
+                | CompanyDB.name.ilike(search_term)
+            )
             .order_by(ApplicationDB.position)
             .all()
         )

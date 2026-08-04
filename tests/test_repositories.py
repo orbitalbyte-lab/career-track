@@ -243,3 +243,90 @@ def test_application_repository_search_orders_by_position():
             "Data Analyst",
             "Software Engineer",
         ]
+
+def test_application_repository_searches_by_company_name():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_repository = CompanyRepository(session)
+        application_repository = ApplicationRepository(session)
+
+        google = company_repository.create(
+            CompanyDB(name="Google")
+        )
+
+        microsoft = company_repository.create(
+            CompanyDB(name="Microsoft")
+        )
+
+        application_repository.create(
+            ApplicationDB(
+                company_id=google.id,
+                position="Software Engineering Intern",
+                application_type="Internship",
+                date_applied=date(2026, 8, 4),
+                status="Applied",
+            )
+        )
+
+        application_repository.create(
+            ApplicationDB(
+                company_id=microsoft.id,
+                position="Data Analyst Intern",
+                application_type="Internship",
+                date_applied=date(2026, 8, 4),
+                status="Applied",
+            )
+        )
+
+        results = application_repository.search("google")
+
+        assert len(results) == 1
+        assert results[0].company.name == "Google"
+        assert results[0].position == "Software Engineering Intern"
+
+
+def test_application_repository_searches_by_position_or_company_name():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_repository = CompanyRepository(session)
+        application_repository = ApplicationRepository(session)
+
+        google = company_repository.create(
+            CompanyDB(name="Google")
+        )
+
+        microsoft = company_repository.create(
+            CompanyDB(name="Microsoft")
+        )
+
+        application_repository.create(
+            ApplicationDB(
+                company_id=google.id,
+                position="Software Engineering Intern",
+                application_type="Internship",
+                date_applied=date(2026, 8, 4),
+                status="Applied",
+            )
+        )
+
+        application_repository.create(
+            ApplicationDB(
+                company_id=microsoft.id,
+                position="Data Analyst Intern",
+                application_type="Internship",
+                date_applied=date(2026, 8, 4),
+                status="Applied",
+            )
+        )
+
+        results = application_repository.search("engineering")
+
+        assert len(results) == 1
+        assert results[0].position == "Software Engineering Intern"
+
+        results = application_repository.search("microsoft")
+
+        assert len(results) == 1
+        assert results[0].company.name == "Microsoft"
