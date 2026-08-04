@@ -4,6 +4,8 @@ import pytest
 
 from app.database.connection import Base, SessionLocal, engine
 from app.database.init_db import initialize_database
+from app.database.models.company import CompanyDB
+from app.repositories.company_repository import CompanyRepository
 from app.services.application_service import ApplicationService
 from app.services.company_service import CompanyService
 
@@ -112,6 +114,7 @@ def test_application_service_gets_company_applications():
         assert len(applications) == 1
         assert applications[0].position == "Backend Engineering Intern"
 
+
 def test_company_service_updates_company():
     setup_database()
 
@@ -176,70 +179,8 @@ def test_company_service_update_unknown_company():
         )
 
         assert updated is None
-def test_company_service_updates_company():
-    setup_database()
-
-    with SessionLocal() as session:
-        service = CompanyService(session)
-
-        company = service.create_company(
-            name="Google",
-            industry="Technology",
-            location="Mountain View",
-        )
-
-        updated = service.update_company(
-            company_id=company.id,
-            name="Google LLC",
-            industry="Internet Technology",
-            location="California",
-            website="https://google.com",
-            notes="Target company",
-        )
-
-        assert updated is not None
-        assert updated.name == "Google LLC"
-        assert updated.industry == "Internet Technology"
-        assert updated.location == "California"
-        assert updated.website == "https://google.com"
-        assert updated.notes == "Target company"
 
 
-def test_company_service_update_keeps_existing_values():
-    setup_database()
-
-    with SessionLocal() as session:
-        service = CompanyService(session)
-
-        company = service.create_company(
-            name="Microsoft",
-            industry="Technology",
-            location="Redmond",
-        )
-
-        updated = service.update_company(
-            company_id=company.id,
-            name="Microsoft Corporation",
-        )
-
-        assert updated is not None
-        assert updated.name == "Microsoft Corporation"
-        assert updated.industry == "Technology"
-        assert updated.location == "Redmond"
-
-
-def test_company_service_update_unknown_company():
-    setup_database()
-
-    with SessionLocal() as session:
-        service = CompanyService(session)
-
-        updated = service.update_company(
-            company_id=9999,
-            name="Unknown Company",
-        )
-
-        assert updated is None
 def test_company_service_rejects_empty_updated_name():
     setup_database()
 
@@ -250,11 +191,16 @@ def test_company_service_rejects_empty_updated_name():
             name="Google",
         )
 
-        with pytest.raises(ValueError, match="Company name cannot be empty"):
+        with pytest.raises(
+            ValueError,
+            match="Company name cannot be empty",
+        ):
             service.update_company(
                 company_id=company.id,
                 name="   ",
             )
+
+
 def test_company_service_deletes_company_without_applications():
     setup_database()
 
@@ -298,6 +244,7 @@ def test_company_service_rejects_deleting_company_with_applications():
 
         assert company_service.get_company(company.id) is not None
 
+
 def test_company_service_searches_companies():
     setup_database()
 
@@ -326,6 +273,7 @@ def test_company_service_search_returns_empty_for_blank_query():
         results = service.search_companies("   ")
 
         assert results == []
+
 
 def test_application_service_gets_application():
     setup_database()
@@ -437,6 +385,7 @@ def test_application_service_update_keeps_existing_values():
         assert updated.location == "Redmond"
         assert updated.notes == "Original notes"
 
+
 def test_application_service_deletes_application():
     setup_database()
 
@@ -524,3 +473,78 @@ def test_application_service_search_returns_empty_for_blank_query():
         results = application_service.search_applications("   ")
 
         assert results == []
+
+
+def test_application_service_searches_by_company_name():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_repository = CompanyRepository(session)
+        application_service = ApplicationService(session)
+
+        company = company_repository.create(
+            CompanyDB(name="Microsoft")
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 4),
+            status="Applied",
+        )
+
+        results = application_service.search_applications("microsoft")
+
+        assert len(results) == 1
+        assert results[0].company.name == "Microsoft"
+
+
+def test_application_service_searches_by_status():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_repository = CompanyRepository(session)
+        application_service = ApplicationService(session)
+
+        company = company_repository.create(
+            CompanyDB(name="Google")
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 4),
+            status="Interview",
+        )
+
+        results = application_service.search_applications("interview")
+
+        assert len(results) == 1
+        assert results[0].status == "Interview"
+
+
+def test_application_service_searches_by_application_type():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_repository = CompanyRepository(session)
+        application_service = ApplicationService(session)
+
+        company = company_repository.create(
+            CompanyDB(name="Amazon")
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer Intern",
+            application_type="Internship",
+            date_applied=date(2026, 8, 4),
+            status="Applied",
+        )
+
+        results = application_service.search_applications("internship")
+
+        assert len(results) == 1
+        assert results[0].application_type == "Internship"
