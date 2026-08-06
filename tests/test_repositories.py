@@ -158,6 +158,7 @@ def test_company_repository_search_orders_by_name():
             "Microsoft",
         ]
 
+
 def test_application_repository_searches_by_position():
     setup_database()
 
@@ -243,6 +244,7 @@ def test_application_repository_search_orders_by_position():
             "Data Analyst",
             "Software Engineer",
         ]
+
 
 def test_application_repository_searches_by_company_name():
     setup_database()
@@ -406,3 +408,51 @@ def test_application_repository_searches_by_application_type():
         assert len(results) == 1
         assert results[0].application_type == "Internship"
         assert results[0].position == "Software Engineering Intern"
+
+
+def test_application_repository_filters_by_status():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_repository = CompanyRepository(session)
+        application_repository = ApplicationRepository(session)
+
+        company = company_repository.create(
+            CompanyDB(name="Google")
+        )
+
+        application_repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Software Engineer",
+                application_type="Full-time",
+                date_applied=date(2026, 8, 4),
+                status="Applied",
+            )
+        )
+
+        application_repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Backend Engineer",
+                application_type="Full-time",
+                date_applied=date(2026, 8, 4),
+                status="Interview",
+            )
+        )
+
+        application_repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Data Analyst",
+                application_type="Internship",
+                date_applied=date(2026, 8, 4),
+                status="Rejected",
+            )
+        )
+
+        results = application_repository.get_by_status("Interview")
+
+        assert len(results) == 1
+        assert results[0].position == "Backend Engineer"
+        assert results[0].status == "Interview"

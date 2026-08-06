@@ -116,6 +116,15 @@ class ApplicationService:
     ) -> list[ApplicationDB]:
         return self.application_repository.get_by_company_id(company_id)
 
+    def get_applications_by_status(
+        self,
+        status: str,
+    ) -> list[ApplicationDB]:
+       if not status.strip():
+           return []
+
+       return self.application_repository.get_by_status(status.strip())
+
     def delete_application(self, application_id: int) -> bool:
         application = self.application_repository.get_by_id(application_id)
 

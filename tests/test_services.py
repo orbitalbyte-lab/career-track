@@ -548,3 +548,56 @@ def test_application_service_searches_by_application_type():
 
         assert len(results) == 1
         assert results[0].application_type == "Internship"
+
+def test_application_service_filters_by_status():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Google",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 4),
+            status="Applied",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Backend Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 4),
+            status="Interview",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Data Analyst",
+            application_type="Internship",
+            date_applied=date(2026, 8, 4),
+            status="Rejected",
+        )
+
+        results = application_service.get_applications_by_status(
+            "Interview"
+        )
+
+        assert len(results) == 1
+        assert results[0].position == "Backend Engineer"
+        assert results[0].status == "Interview"
+
+def test_application_service_status_filter_returns_empty_for_blank_status():
+    setup_database()
+
+    with SessionLocal() as session:
+        application_service = ApplicationService(session)
+
+        results = application_service.get_applications_by_status("   ")
+
+        assert results == []

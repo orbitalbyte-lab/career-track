@@ -27,6 +27,14 @@ class ApplicationRepository:
             .all()
         )
 
+    def get_by_status(self, status: str) -> list[ApplicationDB]:
+        return list(
+            self.session.query(ApplicationDB)
+            .filter(ApplicationDB.status == status)
+            .order_by(ApplicationDB.position)
+            .all()
+        )
+
     def search(self, query: str) -> list[ApplicationDB]:
         search_pattern = f"%{query}%"
 
