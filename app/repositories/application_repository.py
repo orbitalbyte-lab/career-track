@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.database.models.application import ApplicationDB
 from app.database.models.company import CompanyDB
 
+
 class ApplicationRepository:
     def __init__(self, session: Session) -> None:
         self.session = session
@@ -35,6 +36,19 @@ class ApplicationRepository:
             .all()
         )
 
+    def get_by_application_type(
+        self,
+        application_type: str,
+    ) -> list[ApplicationDB]:
+        return list(
+            self.session.query(ApplicationDB)
+            .filter(
+                ApplicationDB.application_type == application_type
+            )
+            .order_by(ApplicationDB.position)
+            .all()
+        )
+
     def search(self, query: str) -> list[ApplicationDB]:
         search_pattern = f"%{query}%"
 
@@ -43,14 +57,20 @@ class ApplicationRepository:
             .join(ApplicationDB.company)
             .filter(
                 (ApplicationDB.position.ilike(search_pattern))
-                | (ApplicationDB.company.has(
-                    CompanyDB.name.ilike(search_pattern)
-                ))
+                | (
+                    ApplicationDB.company.has(
+                        CompanyDB.name.ilike(search_pattern)
+                    )
+                )
                 | (ApplicationDB.status.ilike(search_pattern))
-                | (ApplicationDB.application_type.ilike(search_pattern))
-         )
-         .order_by(ApplicationDB.position)
-         .all()
+                | (
+                    ApplicationDB.application_type.ilike(
+                        search_pattern
+                    )
+                )
+            )
+            .order_by(ApplicationDB.position)
+            .all()
         )
 
     def update(self, application: ApplicationDB) -> ApplicationDB:

@@ -601,3 +601,46 @@ def test_application_service_status_filter_returns_empty_for_blank_status():
         results = application_service.get_applications_by_status("   ")
 
         assert results == []
+
+def test_application_service_filters_by_application_type():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Microsoft",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 4),
+            status="Applied",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Software Engineering Intern",
+            application_type="Internship",
+            date_applied=date(2026, 8, 4),
+            status="Applied",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Backend Intern",
+            application_type="Internship",
+            date_applied=date(2026, 8, 4),
+            status="Interview",
+        )
+
+        results = application_service.get_applications_by_application_type(
+            "Internship"
+        )
+
+        assert len(results) == 2
+        assert results[0].application_type == "Internship"
+        assert results[1].application_type == "Internship"
