@@ -644,3 +644,38 @@ def test_application_service_filters_by_application_type():
         assert len(results) == 2
         assert results[0].application_type == "Internship"
         assert results[1].application_type == "Internship"
+
+def test_application_service_filters_by_date():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Google",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Backend Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 4),
+            status="Applied",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 5),
+            status="Interview",
+        )
+
+        results = application_service.get_applications_by_date(
+            date(2026, 8, 4)
+        )
+
+        assert len(results) == 1
+        assert results[0].position == "Backend Engineer"
+        assert results[0].date_applied == date(2026, 8, 4)

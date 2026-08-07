@@ -125,6 +125,13 @@ class ApplicationService:
 
        return self.application_repository.get_by_status(status.strip())
 
+    def get_applications_by_date(
+        self,
+        application_date: date,
+    ) -> list[ApplicationDB]:
+       return self.application_repository.get_by_date(
+           application_date
+       )
     def get_applications_by_application_type(
         self,
         application_type: str,

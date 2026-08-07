@@ -1,8 +1,9 @@
+from datetime import date
+
 from sqlalchemy.orm import Session
 
 from app.database.models.application import ApplicationDB
 from app.database.models.company import CompanyDB
-
 
 class ApplicationRepository:
     def __init__(self, session: Session) -> None:
@@ -48,6 +49,19 @@ class ApplicationRepository:
             .order_by(ApplicationDB.position)
             .all()
         )
+
+    def get_by_date(
+        self,
+        application_date: date,
+    ) -> list[ApplicationDB]:
+       return list(
+           self.session.query(ApplicationDB)
+           .filter(
+               ApplicationDB.date_applied == application_date
+           )
+           .order_by(ApplicationDB.position)
+           .all()
+       )
 
     def search(self, query: str) -> list[ApplicationDB]:
         search_pattern = f"%{query}%"
