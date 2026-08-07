@@ -716,3 +716,102 @@ def test_application_service_filters_by_deadline():
         assert len(results) == 1
         assert results[0].position == "Backend Engineer"
         assert results[0].deadline == date(2026, 8, 20)
+
+def test_application_service_gets_total_applications_count():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Google",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 4),
+            status="Applied",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Backend Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 5),
+            status="Interview",
+        )
+
+        result = application_service.get_total_applications()
+
+        assert result == 2
+
+
+def test_application_service_counts_applications_by_status():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Microsoft",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 4),
+            status="Applied",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Backend Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 5),
+            status="Interview",
+        )
+
+        result = application_service.get_applications_count_by_status(
+            "Interview"
+        )
+
+        assert result == 1
+
+
+def test_application_service_counts_applications_by_type():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Amazon",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 4),
+            status="Applied",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Cloud Intern",
+            application_type="Internship",
+            date_applied=date(2026, 8, 5),
+            status="Applied",
+        )
+
+        result = application_service.get_applications_count_by_type(
+            "Internship"
+        )
+
+        assert result == 1
