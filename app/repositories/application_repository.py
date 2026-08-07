@@ -16,11 +16,19 @@ class ApplicationRepository:
 
         return application
 
-    def get_by_id(self, application_id: int) -> ApplicationDB | None:
-        return self.session.get(ApplicationDB, application_id)
-
     def get_all(self) -> list[ApplicationDB]:
-        return list(self.session.query(ApplicationDB).all())
+        return list(
+            self.session.query(ApplicationDB).all()
+        )
+
+    def get_all_sorted_by_date(self) -> list[ApplicationDB]:
+        return list(
+            self.session.query(ApplicationDB)
+            .order_by(
+                ApplicationDB.date_applied.desc()
+            )
+            .all()
+        )
 
     def get_by_company_id(self, company_id: int) -> list[ApplicationDB]:
         return list(
@@ -99,6 +107,9 @@ class ApplicationRepository:
             .order_by(ApplicationDB.position)
             .all()
         )
+
+    def get_by_id(self, application_id: int) -> ApplicationDB | None:
+        return self.session.get(ApplicationDB, application_id)
 
     def update(self, application: ApplicationDB) -> ApplicationDB:
         self.session.commit()
