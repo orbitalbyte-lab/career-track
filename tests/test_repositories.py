@@ -586,3 +586,40 @@ def test_application_repository_filters_by_deadline():
         assert len(results) == 1
         assert results[0].position == "Backend Engineer"
         assert results[0].deadline == date(2026, 8, 20)
+
+def test_application_repository_sorts_by_date_applied_descending():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_repository = CompanyRepository(session)
+        application_repository = ApplicationRepository(session)
+
+        company = company_repository.create(
+            CompanyDB(name="Google")
+        )
+
+        application_repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Old Application",
+                application_type="Full-time",
+                date_applied=date(2026, 8, 1),
+                status="Applied",
+            )
+        )
+
+        application_repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="New Application",
+                application_type="Full-time",
+                date_applied=date(2026, 8, 5),
+                status="Applied",
+            )
+        )
+
+        results = application_repository.get_all_sorted_by_date()
+
+        assert len(results) == 2
+        assert results[0].position == "New Application"
+        assert results[1].position == "Old Application"
