@@ -151,6 +151,31 @@ class ApplicationService:
         return self.application_repository.get_by_application_type(
             application_type.strip()
         )
+    def get_total_applications(self) -> int:
+        return self.application_repository.count_all()
+
+    def get_applications_count_by_status(
+        self,
+        status: str,
+    ) -> int:
+        if not status.strip():
+            return 0
+
+        return self.application_repository.count_by_status(
+            status.strip()
+        )
+
+    def get_applications_count_by_type(
+        self,
+        application_type: str,
+    ) -> int:
+        if not application_type.strip():
+            return 0
+
+        return self.application_repository.count_by_application_type(
+            application_type.strip()
+        )
+
     def delete_application(self, application_id: int) -> bool:
         application = self.application_repository.get_by_id(application_id)
 
