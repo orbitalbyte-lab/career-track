@@ -63,6 +63,19 @@ class ApplicationRepository:
            .all()
        )
 
+    def get_by_deadline(
+        self,
+        deadline: date,
+    ) -> list[ApplicationDB]:
+        return list(
+            self.session.query(ApplicationDB)
+            .filter(
+                ApplicationDB.deadline == deadline
+            )
+            .order_by(ApplicationDB.position)
+            .all()
+        )
+
     def search(self, query: str) -> list[ApplicationDB]:
         search_pattern = f"%{query}%"
 

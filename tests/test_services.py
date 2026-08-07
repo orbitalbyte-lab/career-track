@@ -679,3 +679,40 @@ def test_application_service_filters_by_date():
         assert len(results) == 1
         assert results[0].position == "Backend Engineer"
         assert results[0].date_applied == date(2026, 8, 4)
+
+def test_application_service_filters_by_deadline():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Google",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Backend Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 4),
+            deadline=date(2026, 8, 20),
+            status="Applied",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 5),
+            deadline=date(2026, 8, 25),
+            status="Interview",
+        )
+
+        results = application_service.get_applications_by_deadline(
+            date(2026, 8, 20)
+        )
+
+        assert len(results) == 1
+        assert results[0].position == "Backend Engineer"
+        assert results[0].deadline == date(2026, 8, 20)

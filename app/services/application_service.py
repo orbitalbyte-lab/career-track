@@ -132,6 +132,15 @@ class ApplicationService:
        return self.application_repository.get_by_date(
            application_date
        )
+
+    def get_applications_by_deadline(
+        self,
+        deadline: date,
+    ) -> list[ApplicationDB]:
+        return self.application_repository.get_by_deadline(
+            deadline
+        )
+
     def get_applications_by_application_type(
         self,
         application_type: str,
