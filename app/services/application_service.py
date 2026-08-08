@@ -73,7 +73,9 @@ class ApplicationService:
         job_url: str | None = None,
         notes: str | None = None,
     ) -> ApplicationDB | None:
-        application = self.application_repository.get_by_id(application_id)
+        application = self.application_repository.get_by_id(
+            application_id
+        )
 
         if application is None:
             return None
@@ -114,24 +116,28 @@ class ApplicationService:
         self,
         company_id: int,
     ) -> list[ApplicationDB]:
-        return self.application_repository.get_by_company_id(company_id)
+        return self.application_repository.get_by_company_id(
+            company_id
+        )
 
     def get_applications_by_status(
         self,
         status: str,
     ) -> list[ApplicationDB]:
-       if not status.strip():
-           return []
+        if not status.strip():
+            return []
 
-       return self.application_repository.get_by_status(status.strip())
+        return self.application_repository.get_by_status(
+            status.strip()
+        )
 
     def get_applications_by_date(
         self,
         application_date: date,
     ) -> list[ApplicationDB]:
-       return self.application_repository.get_by_date(
-           application_date
-       )
+        return self.application_repository.get_by_date(
+            application_date
+        )
 
     def get_applications_by_deadline(
         self,
@@ -151,8 +157,9 @@ class ApplicationService:
         return self.application_repository.get_by_application_type(
             application_type.strip()
         )
+
     def get_total_applications(self) -> int:
-        return self.application_repository.count_all()
+        return self.application_repository.get_total_count()
 
     def get_applications_count_by_status(
         self,
@@ -176,16 +183,36 @@ class ApplicationService:
             application_type.strip()
         )
 
-    def get_total_applications(self) -> int:
-        return self.application_repository.get_total_count()
     def get_application_type_statistics(self) -> dict[str, int]:
         return self.application_repository.get_application_type_counts()
+
     def get_status_statistics(self) -> dict[str, int]:
         return self.application_repository.get_status_counts()
+
     def get_company_statistics(self) -> dict[str, int]:
         return self.application_repository.get_company_statistics()
-    def delete_application(self, application_id: int) -> bool:
-        application = self.application_repository.get_by_id(application_id)
+
+    def get_dashboard_statistics(self) -> dict:
+        return {
+            "total": self.application_repository.get_total_count(),
+            "by_status": self.application_repository.get_status_counts(),
+            "by_application_type": (
+                self.application_repository
+                .get_application_type_counts()
+            ),
+            "by_company": (
+                self.application_repository
+                .get_company_statistics()
+            ),
+        }
+
+    def delete_application(
+        self,
+        application_id: int,
+    ) -> bool:
+        application = self.application_repository.get_by_id(
+            application_id
+        )
 
         if application is None:
             return False

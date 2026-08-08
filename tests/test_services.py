@@ -975,3 +975,60 @@ def test_application_service_gets_applications_by_company_count():
             "Microsoft": 2,
             "Google": 1,
         }
+
+def test_application_service_gets_dashboard_statistics():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        microsoft = company_service.create_company(
+            name="Microsoft",
+        )
+
+        google = company_service.create_company(
+            name="Google",
+        )
+
+        application_service.create_application(
+            company_id=microsoft.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 4),
+            status="Applied",
+        )
+
+        application_service.create_application(
+            company_id=microsoft.id,
+            position="Backend Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 5),
+            status="Interview",
+        )
+
+        application_service.create_application(
+            company_id=google.id,
+            position="Frontend Engineer",
+            application_type="Internship",
+            date_applied=date(2026, 8, 6),
+            status="Applied",
+        )
+
+        result = application_service.get_dashboard_statistics()
+
+        assert result == {
+            "total": 3,
+            "by_status": {
+                "Applied": 2,
+                "Interview": 1,
+            },
+            "by_application_type": {
+                "Full-time": 2,
+                "Internship": 1,
+            },
+            "by_company": {
+                "Microsoft": 2,
+                "Google": 1,
+            },
+        }
