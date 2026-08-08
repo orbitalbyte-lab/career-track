@@ -610,6 +610,27 @@ def show_dashboard() -> None:
         else:
             print("No applications found.")
 
+        recent_applications = service.get_recent_applications()
+
+        print("\nRecent Applications")
+        print("-" * 35)
+
+        if recent_applications:
+            for application in recent_applications:
+                company_name = (
+                    application.company.name
+                    if application.company
+                    else "N/A"
+                )
+
+                print(
+                    f"{application.position} | "
+                    f"{company_name} | "
+                    f"{application.date_applied}"
+                )
+        else:
+            print("No applications found.")
+
         print("-" * 35)
 
 def run() -> None:
