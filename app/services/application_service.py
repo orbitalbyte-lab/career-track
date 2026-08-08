@@ -158,6 +158,32 @@ class ApplicationService:
             application_type.strip()
         )
 
+    def filter_applications(
+        self,
+        status: str | None = None,
+        application_type: str | None = None,
+        company_id: int | None = None,
+        date_applied: date | None = None,
+    ) -> list[ApplicationDB]:
+       if status is not None:
+           status = status.strip()
+
+           if not status:
+               status = None
+
+       if application_type is not None:
+           application_type = application_type.strip()
+
+           if not application_type:
+               application_type = None
+
+       return self.application_repository.filter_applications(
+           status=status,
+           application_type=application_type,
+           company_id=company_id,
+           date_applied=date_applied,
+       )
+
     def get_total_applications(self) -> int:
         return self.application_repository.get_total_count()
 

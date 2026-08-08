@@ -1071,3 +1071,148 @@ def test_application_service_calculates_success_rate():
         result = application_service.get_dashboard_statistics()
 
         assert result["success_rate"] == pytest.approx(33.33333333333333)
+
+def test_application_service_filters_by_status():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Microsoft",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 4),
+            status="Applied",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Backend Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 5),
+            status="Interview",
+        )
+
+        result = application_service.filter_applications(
+            status="Interview",
+        )
+
+        assert len(result) == 1
+        assert result[0].position == "Backend Engineer"
+
+
+def test_application_service_filters_by_application_type():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Google",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 4),
+            status="Applied",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Frontend Intern",
+            application_type="Internship",
+            date_applied=date(2026, 8, 5),
+            status="Applied",
+        )
+
+        result = application_service.filter_applications(
+            application_type="Internship",
+        )
+
+        assert len(result) == 1
+        assert result[0].position == "Frontend Intern"
+
+
+def test_application_service_filters_by_company():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        microsoft = company_service.create_company(
+            name="Microsoft",
+        )
+
+        google = company_service.create_company(
+            name="Google",
+        )
+
+        application_service.create_application(
+            company_id=microsoft.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 4),
+            status="Applied",
+        )
+
+        application_service.create_application(
+            company_id=google.id,
+            position="Frontend Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 5),
+            status="Applied",
+        )
+
+        result = application_service.filter_applications(
+            company_id=microsoft.id,
+        )
+
+        assert len(result) == 1
+        assert result[0].position == "Software Engineer"
+
+
+def test_application_service_filters_by_multiple_fields():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        microsoft = company_service.create_company(
+            name="Microsoft",
+        )
+
+        application_service.create_application(
+            company_id=microsoft.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 4),
+            status="Applied",
+        )
+
+        application_service.create_application(
+            company_id=microsoft.id,
+            position="Backend Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 5),
+            status="Interview",
+        )
+
+        result = application_service.filter_applications(
+            status="Interview",
+            application_type="Full-time",
+            company_id=microsoft.id,
+        )
+
+        assert len(result) == 1
+        assert result[0].position == "Backend Engineer"

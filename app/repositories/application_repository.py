@@ -10,7 +10,10 @@ class ApplicationRepository:
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    def create(self, application: ApplicationDB) -> ApplicationDB:
+    def create(
+        self,
+        application: ApplicationDB,
+    ) -> ApplicationDB:
         self.session.add(application)
         self.session.commit()
         self.session.refresh(application)
@@ -22,7 +25,9 @@ class ApplicationRepository:
             self.session.query(ApplicationDB).all()
         )
 
-    def get_all_sorted_by_date(self) -> list[ApplicationDB]:
+    def get_all_sorted_by_date(
+        self,
+    ) -> list[ApplicationDB]:
         return list(
             self.session.query(ApplicationDB)
             .order_by(
@@ -63,7 +68,8 @@ class ApplicationRepository:
         return list(
             self.session.query(ApplicationDB)
             .filter(
-                ApplicationDB.application_type == application_type
+                ApplicationDB.application_type
+                == application_type
             )
             .order_by(ApplicationDB.position)
             .all()
@@ -76,7 +82,8 @@ class ApplicationRepository:
         return list(
             self.session.query(ApplicationDB)
             .filter(
-                ApplicationDB.date_applied == application_date
+                ApplicationDB.date_applied
+                == application_date
             )
             .order_by(ApplicationDB.position)
             .all()
@@ -95,6 +102,45 @@ class ApplicationRepository:
             .all()
         )
 
+    def filter_applications(
+        self,
+        status: str | None = None,
+        application_type: str | None = None,
+        company_id: int | None = None,
+        date_applied: date | None = None,
+    ) -> list[ApplicationDB]:
+        query = self.session.query(ApplicationDB)
+
+        if status is not None:
+            query = query.filter(
+                ApplicationDB.status == status
+            )
+
+        if application_type is not None:
+            query = query.filter(
+                ApplicationDB.application_type
+                == application_type
+            )
+
+        if company_id is not None:
+            query = query.filter(
+                ApplicationDB.company_id == company_id
+            )
+
+        if date_applied is not None:
+            query = query.filter(
+                ApplicationDB.date_applied
+                == date_applied
+            )
+
+        return list(
+            query
+            .order_by(
+                ApplicationDB.date_applied.desc()
+            )
+            .all()
+        )
+
     def search(
         self,
         query: str,
@@ -105,14 +151,22 @@ class ApplicationRepository:
             self.session.query(ApplicationDB)
             .join(ApplicationDB.company)
             .filter(
-                (ApplicationDB.position.ilike(search_pattern))
-                | (
-                    ApplicationDB.company.has(
-                        CompanyDB.name.ilike(search_pattern)
+                (
+                    ApplicationDB.position.ilike(
+                        search_pattern
                     )
                 )
                 | (
-                    ApplicationDB.status.ilike(search_pattern)
+                    ApplicationDB.company.has(
+                        CompanyDB.name.ilike(
+                            search_pattern
+                        )
+                    )
+                )
+                | (
+                    ApplicationDB.status.ilike(
+                        search_pattern
+                    )
                 )
                 | (
                     ApplicationDB.application_type.ilike(
@@ -125,7 +179,9 @@ class ApplicationRepository:
         )
 
     def count_all(self) -> int:
-        return self.session.query(ApplicationDB).count()
+        return self.session.query(
+            ApplicationDB
+        ).count()
 
     def count_by_status(
         self,
@@ -146,7 +202,8 @@ class ApplicationRepository:
         return (
             self.session.query(ApplicationDB)
             .filter(
-                ApplicationDB.application_type == application_type
+                ApplicationDB.application_type
+                == application_type
             )
             .count()
         )
@@ -161,15 +218,21 @@ class ApplicationRepository:
         )
 
     def get_total_count(self) -> int:
-        return self.session.query(ApplicationDB).count()
+        return self.session.query(
+            ApplicationDB
+        ).count()
 
-    def get_application_type_counts(self) -> dict[str, int]:
+    def get_application_type_counts(
+        self,
+    ) -> dict[str, int]:
         applications = self.get_all()
 
         statistics: dict[str, int] = {}
 
         for application in applications:
-            application_type = application.application_type
+            application_type = (
+                application.application_type
+            )
 
             if application_type not in statistics:
                 statistics[application_type] = 0
@@ -178,7 +241,9 @@ class ApplicationRepository:
 
         return statistics
 
-    def get_status_counts(self) -> dict[str, int]:
+    def get_status_counts(
+        self,
+    ) -> dict[str, int]:
         applications = self.get_all()
 
         statistics: dict[str, int] = {}
@@ -193,7 +258,9 @@ class ApplicationRepository:
 
         return statistics
 
-    def get_company_statistics(self) -> dict[str, int]:
+    def get_company_statistics(
+        self,
+    ) -> dict[str, int]:
         applications = (
             self.session.query(ApplicationDB)
             .join(ApplicationDB.company)
@@ -203,7 +270,9 @@ class ApplicationRepository:
         statistics: dict[str, int] = {}
 
         for application in applications:
-            company_name = application.company.name
+            company_name = (
+                application.company.name
+            )
 
             if company_name not in statistics:
                 statistics[company_name] = 0
