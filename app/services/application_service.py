@@ -183,25 +183,27 @@ class ApplicationService:
             application_type.strip()
         )
 
-    def get_application_type_statistics(self) -> dict[str, int]:
+    def get_application_type_statistics(
+        self,
+    ) -> dict[str, int]:
         return self.application_repository.get_application_type_counts()
 
-    def get_status_statistics(self) -> dict[str, int]:
+    def get_status_statistics(
+        self,
+    ) -> dict[str, int]:
         return self.application_repository.get_status_counts()
 
-    def get_company_statistics(self) -> dict[str, int]:
+    def get_company_statistics(
+        self,
+    ) -> dict[str, int]:
         return self.application_repository.get_company_statistics()
 
     def get_dashboard_statistics(self) -> dict:
         total = self.application_repository.get_total_count()
 
-        by_status = (
-            self.application_repository.get_status_counts()
-        )
+        by_status = self.application_repository.get_status_counts()
 
-        successful_applications = (
-            by_status.get("Offer", 0)
-        )
+        successful_applications = by_status.get("Offer", 0)
 
         success_rate = (
             (successful_applications / total) * 100
@@ -214,17 +216,23 @@ class ApplicationService:
             "total_companies": len(
                 self.company_repository.get_all()
             ),
-           "by_status": by_status,
-           "by_application_type": (
-               self.application_repository
-               .get_application_type_counts()
+            "by_status": by_status,
+            "by_application_type": (
+                self.application_repository
+                .get_application_type_counts()
             ),
             "by_company": (
                 self.application_repository
-               .get_company_statistics()
+                .get_company_statistics()
             ),
             "success_rate": success_rate,
         }
+
+    def get_recent_applications(
+        self,
+    ) -> list[ApplicationDB]:
+        return self.application_repository.get_all_sorted_by_date()[:5]
+
     def delete_application(
         self,
         application_id: int,
