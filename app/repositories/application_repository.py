@@ -163,6 +163,21 @@ class ApplicationRepository:
     def get_total_count(self) -> int:
         return self.session.query(ApplicationDB).count()
 
+    def get_application_type_counts(self) -> dict[str, int]:
+        applications = self.get_all()
+
+        statistics: dict[str, int] = {}
+
+        for application in applications:
+            application_type = application.application_type
+
+            if application_type not in statistics:
+                statistics[application_type] = 0
+
+            statistics[application_type] += 1
+
+        return statistics
+
     def get_status_counts(self) -> dict[str, int]:
         applications = self.get_all()
 

@@ -178,8 +178,8 @@ class ApplicationService:
 
     def get_total_applications(self) -> int:
         return self.application_repository.get_total_count()
-
-
+    def get_application_type_statistics(self) -> dict[str, int]:
+        return self.application_repository.get_application_type_counts()
     def get_status_statistics(self) -> dict[str, int]:
         return self.application_repository.get_status_counts()
 

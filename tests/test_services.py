@@ -887,3 +887,45 @@ def test_application_service_gets_applications_by_status_count():
 
         assert result["Applied"] == 2
         assert result["Interview"] == 1
+
+def test_application_service_gets_applications_by_application_type_count():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Microsoft",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 4),
+            status="Applied",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Backend Engineer",
+            application_type="Internship",
+            date_applied=date(2026, 8, 5),
+            status="Interview",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Frontend Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 6),
+            status="Applied",
+        )
+
+        result = application_service.get_application_type_statistics()
+
+        assert result == {
+            "Full-time": 2,
+            "Internship": 1,
+        }
