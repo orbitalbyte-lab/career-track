@@ -32,4 +32,5 @@ def test_main_dashboard_option(capsys, monkeypatch):
     assert "Applications by Status" in captured.out
     assert "Applications by Type" in captured.out
     assert "Applications by Company" in captured.out
+    assert "Upcoming Deadlines" in captured.out
     assert "Goodbye!" in captured.out
