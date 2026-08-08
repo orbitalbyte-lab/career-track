@@ -195,16 +195,21 @@ class ApplicationService:
     def get_dashboard_statistics(self) -> dict:
         return {
             "total": self.application_repository.get_total_count(),
-            "by_status": self.application_repository.get_status_counts(),
-            "by_application_type": (
-                self.application_repository
-                .get_application_type_counts()
+            "total_companies": len(
+                self.company_repository.get_all()
             ),
-            "by_company": (
-                self.application_repository
-                .get_company_statistics()
-            ),
-        }
+            "by_status": (
+                self.application_repository.get_status_counts()
+        ),
+        "by_application_type": (
+            self.application_repository
+            .get_application_type_counts()
+        ),
+        "by_company": (
+            self.application_repository
+            .get_company_statistics()
+        ),
+    }
 
     def delete_application(
         self,

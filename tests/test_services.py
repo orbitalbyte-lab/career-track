@@ -975,7 +975,6 @@ def test_application_service_gets_applications_by_company_count():
             "Microsoft": 2,
             "Google": 1,
         }
-
 def test_application_service_gets_dashboard_statistics():
     setup_database()
 
@@ -1019,6 +1018,7 @@ def test_application_service_gets_dashboard_statistics():
 
         assert result == {
             "total": 3,
+            "total_companies": 2,
             "by_status": {
                 "Applied": 2,
                 "Interview": 1,

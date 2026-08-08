@@ -549,7 +549,6 @@ def delete_application() -> None:
         else:
             print("Application not found.")
 
-
 def show_dashboard() -> None:
     print("\n--- CareerTrack Dashboard ---")
 
@@ -559,6 +558,7 @@ def show_dashboard() -> None:
         statistics = service.get_dashboard_statistics()
 
         total = statistics["total"]
+        total_companies = statistics["total_companies"]
         by_status = statistics["by_status"]
         by_application_type = statistics[
             "by_application_type"
@@ -568,6 +568,10 @@ def show_dashboard() -> None:
         print("\nTotal Applications")
         print("-" * 35)
         print(total)
+
+        print("\nTotal Companies")
+        print("-" * 35)
+        print(total_companies)
 
         print("\nApplications by Status")
         print("-" * 35)
