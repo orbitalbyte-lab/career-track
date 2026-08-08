@@ -193,24 +193,38 @@ class ApplicationService:
         return self.application_repository.get_company_statistics()
 
     def get_dashboard_statistics(self) -> dict:
+        total = self.application_repository.get_total_count()
+
+        by_status = (
+            self.application_repository.get_status_counts()
+        )
+
+        successful_applications = (
+            by_status.get("Offer", 0)
+        )
+
+        success_rate = (
+            (successful_applications / total) * 100
+            if total > 0
+            else 0.0
+        )
+
         return {
-            "total": self.application_repository.get_total_count(),
+            "total": total,
             "total_companies": len(
                 self.company_repository.get_all()
             ),
-            "by_status": (
-                self.application_repository.get_status_counts()
-        ),
-        "by_application_type": (
-            self.application_repository
-            .get_application_type_counts()
-        ),
-        "by_company": (
-            self.application_repository
-            .get_company_statistics()
-        ),
-    }
-
+           "by_status": by_status,
+           "by_application_type": (
+               self.application_repository
+               .get_application_type_counts()
+            ),
+            "by_company": (
+                self.application_repository
+               .get_company_statistics()
+            ),
+            "success_rate": success_rate,
+        }
     def delete_application(
         self,
         application_id: int,

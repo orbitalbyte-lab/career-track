@@ -1031,4 +1031,43 @@ def test_application_service_gets_dashboard_statistics():
                 "Microsoft": 2,
                 "Google": 1,
             },
+           "success_rate": 0.0
         }
+def test_application_service_calculates_success_rate():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Microsoft",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 4),
+            status="Offer",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Backend Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 5),
+            status="Applied",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Frontend Engineer",
+            application_type="Internship",
+            date_applied=date(2026, 8, 6),
+            status="Rejected",
+        )
+
+        result = application_service.get_dashboard_statistics()
+
+        assert result["success_rate"] == pytest.approx(33.33333333333333)
