@@ -101,6 +101,23 @@ class ApplicationRepository:
             .order_by(ApplicationDB.position)
             .all()
         )
+    def get_upcoming_deadlines(
+        self,
+        today: date,
+        limit: int = 5,
+    ) -> list[ApplicationDB]:
+       return list(
+           self.session.query(ApplicationDB)
+           .filter(
+               ApplicationDB.deadline.isnot(None),
+               ApplicationDB.deadline >= today,
+           )
+           .order_by(
+               ApplicationDB.deadline.asc()
+           )
+           .limit(limit)
+           .all()
+       )
 
     def filter_applications(
         self,

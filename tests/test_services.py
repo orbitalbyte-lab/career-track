@@ -1216,3 +1216,49 @@ def test_application_service_filters_by_multiple_fields():
 
         assert len(result) == 1
         assert result[0].position == "Backend Engineer"
+
+def test_application_service_gets_upcoming_deadlines():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Microsoft",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 1),
+            status="Applied",
+            deadline=date(2026, 8, 15),
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Backend Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 2),
+            status="Interview",
+            deadline=date(2026, 8, 10),
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Frontend Engineer",
+            application_type="Internship",
+            date_applied=date(2026, 8, 3),
+            status="Applied",
+            deadline=date(2026, 8, 5),
+        )
+
+        result = application_service.get_upcoming_deadlines(
+            today=date(2026, 8, 8),
+        )
+
+        assert len(result) == 2
+        assert result[0].position == "Backend Engineer"
+        assert result[1].position == "Software Engineer"

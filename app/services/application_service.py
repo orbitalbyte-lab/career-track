@@ -258,7 +258,18 @@ class ApplicationService:
         self,
     ) -> list[ApplicationDB]:
         return self.application_repository.get_all_sorted_by_date()[:5]
+    def get_upcoming_deadlines(
+        self,
+        today: date,
+        limit: int = 5,
+    ) -> list[ApplicationDB]:
+        if limit <= 0:
+            return []
 
+        return self.application_repository.get_upcoming_deadlines(
+            today=today,
+            limit=limit,
+        )
     def delete_application(
         self,
         application_id: int,

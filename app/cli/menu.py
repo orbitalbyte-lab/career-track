@@ -622,6 +622,13 @@ def show_dashboard() -> None:
         ]
         by_company = statistics["by_company"]
 
+        # Get recent applications and upcoming deadlines
+        recent_applications = service.get_recent_applications()
+
+        upcoming_deadlines = service.get_upcoming_deadlines(
+            today=date.today(),
+        )
+
         print("\nTotal Applications")
         print("-" * 35)
         print(total)
@@ -667,8 +674,6 @@ def show_dashboard() -> None:
         else:
             print("No applications found.")
 
-        recent_applications = service.get_recent_applications()
-
         print("\nRecent Applications")
         print("-" * 35)
 
@@ -689,6 +694,28 @@ def show_dashboard() -> None:
             print("No applications found.")
 
         print("-" * 35)
+
+        print("\nUpcoming Deadlines")
+        print("-" * 60)
+
+        if upcoming_deadlines:
+            for application in upcoming_deadlines:
+                company_name = (
+                    application.company.name
+                    if application.company
+                    else "N/A"
+                )
+
+                print(
+                    f"{application.position} | "
+                    f"{company_name} | "
+                    f"Deadline: {application.deadline} | "
+                    f"Status: {application.status}"
+                )
+        else:
+            print("No upcoming deadlines.")
+
+        print("-" * 60)
 
 def run() -> None:
     while True:
