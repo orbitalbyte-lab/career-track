@@ -548,7 +548,6 @@ def delete_application() -> None:
             )
         else:
             print("Application not found.")
-
 def show_dashboard() -> None:
     print("\n--- CareerTrack Dashboard ---")
 
@@ -559,6 +558,7 @@ def show_dashboard() -> None:
 
         total = statistics["total"]
         total_companies = statistics["total_companies"]
+        success_rate = statistics["success_rate"]
         by_status = statistics["by_status"]
         by_application_type = statistics[
             "by_application_type"
@@ -572,6 +572,10 @@ def show_dashboard() -> None:
         print("\nTotal Companies")
         print("-" * 35)
         print(total_companies)
+
+        print("\nSuccess Rate")
+        print("-" * 35)
+        print(f"{success_rate:.1f}%")
 
         print("\nApplications by Status")
         print("-" * 35)
