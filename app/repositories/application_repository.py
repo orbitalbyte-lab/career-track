@@ -31,17 +31,27 @@ class ApplicationRepository:
             .all()
         )
 
-    def get_by_company_id(self, company_id: int) -> list[ApplicationDB]:
+    def get_by_company_id(
+        self,
+        company_id: int,
+    ) -> list[ApplicationDB]:
         return list(
             self.session.query(ApplicationDB)
-            .filter(ApplicationDB.company_id == company_id)
+            .filter(
+                ApplicationDB.company_id == company_id
+            )
             .all()
         )
 
-    def get_by_status(self, status: str) -> list[ApplicationDB]:
+    def get_by_status(
+        self,
+        status: str,
+    ) -> list[ApplicationDB]:
         return list(
             self.session.query(ApplicationDB)
-            .filter(ApplicationDB.status == status)
+            .filter(
+                ApplicationDB.status == status
+            )
             .order_by(ApplicationDB.position)
             .all()
         )
@@ -85,7 +95,10 @@ class ApplicationRepository:
             .all()
         )
 
-    def search(self, query: str) -> list[ApplicationDB]:
+    def search(
+        self,
+        query: str,
+    ) -> list[ApplicationDB]:
         search_pattern = f"%{query}%"
 
         return (
@@ -98,7 +111,9 @@ class ApplicationRepository:
                         CompanyDB.name.ilike(search_pattern)
                     )
                 )
-                | (ApplicationDB.status.ilike(search_pattern))
+                | (
+                    ApplicationDB.status.ilike(search_pattern)
+                )
                 | (
                     ApplicationDB.application_type.ilike(
                         search_pattern
@@ -112,7 +127,10 @@ class ApplicationRepository:
     def count_all(self) -> int:
         return self.session.query(ApplicationDB).count()
 
-    def count_by_status(self, status: str) -> int:
+    def count_by_status(
+        self,
+        status: str,
+    ) -> int:
         return (
             self.session.query(ApplicationDB)
             .filter(
@@ -133,15 +151,45 @@ class ApplicationRepository:
             .count()
         )
 
-    def get_by_id(self, application_id: int) -> ApplicationDB | None:
-        return self.session.get(ApplicationDB, application_id)
+    def get_by_id(
+        self,
+        application_id: int,
+    ) -> ApplicationDB | None:
+        return self.session.get(
+            ApplicationDB,
+            application_id,
+        )
 
-    def update(self, application: ApplicationDB) -> ApplicationDB:
+    def get_total_count(self) -> int:
+        return self.session.query(ApplicationDB).count()
+
+    def get_status_counts(self) -> dict[str, int]:
+        applications = self.get_all()
+
+        statistics: dict[str, int] = {}
+
+        for application in applications:
+            status = application.status
+
+            if status not in statistics:
+                statistics[status] = 0
+
+            statistics[status] += 1
+
+        return statistics
+
+    def update(
+        self,
+        application: ApplicationDB,
+    ) -> ApplicationDB:
         self.session.commit()
         self.session.refresh(application)
 
         return application
 
-    def delete(self, application: ApplicationDB) -> None:
+    def delete(
+        self,
+        application: ApplicationDB,
+    ) -> None:
         self.session.delete(application)
         self.session.commit()

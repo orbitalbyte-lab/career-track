@@ -176,6 +176,13 @@ class ApplicationService:
             application_type.strip()
         )
 
+    def get_total_applications(self) -> int:
+        return self.application_repository.get_total_count()
+
+
+    def get_status_statistics(self) -> dict[str, int]:
+        return self.application_repository.get_status_counts()
+
     def delete_application(self, application_id: int) -> bool:
         application = self.application_repository.get_by_id(application_id)
 
