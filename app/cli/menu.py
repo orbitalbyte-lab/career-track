@@ -24,7 +24,8 @@ def show_menu() -> None:
     print("11. Delete application")
     print("12. Search applications")
     print("13. Dashboard")
-    print("14. Exit")
+    print("14. Filter applications")
+    print("15. Exit")
     print("=" * 40)
 
 def add_company() -> None:
@@ -502,7 +503,63 @@ def search_applications() -> None:
 
         print("-" * 60)
 
+def filter_applications() -> None:
+    print("\n--- Filter Applications ---")
 
+    print("\nLeave a field empty to ignore that filter.")
+
+    status = input(
+        "Status (Applied/Interview/Rejected/etc.): "
+    ).strip()
+
+    application_type = input(
+        "Application type (Full-time/Internship/etc.): "
+    ).strip()
+
+    company_id_input = input(
+        "Company ID: "
+    ).strip()
+
+    company_id = None
+
+    if company_id_input:
+        try:
+            company_id = int(company_id_input)
+        except ValueError:
+            print("Company ID must be a number.")
+            return
+
+    if not status and not application_type and company_id is None:
+        print("Please provide at least one filter.")
+        return
+
+    with SessionLocal() as session:
+        service = ApplicationService(session)
+
+        applications = service.filter_applications(
+            status=status or None,
+            application_type=application_type or None,
+            company_id=company_id,
+        )
+
+        if not applications:
+            print("\nNo applications found.")
+            return
+
+        print("\nFiltered Applications")
+        print("-" * 60)
+
+        for application in applications:
+            print(
+                f"[{application.id}] "
+                f"{application.position} | "
+                f"Company ID: {application.company_id} | "
+                f"Type: {application.application_type} | "
+                f"Status: {application.status}"
+            )
+
+        print("-" * 60)
+        print(f"Total results: {len(applications)}")
 def delete_application() -> None:
     print("\n--- Delete Application ---")
 
@@ -681,10 +738,13 @@ def run() -> None:
             show_dashboard()
 
         elif choice == "14":
+            filter_applications()
+
+        elif choice == "15":
             print("\nGoodbye!")
             break
 
         else:
-            print(
-                "\nInvalid choice. Please choose 1-14."
-            )
+           print(
+               "\nInvalid choice. Please choose 1-15."
+           )
