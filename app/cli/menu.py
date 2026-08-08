@@ -23,9 +23,9 @@ def show_menu() -> None:
     print("10. Update application")
     print("11. Delete application")
     print("12. Search applications")
-    print("13. Exit")
+    print("13. Dashboard")
+    print("14. Exit")
     print("=" * 40)
-
 
 def add_company() -> None:
     print("\n--- Add Company ---")
@@ -69,6 +69,7 @@ def list_companies() -> None:
                 f"{company.location or 'N/A'}"
             )
 
+
 def search_companies() -> None:
     print("\n--- Search Companies ---")
 
@@ -100,6 +101,7 @@ def search_companies() -> None:
 
         print("-" * 60)
 
+
 def view_company() -> None:
     print("\n--- View Company ---")
 
@@ -126,6 +128,7 @@ def view_company() -> None:
         print(f"Website:  {company.website or 'N/A'}")
         print(f"Notes:    {company.notes or 'N/A'}")
         print("-" * 30)
+
 
 def update_company() -> None:
     print("\n--- Update Company ---")
@@ -186,6 +189,7 @@ def update_company() -> None:
         except ValueError as error:
             print(f"\nError: {error}")
 
+
 def delete_company() -> None:
     print("\n--- Delete Company ---")
 
@@ -228,6 +232,7 @@ def delete_company() -> None:
         except ValueError as error:
             print(f"\nError: {error}")
 
+
 def add_application() -> None:
     print("\n--- Add Application ---")
 
@@ -244,28 +249,40 @@ def add_application() -> None:
     application_types = list(ApplicationType)
 
     for index, application_type_option in enumerate(
-        application_types, start=1
+        application_types,
+        start=1,
     ):
         print(f"{index}. {application_type_option.value}")
 
-    application_type_choice = input("Application type: ").strip()
+    application_type_choice = input(
+        "Application type: "
+    ).strip()
 
     try:
-        application_type_index = int(application_type_choice) - 1
+        application_type_index = (
+            int(application_type_choice) - 1
+        )
+
         application_type = application_types[
             application_type_index
         ].value
+
     except (ValueError, IndexError):
         print("Invalid application type selection.")
         return
 
-    date_applied = input("Date applied (YYYY-MM-DD): ").strip()
+    date_applied = input(
+        "Date applied (YYYY-MM-DD): "
+    ).strip()
 
     print("\nSelect application status:")
 
     statuses = list(ApplicationStatus)
 
-    for index, application_status in enumerate(statuses, start=1):
+    for index, application_status in enumerate(
+        statuses,
+        start=1,
+    ):
         print(f"{index}. {application_status.value}")
 
     status_choice = input("Status: ").strip()
@@ -273,12 +290,14 @@ def add_application() -> None:
     try:
         status_index = int(status_choice) - 1
         status = statuses[status_index].value
+
     except (ValueError, IndexError):
         print("Invalid status selection.")
         return
 
     try:
         parsed_date = date.fromisoformat(date_applied)
+
     except ValueError:
         print("Invalid date. Use YYYY-MM-DD.")
         return
@@ -324,18 +343,24 @@ def list_applications() -> None:
                 f"Applied: {application.date_applied}"
             )
 
+
 def view_application() -> None:
     print("\n--- View Application ---")
 
     try:
-        application_id = int(input("Application ID: ").strip())
+        application_id = int(
+            input("Application ID: ").strip()
+        )
     except ValueError:
         print("Application ID must be a number.")
         return
 
     with SessionLocal() as session:
         service = ApplicationService(session)
-        application = service.get_application(application_id)
+
+        application = service.get_application(
+            application_id
+        )
 
         if application is None:
             print("Application not found.")
@@ -358,11 +383,14 @@ def view_application() -> None:
         print(f"Notes:          {application.notes or 'N/A'}")
         print("-" * 35)
 
+
 def update_application() -> None:
     print("\n--- Update Application ---")
 
     try:
-        application_id = int(input("Application ID: ").strip())
+        application_id = int(
+            input("Application ID: ").strip()
+        )
     except ValueError:
         print("Application ID must be a number.")
         return
@@ -370,7 +398,9 @@ def update_application() -> None:
     with SessionLocal() as session:
         service = ApplicationService(session)
 
-        application = service.get_application(application_id)
+        application = service.get_application(
+            application_id
+        )
 
         if application is None:
             print("Application not found.")
@@ -407,7 +437,9 @@ def update_application() -> None:
 
         if deadline:
             try:
-                parsed_deadline = date.fromisoformat(deadline)
+                parsed_deadline = date.fromisoformat(
+                    deadline
+                )
             except ValueError:
                 print("Invalid deadline. Use YYYY-MM-DD.")
                 return
@@ -432,10 +464,13 @@ def update_application() -> None:
         except ValueError as error:
             print(f"\nError: {error}")
 
+
 def search_applications() -> None:
     print("\n--- Search Applications ---")
 
-    query = input("Search by position: ").strip()
+    query = input(
+        "Search by position: "
+    ).strip()
 
     if not query:
         print("Search query cannot be empty.")
@@ -444,13 +479,17 @@ def search_applications() -> None:
     with SessionLocal() as session:
         service = ApplicationService(session)
 
-        applications = service.search_applications(query)
+        applications = service.search_applications(
+            query
+        )
 
         if not applications:
             print("No applications found.")
             return
 
-        print(f"\nSearch results for '{query}':")
+        print(
+            f"\nSearch results for '{query}':"
+        )
         print("-" * 60)
 
         for application in applications:
@@ -463,11 +502,14 @@ def search_applications() -> None:
 
         print("-" * 60)
 
+
 def delete_application() -> None:
     print("\n--- Delete Application ---")
 
     try:
-        application_id = int(input("Application ID: ").strip())
+        application_id = int(
+            input("Application ID: ").strip()
+        )
     except ValueError:
         print("Application ID must be a number.")
         return
@@ -475,7 +517,9 @@ def delete_application() -> None:
     with SessionLocal() as session:
         service = ApplicationService(session)
 
-        application = service.get_application(application_id)
+        application = service.get_application(
+            application_id
+        )
 
         if application is None:
             print("Application not found.")
@@ -486,53 +530,132 @@ def delete_application() -> None:
         print(f"Status:   {application.status}")
 
         confirmation = input(
-            "Are you sure you want to delete this application? (y/n): "
+            "Are you sure you want to delete this "
+            "application? (y/n): "
         ).strip().lower()
 
         if confirmation != "y":
             print("Deletion cancelled.")
             return
 
-        deleted = service.delete_application(application_id)
+        deleted = service.delete_application(
+            application_id
+        )
 
         if deleted:
-            print("\nApplication deleted successfully!")
+            print(
+                "\nApplication deleted successfully!"
+            )
         else:
             print("Application not found.")
 
+
+def show_dashboard() -> None:
+    print("\n--- CareerTrack Dashboard ---")
+
+    with SessionLocal() as session:
+        service = ApplicationService(session)
+
+        statistics = service.get_dashboard_statistics()
+
+        total = statistics["total"]
+        by_status = statistics["by_status"]
+        by_application_type = statistics[
+            "by_application_type"
+        ]
+        by_company = statistics["by_company"]
+
+        print("\nTotal Applications")
+        print("-" * 35)
+        print(total)
+
+        print("\nApplications by Status")
+        print("-" * 35)
+
+        if by_status:
+            for status, count in sorted(
+                by_status.items()
+            ):
+                print(f"{status}: {count}")
+        else:
+            print("No applications found.")
+
+        print("\nApplications by Type")
+        print("-" * 35)
+
+        if by_application_type:
+            for application_type, count in sorted(
+                by_application_type.items()
+            ):
+                print(f"{application_type}: {count}")
+        else:
+            print("No applications found.")
+
+        print("\nApplications by Company")
+        print("-" * 35)
+
+        if by_company:
+            for company, count in sorted(
+                by_company.items()
+            ):
+                print(f"{company}: {count}")
+        else:
+            print("No applications found.")
+
+        print("-" * 35)
 
 def run() -> None:
     while True:
         show_menu()
 
-        choice = input("Choose an option: ").strip()
+        choice = input(
+            "Choose an option: "
+        ).strip()
 
         if choice == "1":
             add_company()
+
         elif choice == "2":
             list_companies()
+
         elif choice == "3":
             view_company()
+
         elif choice == "4":
             update_company()
+
         elif choice == "5":
             delete_company()
+
         elif choice == "6":
             search_companies()
+
         elif choice == "7":
             add_application()
+
         elif choice == "8":
             list_applications()
+
         elif choice == "9":
             view_application()
+
         elif choice == "10":
             update_application()
+
         elif choice == "11":
             delete_application()
+
         elif choice == "12":
             search_applications()
+
         elif choice == "13":
+            show_dashboard()
+
+        elif choice == "14":
             print("\nGoodbye!")
             break
+
         else:
-            print("\nInvalid choice. Please choose 1-13.")
+            print(
+                "\nInvalid choice. Please choose 1-14."
+            )

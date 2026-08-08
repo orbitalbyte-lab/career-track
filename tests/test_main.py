@@ -1,12 +1,32 @@
 from app.main import main
 
 
-def test_main_exits_with_option_13(capsys, monkeypatch):
-    monkeypatch.setattr("builtins.input", lambda _: "13")
+def test_main_exits_with_option_14(capsys, monkeypatch):
+    monkeypatch.setattr("builtins.input", lambda _: "14")
 
     main()
 
     captured = capsys.readouterr()
 
     assert "CAREERTRACK" in captured.out
+    assert "Goodbye!" in captured.out
+
+
+def test_main_dashboard_option(capsys, monkeypatch):
+    inputs = iter(["13", "14"])
+
+    monkeypatch.setattr(
+        "builtins.input",
+        lambda _: next(inputs),
+    )
+
+    main()
+
+    captured = capsys.readouterr()
+
+    assert "CAREERTRACK" in captured.out
+    assert "Total Applications" in captured.out
+    assert "Applications by Status" in captured.out
+    assert "Applications by Type" in captured.out
+    assert "Applications by Company" in captured.out
     assert "Goodbye!" in captured.out
