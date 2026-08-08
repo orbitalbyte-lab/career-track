@@ -182,7 +182,8 @@ class ApplicationService:
         return self.application_repository.get_application_type_counts()
     def get_status_statistics(self) -> dict[str, int]:
         return self.application_repository.get_status_counts()
-
+    def get_company_statistics(self) -> dict[str, int]:
+        return self.application_repository.get_company_statistics()
     def delete_application(self, application_id: int) -> bool:
         application = self.application_repository.get_by_id(application_id)
 

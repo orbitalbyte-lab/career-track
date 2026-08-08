@@ -193,6 +193,25 @@ class ApplicationRepository:
 
         return statistics
 
+    def get_company_statistics(self) -> dict[str, int]:
+        applications = (
+            self.session.query(ApplicationDB)
+            .join(ApplicationDB.company)
+            .all()
+        )
+
+        statistics: dict[str, int] = {}
+
+        for application in applications:
+            company_name = application.company.name
+
+            if company_name not in statistics:
+                statistics[company_name] = 0
+
+            statistics[company_name] += 1
+
+        return statistics
+
     def update(
         self,
         application: ApplicationDB,
