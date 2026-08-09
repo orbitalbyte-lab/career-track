@@ -1262,3 +1262,47 @@ def test_application_service_gets_upcoming_deadlines():
         assert len(result) == 2
         assert result[0].position == "Backend Engineer"
         assert result[1].position == "Software Engineer"
+def test_application_service_gets_monthly_application_counts():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Microsoft",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 7, 10),
+            status="Applied",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Backend Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 7, 20),
+            status="Interview",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Frontend Engineer",
+            application_type="Internship",
+            date_applied=date(2026, 8, 5),
+            status="Applied",
+        )
+
+        result = (
+            application_service
+            .get_monthly_application_counts()
+        )
+
+        assert result == {
+            "2026-07": 2,
+            "2026-08": 1,
+        }

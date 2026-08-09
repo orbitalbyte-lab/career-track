@@ -258,6 +258,10 @@ class ApplicationService:
         self,
     ) -> list[ApplicationDB]:
         return self.application_repository.get_all_sorted_by_date()[:5]
+    def get_monthly_application_counts(
+        self,
+    ) -> dict[str, int]:
+        return self.application_repository.get_monthly_application_counts()
     def get_upcoming_deadlines(
         self,
         today: date,

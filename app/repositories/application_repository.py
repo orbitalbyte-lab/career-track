@@ -298,6 +298,24 @@ class ApplicationRepository:
 
         return statistics
 
+    def get_monthly_application_counts(
+       self,
+    ) -> dict[str, int]:
+         applications = self.get_all()
+
+         statistics: dict[str, int] = {}
+
+         for application in applications:
+             month = application.date_applied.strftime(
+                 "%Y-%m"
+             )
+
+             if month not in statistics:
+                 statistics[month] = 0
+
+             statistics[month] += 1
+
+         return statistics
     def update(
         self,
         application: ApplicationDB,

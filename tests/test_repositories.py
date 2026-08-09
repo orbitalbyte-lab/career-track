@@ -623,3 +623,49 @@ def test_application_repository_sorts_by_date_applied_descending():
         assert len(results) == 2
         assert results[0].position == "New Application"
         assert results[1].position == "Old Application"
+def test_get_monthly_application_counts():
+    setup_database()
+
+    with SessionLocal() as session:
+        company = CompanyRepository(session).create(
+            CompanyDB(name="Microsoft")
+        )
+
+        repository = ApplicationRepository(session)
+
+        repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Software Engineer",
+                application_type="Full-time",
+                date_applied=date(2026, 7, 10),
+                status="Applied",
+            )
+        )
+
+        repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Backend Engineer",
+                application_type="Full-time",
+                date_applied=date(2026, 7, 20),
+                status="Interview",
+            )
+        )
+
+        repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Frontend Engineer",
+                application_type="Internship",
+                date_applied=date(2026, 8, 5),
+                status="Applied",
+            )
+        )
+
+        result = repository.get_monthly_application_counts()
+
+        assert result == {
+            "2026-07": 2,
+            "2026-08": 1,
+        }

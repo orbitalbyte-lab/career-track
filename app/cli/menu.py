@@ -613,6 +613,10 @@ def show_dashboard() -> None:
 
         statistics = service.get_dashboard_statistics()
 
+        monthly_applications = (
+            service.get_monthly_application_counts()
+        )
+
         total = statistics["total"]
         total_companies = statistics["total_companies"]
         success_rate = statistics["success_rate"]
@@ -674,6 +678,19 @@ def show_dashboard() -> None:
         else:
             print("No applications found.")
 
+        print("\nApplications by Month")
+        print("-" * 35)
+
+        if monthly_applications:
+            for month, count in sorted(
+                monthly_applications.items()
+            ):
+                print(f"{month}: {count}")
+        else:
+            print("No applications found.")
+
+        print("-" * 35)
+
         print("\nRecent Applications")
         print("-" * 35)
 
@@ -716,7 +733,6 @@ def show_dashboard() -> None:
             print("No upcoming deadlines.")
 
         print("-" * 60)
-
 def run() -> None:
     while True:
         show_menu()
@@ -765,13 +781,13 @@ def run() -> None:
             show_dashboard()
 
         elif choice == "14":
-            filter_applications()
+             filter_applications()
 
         elif choice == "15":
             print("\nGoodbye!")
             break
 
         else:
-           print(
-               "\nInvalid choice. Please choose 1-15."
-           )
+            print(
+                "\nInvalid choice. Please choose 1-15."
+            )
