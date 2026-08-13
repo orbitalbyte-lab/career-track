@@ -616,6 +616,9 @@ def show_dashboard() -> None:
         monthly_applications = (
             service.get_monthly_application_counts()
         )
+        location_statistics = (
+            service.get_location_statistics()
+        )
 
         total = statistics["total"]
         total_companies = statistics["total_companies"]
@@ -686,6 +689,19 @@ def show_dashboard() -> None:
                 monthly_applications.items()
             ):
                 print(f"{month}: {count}")
+        else:
+            print("No applications found.")
+
+        print("-" * 35)
+
+        print("\nApplications by Location")
+        print("-" * 35)
+
+        if location_statistics:
+            for location, count in sorted(
+                location_statistics.items()
+            ):
+                print(f"{location}: {count}")
         else:
             print("No applications found.")
 

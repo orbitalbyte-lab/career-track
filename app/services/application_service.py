@@ -218,12 +218,15 @@ class ApplicationService:
         self,
     ) -> dict[str, int]:
         return self.application_repository.get_status_counts()
-
     def get_company_statistics(
         self,
     ) -> dict[str, int]:
         return self.application_repository.get_company_statistics()
 
+    def get_location_statistics(
+        self,
+    ) -> dict[str, int]:
+        return self.application_repository.get_location_statistics()
     def get_dashboard_statistics(self) -> dict:
         total = self.application_repository.get_total_count()
 

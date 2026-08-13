@@ -628,9 +628,8 @@ def test_get_monthly_application_counts():
 
     with SessionLocal() as session:
         company = CompanyRepository(session).create(
-            CompanyDB(name="Microsoft")
+             CompanyDB(name="Microsoft")
         )
-
         repository = ApplicationRepository(session)
 
         repository.create(
@@ -668,4 +667,65 @@ def test_get_monthly_application_counts():
         assert result == {
             "2026-07": 2,
             "2026-08": 1,
+        }
+
+def test_get_location_statistics():
+    setup_database()
+
+    with SessionLocal() as session:
+        company = CompanyRepository(session).create(
+            CompanyDB(name="Microsoft")
+        )
+
+        repository = ApplicationRepository(session)
+
+        repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Software Engineer",
+                application_type="Full-time",
+                date_applied=date(2026, 7, 10),
+                status="Applied",
+                location="Remote",
+            )
+        )
+
+        repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Backend Engineer",
+                application_type="Full-time",
+                date_applied=date(2026, 7, 20),
+                status="Interview",
+                location="Remote",
+            )
+        )
+
+        repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Frontend Engineer",
+                application_type="Internship",
+                date_applied=date(2026, 8, 5),
+                status="Applied",
+                location="Addis Ababa",
+            )
+        )
+
+        repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Data Analyst",
+                application_type="Internship",
+                date_applied=date(2026, 8, 8),
+                status="Applied",
+            )
+        )
+
+        result = repository.get_location_statistics()
+
+        assert result == {
+            "Remote": 2,
+            "Addis Ababa": 1,
+            "Not specified": 1,
         }

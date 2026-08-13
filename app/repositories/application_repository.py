@@ -316,6 +316,24 @@ class ApplicationRepository:
              statistics[month] += 1
 
          return statistics
+
+    def get_location_statistics(
+       self,
+    ) -> dict[str, int]:
+        applications = self.get_all()
+
+        statistics: dict[str, int] = {}
+
+        for application in applications:
+            location = application.location or "Not specified"
+
+            if location not in statistics:
+                statistics[location] = 0
+
+            statistics[location] += 1
+
+        return statistics
+
     def update(
         self,
         application: ApplicationDB,

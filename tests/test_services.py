@@ -975,6 +975,60 @@ def test_application_service_gets_applications_by_company_count():
             "Microsoft": 2,
             "Google": 1,
         }
+
+def test_application_service_gets_location_statistics():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Microsoft",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 7, 10),
+            status="Applied",
+            location="Remote",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Backend Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 7, 20),
+            status="Interview",
+            location="Remote",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Frontend Engineer",
+            application_type="Internship",
+            date_applied=date(2026, 8, 5),
+            status="Applied",
+            location="Addis Ababa",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Data Analyst",
+            application_type="Internship",
+            date_applied=date(2026, 8, 8),
+            status="Applied",
+        )
+
+        result = application_service.get_location_statistics()
+
+        assert result == {
+            "Remote": 2,
+            "Addis Ababa": 1,
+            "Not specified": 1,
+        }
 def test_application_service_gets_dashboard_statistics():
     setup_database()
 
