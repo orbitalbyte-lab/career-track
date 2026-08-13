@@ -9,9 +9,7 @@ class ExportService:
         self,
         application_service: ApplicationService,
     ) -> None:
-        self.application_service = (
-            application_service
-        )
+        self.application_service = application_service
 
     def export_applications_to_csv(
         self,
@@ -23,6 +21,11 @@ class ExportService:
 
         export_path = Path(
             "exports/applications.csv"
+        )
+
+        export_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
         )
 
         with open(
@@ -56,7 +59,7 @@ class ExportService:
                         application.application_type,
                         application.status,
                         application.date_applied,
-                        application.location,
+                        application.location or "",
                     ]
                 )
 
