@@ -4,6 +4,7 @@ from app.database.connection import SessionLocal
 from app.models.application import ApplicationStatus, ApplicationType
 from app.services.application_service import ApplicationService
 from app.services.company_service import CompanyService
+from app.services.export_service import ExportService
 
 
 def show_menu() -> None:
@@ -25,7 +26,8 @@ def show_menu() -> None:
     print("12. Search applications")
     print("13. Dashboard")
     print("14. Filter applications")
-    print("15. Exit")
+    print("15. Export applications to CSV")
+    print("16. Exit")
     print("=" * 40)
 
 def add_company() -> None:
@@ -749,6 +751,25 @@ def show_dashboard() -> None:
             print("No upcoming deadlines.")
 
         print("-" * 60)
+def export_applications() -> None:
+    print("\n--- Export Applications ---")
+
+    with SessionLocal() as session:
+        application_service = (
+            ApplicationService(session)
+        )
+
+        exporter = ExportService(
+            application_service
+        )
+
+        path = (
+            exporter.export_applications_to_csv()
+        )
+
+        print(
+            f"Applications exported to: {path}"
+        )
 def run() -> None:
     while True:
         show_menu()
@@ -797,13 +818,16 @@ def run() -> None:
             show_dashboard()
 
         elif choice == "14":
-             filter_applications()
+            filter_applications()
 
         elif choice == "15":
+            export_applications()
+
+        elif choice == "16":
             print("\nGoodbye!")
             break
 
         else:
             print(
-                "\nInvalid choice. Please choose 1-15."
+                "\nInvalid choice. Please choose 1-16."
             )
