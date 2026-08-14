@@ -44,6 +44,9 @@ class ExportService:
                     "Status",
                     "Date Applied",
                     "Location",
+                    "Deadline",
+                    "Job URL",
+                    "Notes",
                 ]
             )
 
@@ -60,6 +63,9 @@ class ExportService:
                         application.status,
                         application.date_applied,
                         application.location or "",
+                        application.deadline or "",
+                        application.job_url or "",
+                        application.notes or "",
                     ]
                 )
 

@@ -14,7 +14,10 @@ def setup_database():
     initialize_database()
 
 
-def test_export_applications_to_csv(tmp_path, monkeypatch):
+def test_export_applications_to_csv(
+    tmp_path,
+    monkeypatch,
+):
     setup_database()
 
     with SessionLocal() as session:
@@ -33,13 +36,21 @@ def test_export_applications_to_csv(tmp_path, monkeypatch):
             date_applied=date(2026, 7, 10),
             status="Applied",
             location="Addis Ababa",
+            deadline=date(2026, 8, 20),
+            job_url="https://example.com/job",
+            notes="Follow up after one week.",
         )
 
         session.add(application)
         session.commit()
 
-        application_service = ApplicationService(session)
-        exporter = ExportService(application_service)
+        application_service = ApplicationService(
+            session
+        )
+
+        exporter = ExportService(
+            application_service
+        )
 
         monkeypatch.chdir(tmp_path)
 
@@ -61,6 +72,9 @@ def test_export_applications_to_csv(tmp_path, monkeypatch):
         "Status",
         "Date Applied",
         "Location",
+        "Deadline",
+        "Job URL",
+        "Notes",
     ]
 
     assert rows[1] == [
@@ -70,4 +84,7 @@ def test_export_applications_to_csv(tmp_path, monkeypatch):
         "Applied",
         "2026-07-10",
         "Addis Ababa",
+        "2026-08-20",
+        "https://example.com/job",
+        "Follow up after one week.",
     ]
