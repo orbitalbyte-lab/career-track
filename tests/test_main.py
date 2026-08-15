@@ -1,10 +1,13 @@
 from app.main import main
 
 
-def test_main_exits_with_option_16(capsys, monkeypatch):
+def test_main_exits_with_option_17(
+    capsys,
+    monkeypatch,
+):
     monkeypatch.setattr(
         "builtins.input",
-        lambda _: "16",
+        lambda _: "17",
     )
 
     main()
@@ -15,8 +18,13 @@ def test_main_exits_with_option_16(capsys, monkeypatch):
     assert "Goodbye!" in captured.out
 
 
-def test_main_dashboard_option(capsys, monkeypatch):
-    inputs = iter(["13", "16"])
+def test_main_dashboard_option(
+    capsys,
+    monkeypatch,
+):
+    inputs = iter(
+        ["13", "17"]
+    )
 
     monkeypatch.setattr(
         "builtins.input",

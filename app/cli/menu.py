@@ -27,9 +27,8 @@ def show_menu() -> None:
     print("13. Dashboard")
     print("14. Filter applications")
     print("15. Export applications to CSV")
-    print("16. Exit")
-    print("=" * 40)
-
+    print("16. Sort applications")
+    print("17. Exit")
 def add_company() -> None:
     print("\n--- Add Company ---")
 
@@ -345,6 +344,30 @@ def list_applications() -> None:
                 f"Status: {application.status} | "
                 f"Applied: {application.date_applied}"
             )
+
+def sort_applications() -> None:
+    print("\n--- Applications (Newest First) ---")
+
+    with SessionLocal() as session:
+        service = ApplicationService(session)
+
+        applications = (
+            service.get_recent_applications()
+        )
+
+        if not applications:
+            print("No applications found.")
+            return
+
+        for application in applications:
+            print(
+                f"[{application.id}] "
+                f"{application.position} | "
+                f"Company ID: {application.company_id} | "
+                f"Type: {application.application_type} | "
+                f"Status: {application.status} | "
+                f"Applied: {application.date_applied}"
+            )            
 
 
 def view_application() -> None:
@@ -824,10 +847,13 @@ def run() -> None:
             export_applications()
 
         elif choice == "16":
+            sort_applications()
+
+        elif choice == "17":
             print("\nGoodbye!")
             break
 
         else:
             print(
-                "\nInvalid choice. Please choose 1-16."
+                "\nInvalid choice. Please choose 1-17."
             )
