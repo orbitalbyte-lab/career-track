@@ -5,6 +5,7 @@ from app.models.application import ApplicationStatus, ApplicationType
 from app.services.application_service import ApplicationService
 from app.services.company_service import CompanyService
 from app.services.export_service import ExportService
+from app.services.import_service import ImportService
 
 
 def show_menu() -> None:
@@ -28,7 +29,8 @@ def show_menu() -> None:
     print("14. Filter applications")
     print("15. Export applications to CSV")
     print("16. Sort applications")
-    print("17. Exit")
+    print("17. Import applications from CSV")
+    print("18. Exit")
 def add_company() -> None:
     print("\n--- Add Company ---")
 
@@ -793,6 +795,35 @@ def export_applications() -> None:
         print(
             f"Applications exported to: {path}"
         )
+def import_applications() -> None:
+    print("\n--- Import Applications ---")
+
+    file_path = input(
+        "CSV file path: "
+    ).strip()
+
+    with SessionLocal() as session:
+        application_service = (
+            ApplicationService(session)
+        )
+
+        importer = ImportService(
+            application_service
+        )
+
+        try:
+            rows = (
+                importer.import_applications_from_csv(
+                    file_path
+                )
+            )
+
+            print(
+                f"Imported {len(rows)} applications."
+            )
+
+        except FileNotFoundError as error:
+            print(error)        
 def run() -> None:
     while True:
         show_menu()
@@ -850,10 +881,13 @@ def run() -> None:
             sort_applications()
 
         elif choice == "17":
+            import_applications()
+
+        elif choice == "18":
             print("\nGoodbye!")
             break
 
         else:
             print(
-                "\nInvalid choice. Please choose 1-17."
+                "\nInvalid choice. Please choose 1-18."
             )
