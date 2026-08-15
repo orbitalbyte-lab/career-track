@@ -334,6 +334,34 @@ class ApplicationRepository:
 
         return statistics
 
+    def get_all_sorted(
+        self,
+        field: str,
+    ) -> list[ApplicationDB]:
+        if field == "date":
+            return list(
+                self.session.query(
+                    ApplicationDB
+                )
+                .order_by(
+                    ApplicationDB.date_applied.desc()
+                )
+               .all()
+            )
+
+        if field == "position":
+            return list(
+                self.session.query(
+                    ApplicationDB
+                )
+                .order_by(
+                    ApplicationDB.position
+                )
+                .all()
+            )
+
+        return self.get_all()     
+
     def update(
         self,
         application: ApplicationDB,
