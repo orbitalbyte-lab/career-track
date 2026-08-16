@@ -1,13 +1,13 @@
 from app.main import main
 
 
-def test_main_exits_with_option_18(
+def test_main_exits_with_option_20(
     capsys,
     monkeypatch,
 ):
     monkeypatch.setattr(
         "builtins.input",
-        lambda _: "18",
+        lambda _: "20",
     )
 
     main()
@@ -23,7 +23,7 @@ def test_main_dashboard_option(
     monkeypatch,
 ):
     inputs = iter(
-        ["13", "18"]
+        ["13", "20"]
     )
 
     monkeypatch.setattr(

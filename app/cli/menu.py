@@ -1,12 +1,32 @@
 from datetime import date
+from datetime import datetime
 
 from app.database.connection import SessionLocal
-from app.models.application import ApplicationStatus, ApplicationType
-from app.services.application_service import ApplicationService
-from app.services.company_service import CompanyService
-from app.services.export_service import ExportService
-from app.services.import_service import ImportService
 
+from app.models.application import (
+    ApplicationStatus,
+    ApplicationType,
+)
+from app.models.interview import (
+    Interview,
+    InterviewType,
+)
+
+from app.services.application_service import (
+    ApplicationService,
+)
+from app.services.company_service import (
+    CompanyService,
+)
+from app.services.export_service import (
+    ExportService,
+)
+from app.services.import_service import (
+    ImportService,
+)
+from app.services.interview_service import (
+    InterviewService,
+)
 
 def show_menu() -> None:
     print()
@@ -30,7 +50,9 @@ def show_menu() -> None:
     print("15. Export applications to CSV")
     print("16. Sort applications")
     print("17. Import applications from CSV")
-    print("18. Exit")
+    print("18. Add interview")
+    print("19. List interviews")
+    print("20. Exit")
 def add_company() -> None:
     print("\n--- Add Company ---")
 
@@ -823,7 +845,73 @@ def import_applications() -> None:
             )
 
         except FileNotFoundError as error:
-            print(error)        
+            print(error)  
+def add_interview() -> None:
+    print("\n--- Add Interview ---")
+
+    application_id = int(
+        input("Application ID: ").strip()
+    )
+
+    scheduled_at = datetime.fromisoformat(
+        input(
+            "Interview date and time (YYYY-MM-DD HH:MM): "
+        )
+    )
+
+    interview_type = InterviewType(
+        input(
+            "Interview type (Online/Phone/On-site): "
+        ).strip()
+    )
+
+    notes = (
+        input("Notes (optional): ").strip()
+        or None
+    )
+
+    interview = Interview(
+        application_id=application_id,
+        scheduled_at=scheduled_at,
+        interview_type=interview_type,
+        notes=notes,
+    )
+
+    with SessionLocal() as session:
+        interview_service = (
+            InterviewService(session)
+        )
+
+        interview_service.create_interview(
+            interview
+        )
+
+    print("Interview scheduled successfully.")
+
+
+def list_interviews() -> None:
+    print("\n--- Interviews ---")
+
+    with SessionLocal() as session:
+        interview_service = (
+            InterviewService(session)
+        )
+
+        interviews = (
+            interview_service.get_interviews()
+        )
+
+        if not interviews:
+            print("No interviews found.")
+            return
+
+        for interview in interviews:
+            print(
+                f"Application ID: "
+                f"{interview.application_id} | "
+                f"{interview.interview_type} | "
+                f"{interview.scheduled_at}"
+            )                  
 def run() -> None:
     while True:
         show_menu()
@@ -884,10 +972,16 @@ def run() -> None:
             import_applications()
 
         elif choice == "18":
+            add_interview()
+
+        elif choice == "19":
+            list_interviews()
+
+        elif choice == "20":
             print("\nGoodbye!")
             break
 
         else:
             print(
-                "\nInvalid choice. Please choose 1-18."
+                "\nInvalid choice. Please choose 1-20."
             )
