@@ -29,3 +29,35 @@ class InterviewRepository:
                 InterviewDB
             ).all()
         )
+
+    def get_by_id(
+        self,
+        interview_id,
+    ):
+        return (
+            self.session.query(
+                InterviewDB
+            )
+            .filter_by(
+                id=interview_id
+            )
+            .first()
+        )
+
+    def update(
+        self,
+        interview_id,
+        status,
+    ):
+        interview = self.get_by_id(
+            interview_id
+        )
+
+        if interview is None:
+            return None
+
+        interview.status = status
+
+        self.session.commit()
+
+        return interview    

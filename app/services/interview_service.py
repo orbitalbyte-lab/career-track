@@ -19,3 +19,13 @@ class InterviewService:
 
     def get_interviews(self):
         return self.repository.get_all()
+
+    def update_interview(
+        self,
+        interview_id,
+        status,
+    ):
+        return self.repository.update(
+            interview_id,
+            status,
+        )

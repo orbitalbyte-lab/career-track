@@ -9,9 +9,9 @@ from app.models.application import (
 )
 from app.models.interview import (
     Interview,
+    InterviewStatus,
     InterviewType,
 )
-
 from app.services.application_service import (
     ApplicationService,
 )
@@ -52,7 +52,8 @@ def show_menu() -> None:
     print("17. Import applications from CSV")
     print("18. Add interview")
     print("19. List interviews")
-    print("20. Exit")
+    print("20. Update interview")
+    print("21. Exit")
 def add_company() -> None:
     print("\n--- Add Company ---")
 
@@ -849,21 +850,51 @@ def import_applications() -> None:
 def add_interview() -> None:
     print("\n--- Add Interview ---")
 
-    application_id = int(
-        input("Application ID: ").strip()
-    )
+    while True:
+        try:
+            application_id = int(
+                input(
+                    "Application ID: "
+                ).strip()
+            )
+            break
 
-    scheduled_at = datetime.fromisoformat(
-        input(
-            "Interview date and time (YYYY-MM-DD HH:MM): "
-        )
-    )
+        except ValueError:
+            print(
+               "Please enter a valid number."
+            )
+    while True:
+        try:
+            scheduled_at = (
+                datetime.fromisoformat(
+                    input(
+                        "Interview date and time (YYYY-MM-DD HH:MM): "
+                    ).strip()
+                )
+            )
+            break
 
-    interview_type = InterviewType(
-        input(
-            "Interview type (Online/Phone/On-site): "
-        ).strip()
-    )
+        except ValueError:
+            print(
+                "Please enter the date as YYYY-MM-DD HH:MM."
+            )
+
+    while True:
+        try:
+            interview_type = (
+                InterviewType(
+                    input(
+                        "Interview type (Online/Phone/On-site): "
+                    ).strip()
+                    .title()
+                )
+            )
+            break
+
+        except ValueError:
+            print(
+                "Please choose Online, Phone, or On-site."
+            )
 
     notes = (
         input("Notes (optional): ").strip()
@@ -907,11 +938,70 @@ def list_interviews() -> None:
 
         for interview in interviews:
             print(
-                f"Application ID: "
-                f"{interview.application_id} | "
-                f"{interview.interview_type} | "
-                f"{interview.scheduled_at}"
-            )                  
+                f"Interview ID: {interview.id} | "
+                f"Application ID: {interview.application_id} | "
+                f"Type: {interview.interview_type} | "
+                f"Status: {interview.status} | "
+                f"Date: {interview.scheduled_at}"
+            )
+            
+def update_interview() -> None:
+    print("\n--- Update Interview ---")
+
+    try:
+        interview_id = int(
+            input(
+                "Interview ID: "
+            ).strip()
+        )
+
+    except ValueError:
+        print(
+            "Please enter a valid ID."
+        )
+        return
+
+    print(
+        "Scheduled | Completed | Canceled"
+    )
+
+    try:
+        status = InterviewStatus(
+            input(
+                "New status: "
+            )
+            .strip()
+            .title()
+        )
+
+    except ValueError:
+        print(
+            "Invalid status."
+        )
+        return
+
+    with SessionLocal() as session:
+        interview_service = (
+            InterviewService(session)
+        )
+
+        interview = (
+            interview_service.update_interview(
+                interview_id,
+                status.value,
+            )
+        )
+
+        if interview is None:
+            print(
+                "Interview not found."
+            )
+            return
+
+    print(
+        "Interview updated successfully."
+    )            
+        
 def run() -> None:
     while True:
         show_menu()
@@ -978,10 +1068,13 @@ def run() -> None:
             list_interviews()
 
         elif choice == "20":
+           update_interview()
+
+        elif choice == "21":
             print("\nGoodbye!")
             break
 
         else:
             print(
-                "\nInvalid choice. Please choose 1-20."
+                "\nInvalid choice. Please choose 1-21."
             )
