@@ -61,3 +61,21 @@ class InterviewRepository:
         self.session.commit()
 
         return interview    
+    def delete(
+        self,
+        interview_id,
+    ):
+        interview = self.get_by_id(
+            interview_id
+        )
+
+        if interview is None:
+            return False
+
+        self.session.delete(
+            interview
+        )
+
+        self.session.commit()
+
+        return True    

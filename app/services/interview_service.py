@@ -29,3 +29,11 @@ class InterviewService:
             interview_id,
             status,
         )
+
+    def delete_interview(
+        self,
+        interview_id,
+    ):
+        return self.repository.delete(
+            interview_id
+        )

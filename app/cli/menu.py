@@ -53,7 +53,8 @@ def show_menu() -> None:
     print("18. Add interview")
     print("19. List interviews")
     print("20. Update interview")
-    print("21. Exit")
+    print("21. Delete interview")
+    print("22. Exit")
 def add_company() -> None:
     print("\n--- Add Company ---")
 
@@ -1000,7 +1001,44 @@ def update_interview() -> None:
 
     print(
         "Interview updated successfully."
-    )            
+    )   
+
+def delete_interview() -> None:
+    print("\n--- Delete Interview ---")
+
+    try:
+        interview_id = int(
+            input(
+                "Interview ID: "
+            ).strip()
+        )
+
+    except ValueError:
+        print(
+            "Please enter a valid ID."
+        )
+        return
+
+    with SessionLocal() as session:
+        interview_service = (
+            InterviewService(session)
+        )
+
+        deleted = (
+            interview_service.delete_interview(
+                interview_id
+            )
+        )
+
+        if deleted is None:
+            print(
+                "Interview not found."
+            )
+            return
+
+    print(
+        "Interview deleted successfully."
+    )  
         
 def run() -> None:
     while True:
@@ -1068,13 +1106,15 @@ def run() -> None:
             list_interviews()
 
         elif choice == "20":
-           update_interview()
+            update_interview()
 
         elif choice == "21":
+            delete_interview()
+
+        elif choice == "22":
             print("\nGoodbye!")
             break
-
         else:
             print(
-                "\nInvalid choice. Please choose 1-21."
-            )
+                "\nInvalid choice. Please choose 1-22."
+            )    
