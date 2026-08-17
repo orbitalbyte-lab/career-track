@@ -52,10 +52,12 @@ def show_menu() -> None:
     print("17. Import applications from CSV")
     print("18. Add interview")
     print("19. List interviews")
-    print("20. Update interview")
-    print("21. Delete interview")
-    print("22. Search interviews")
-    print("23. Exit")
+    print("20. View interview")
+    print("21. Update interview")
+    print("22. Delete interview")
+    print("23. Search interviews")
+    print("24. Filter interviews")
+    print("25. Exit")
 def add_company() -> None:
     print("\n--- Add Company ---")
 
@@ -993,6 +995,70 @@ def list_interviews() -> None:
                 f"Status: {interview.status} | "
                 f"Date: {interview.scheduled_at}"
             )
+
+def view_interview() -> None:
+    print("\n--- Interview Details ---")
+
+    try:
+        interview_id = int(
+            input(
+                "Interview ID: "
+            )
+        )
+
+    except ValueError:
+        print(
+            "Interview ID must be a number."
+        )
+        return
+
+    with SessionLocal() as session:
+        interview_service = (
+            InterviewService(session)
+        )
+
+        interview = (
+            interview_service
+            .get_interview(
+                interview_id
+            )
+        )
+
+        if interview is None:
+            print(
+                "Interview not found."
+            )
+            return
+
+        print(
+            f"\nInterview ID: "
+            f"{interview.id}"
+        )
+
+        print(
+            f"Application ID: "
+            f"{interview.application_id}"
+        )
+
+        print(
+            f"Date: "
+            f"{interview.scheduled_at}"
+        )
+
+        print(
+            f"Type: "
+            f"{interview.interview_type}"
+        )
+
+        print(
+            f"Status: "
+            f"{interview.status}"
+        )
+
+        print(
+            f"Notes: "
+            f"{interview.notes or ''}"
+        )            
             
 def update_interview() -> None:
     print("\n--- Update Interview ---")
@@ -1122,7 +1188,46 @@ def search_interviews() -> None:
                 f"{interview.interview_type} | "
                 f"Status: "
                 f"{interview.status}"
-            )    
+            )  
+
+def filter_interviews() -> None:
+    print("\n--- Filter Interviews ---")
+
+    status = input(
+        "Status "
+        "(Scheduled/Completed/Cancelled): "
+    ).strip()
+
+    with SessionLocal() as session:
+        interview_service = (
+            InterviewService(session)
+        )
+
+        interviews = (
+            interview_service
+            .get_interviews_by_status(
+                status
+            )
+        )
+
+        if not interviews:
+            print(
+                "No interviews found."
+            )
+
+            return
+
+        for interview in interviews:
+            print(
+                f"Interview ID: "
+                f"{interview.id} | "
+                f"Application ID: "
+                f"{interview.application_id} | "
+                f"Type: "
+                f"{interview.interview_type} | "
+                f"Status: "
+                f"{interview.status}"
+            )              
         
 def run() -> None:
     while True:
@@ -1190,14 +1295,20 @@ def run() -> None:
             list_interviews()
 
         elif choice == "20":
-            update_interview()
+            view_interview()
 
         elif choice == "21":
-            delete_interview()
+            update_interview()
 
         elif choice == "22":
-            search_interviews()
+            delete_interview()
 
         elif choice == "23":
+            search_interviews()
+
+        elif choice == "24":
+            filter_interviews()
+
+        elif choice == "25":
             print("\nGoodbye!")
             break

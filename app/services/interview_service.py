@@ -20,6 +20,16 @@ class InterviewService:
     def get_interviews(self):
         return self.repository.get_all()
 
+    def get_interview(
+        self,
+        interview_id,
+    ):
+        return (
+            self.repository.get_by_id(
+                interview_id
+            )
+        )    
+
     def update_interview(
         self,
         interview_id,
@@ -73,5 +83,14 @@ class InterviewService:
         return (
             self.repository.search(
                 query
+            )
+        )    
+    def get_interviews_by_status(
+        self,
+        status,
+    ):
+        return (
+            self.repository.get_by_status(
+                status
             )
         )       

@@ -90,7 +90,20 @@ class InterviewRepository:
             InterviewDB.scheduled_at
         )
         .all()
-    )       
+    )  
+    def get_by_status(
+        self,
+        status,
+    ):
+        return (
+            self.session.query(
+                InterviewDB
+            )
+            .filter_by(
+                status=status
+            )
+            .all()
+    )    
     def search(
         self,
         query,
