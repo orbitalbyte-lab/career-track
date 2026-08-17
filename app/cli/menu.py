@@ -840,10 +840,16 @@ def show_dashboard() -> None:
 
         if upcoming_interviews:
             for interview in upcoming_interviews:
+                company_name = (
+                    interview.application.company.name
+                    if interview.application.company
+                    else "N/A"
+                )
+
                 print(
                     f"{interview.scheduled_at} | "
-                    f"Application ID: "
-                    f"{interview.application_id} | "
+                    f"{interview.application.position} | "
+                    f"{company_name} | "
                     f"{interview.interview_type}"
                 )
         else:
