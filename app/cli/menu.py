@@ -662,6 +662,10 @@ def show_dashboard() -> None:
     with SessionLocal() as session:
         service = ApplicationService(session)
 
+        interview_service = (
+            InterviewService(session)
+        )
+
         statistics = service.get_dashboard_statistics()
 
         monthly_applications = (
@@ -669,17 +673,29 @@ def show_dashboard() -> None:
         )
         location_statistics = (
             service.get_location_statistics()
+        )    
+        interview_statistics = (
+            interview_service
+            .get_interview_statistics()
+        )
+        total = statistics["total"]
+        total_companies = (
+            statistics["total_companies"]
+        )
+        success_rate = (
+            statistics["success_rate"]
+        )
+        by_status = statistics["by_status"]
+
+        by_application_type = (
+            statistics[
+                "by_application_type"
+            ]
         )
 
-        total = statistics["total"]
-        total_companies = statistics["total_companies"]
-        success_rate = statistics["success_rate"]
-        by_status = statistics["by_status"]
-        by_application_type = statistics[
-            "by_application_type"
-        ]
-        by_company = statistics["by_company"]
-
+        by_company = (
+            statistics["by_company"]
+        )
         # Get recent applications and upcoming deadlines
         recent_applications = service.get_recent_applications()
 
@@ -798,6 +814,17 @@ def show_dashboard() -> None:
                 )
         else:
             print("No upcoming deadlines.")
+        
+        print("\nInterview Statistics")
+        print("-" * 35)
+
+        if interview_statistics:
+            for status, count in sorted(
+                interview_statistics.items()
+            ):
+                print(f"{status}: {count}")
+        else:
+            print("No interviews found.")
 
         print("-" * 60)
 def export_applications() -> None:

@@ -37,3 +37,26 @@ class InterviewService:
         return self.repository.delete(
             interview_id
         )
+    def get_interview_statistics(
+        self,
+    ):
+        interviews = (
+            self.get_interviews()
+        )
+
+        statistics = {}
+
+        for interview in interviews:
+            status = (
+                interview.status
+            )
+
+            statistics[status] = (
+                statistics.get(
+                    status,
+                    0,
+                )
+                + 1
+            )
+
+        return statistics    
