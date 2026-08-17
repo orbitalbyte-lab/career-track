@@ -59,7 +59,13 @@ class InterviewService:
                 + 1
             )
 
-        return statistics    
+        return statistics   
+    def get_upcoming_interviews(
+        self,
+    ):
+        return (
+            self.repository.get_upcoming()
+        )     
     def search_interviews(
         self,
         query,

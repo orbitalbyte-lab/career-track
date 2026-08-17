@@ -78,7 +78,19 @@ class InterviewRepository:
 
         self.session.commit()
 
-        return True    
+        return True 
+    def get_upcoming(
+        self,
+    ):
+        return (
+        self.session.query(
+            InterviewDB
+        )
+        .order_by(
+            InterviewDB.scheduled_at
+        )
+        .all()
+    )       
     def search(
         self,
         query,
@@ -97,4 +109,5 @@ class InterviewRepository:
                 )
             )
             .all()
-        )        
+        )  
+    

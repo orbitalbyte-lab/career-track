@@ -679,6 +679,10 @@ def show_dashboard() -> None:
             interview_service
             .get_interview_statistics()
         )
+        upcoming_interviews = (
+            interview_service
+            .get_upcoming_interviews()
+        )
         total = statistics["total"]
         total_companies = (
             statistics["total_companies"]
@@ -826,6 +830,22 @@ def show_dashboard() -> None:
                 print(f"{status}: {count}")
         else:
             print("No interviews found.")
+
+        print("-" * 60)
+
+        print("\nUpcoming Interviews")
+        print("-" * 60)
+
+        if upcoming_interviews:
+            for interview in upcoming_interviews:
+                print(
+                    f"{interview.scheduled_at} | "
+                    f"Application ID: "
+                    f"{interview.application_id} | "
+                    f"{interview.interview_type}"
+                )
+        else:
+            print("No upcoming interviews found.")
 
         print("-" * 60)
 def export_applications() -> None:
