@@ -54,7 +54,8 @@ def show_menu() -> None:
     print("19. List interviews")
     print("20. Update interview")
     print("21. Delete interview")
-    print("22. Exit")
+    print("22. Search interviews")
+    print("23. Exit")
 def add_company() -> None:
     print("\n--- Add Company ---")
 
@@ -1065,7 +1066,43 @@ def delete_interview() -> None:
 
     print(
         "Interview deleted successfully."
-    )  
+    )
+def search_interviews() -> None:
+    print("\n--- Search Interviews ---")
+
+    query = input(
+        "Search: "
+    ).strip()
+
+    with SessionLocal() as session:
+        interview_service = (
+            InterviewService(session)
+        )
+
+        interviews = (
+            interview_service
+            .search_interviews(
+                query
+            )
+        )
+
+        if not interviews:
+            print(
+                "No interviews found."
+            )
+            return
+
+        for interview in interviews:
+            print(
+                f"Interview ID: "
+                f"{interview.id} | "
+                f"Application ID: "
+                f"{interview.application_id} | "
+                f"Type: "
+                f"{interview.interview_type} | "
+                f"Status: "
+                f"{interview.status}"
+            )    
         
 def run() -> None:
     while True:
@@ -1139,9 +1176,8 @@ def run() -> None:
             delete_interview()
 
         elif choice == "22":
+            search_interviews()
+
+        elif choice == "23":
             print("\nGoodbye!")
             break
-        else:
-            print(
-                "\nInvalid choice. Please choose 1-22."
-            )    

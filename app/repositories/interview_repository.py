@@ -79,3 +79,22 @@ class InterviewRepository:
         self.session.commit()
 
         return True    
+    def search(
+        self,
+        query,
+    ):
+        return (
+            self.session.query(
+                InterviewDB
+            )
+            .filter(
+                InterviewDB.status.ilike(
+                    f"%{query}%"
+                )
+                |
+                InterviewDB.interview_type.ilike(
+                    f"%{query}%"
+                )
+            )
+            .all()
+        )        

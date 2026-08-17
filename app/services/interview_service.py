@@ -60,3 +60,12 @@ class InterviewService:
             )
 
         return statistics    
+    def search_interviews(
+        self,
+        query,
+    ):
+        return (
+            self.repository.search(
+                query
+            )
+        )       
