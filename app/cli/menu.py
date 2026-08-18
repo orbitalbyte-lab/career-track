@@ -50,15 +50,16 @@ def show_menu() -> None:
     print("15. Export applications to CSV")
     print("16. Sort applications")
     print("17. Import applications from CSV")
-    print("18. Add interview")
-    print("19. List interviews")
-    print("20. View interview")
-    print("21. Update interview")
-    print("22. Delete interview")
-    print("23. Search interviews")
-    print("24. Filter interviews")
-    print("25. Sort interviews")
-    print("26. Exit")
+    print("18. Export interviews to CSV")
+    print("19. Add interview")
+    print("20. List interviews")
+    print("21. View interview")
+    print("22. Update interview")
+    print("23. Delete interview")
+    print("24. Search interviews")
+    print("25. Filter interviews")
+    print("26. Sort interviews")
+    print("27. Exit")
 def add_company() -> None:
     print("\n--- Add Company ---")
 
@@ -901,6 +902,27 @@ def export_applications() -> None:
         print(
             f"Applications exported to: {path}"
         )
+def export_interviews() -> None:
+    print("\n--- Export Interviews ---")
+
+    with SessionLocal() as session:
+        interview_service = (
+            InterviewService(session)
+        )
+
+        exporter = ExportService(
+            interview_service=(
+                interview_service
+            )
+        )
+
+        path = (
+            exporter.export_interviews_to_csv()
+        )
+
+        print(
+            f"Interviews exported to: {path}"
+        )        
 def import_applications() -> None:
     print("\n--- Import Applications ---")
 
@@ -1348,29 +1370,32 @@ def run() -> None:
             import_applications()
 
         elif choice == "18":
-            add_interview()
+            export_interviews()
 
         elif choice == "19":
-            list_interviews()
+            add_interview()
 
         elif choice == "20":
-            view_interview()
+            list_interviews()
 
         elif choice == "21":
-            update_interview()
+            view_interview()
 
         elif choice == "22":
-            delete_interview()
+            update_interview()
 
         elif choice == "23":
-            search_interviews()
+            delete_interview()
 
         elif choice == "24":
-            filter_interviews()
+            search_interviews()
 
         elif choice == "25":
-            sort_interviews()
+            filter_interviews()
 
         elif choice == "26":
+            sort_interviews()
+
+        elif choice == "27":
             print("\nGoodbye!")
             break
