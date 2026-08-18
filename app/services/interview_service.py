@@ -94,3 +94,16 @@ class InterviewService:
                 status
             )
         )       
+    def get_this_week_interviews(
+        self,
+    ):
+        return (
+            self.repository.get_this_week()
+        )    
+    def get_recent_interviews(
+        self,
+    ):
+        return (
+            self.repository
+            .get_all_sorted_by_date()
+        )    

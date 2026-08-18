@@ -57,7 +57,8 @@ def show_menu() -> None:
     print("22. Delete interview")
     print("23. Search interviews")
     print("24. Filter interviews")
-    print("25. Exit")
+    print("25. Sort interviews")
+    print("26. Exit")
 def add_company() -> None:
     print("\n--- Add Company ---")
 
@@ -685,6 +686,10 @@ def show_dashboard() -> None:
             interview_service
             .get_upcoming_interviews()
         )
+        this_week_interviews = (
+            interview_service
+            .get_this_week_interviews()
+)
         total = statistics["total"]
         total_companies = (
             statistics["total_companies"]
@@ -856,6 +861,27 @@ def show_dashboard() -> None:
             print("No upcoming interviews found.")
 
         print("-" * 60)
+        
+        print("\nInterviews This Week")
+        print("-" * 60)
+
+        if this_week_interviews:
+            for interview in this_week_interviews:
+                company_name = (
+                    interview.application.company.name
+                    if interview.application.company
+                    else "N/A"
+                )
+
+                print(
+                    f"{interview.scheduled_at} | "
+                    f"{interview.application.position} | "
+                    f"{company_name}"
+                )
+        else:
+            print("No interviews scheduled this week.")
+
+        print("-" * 60)
 def export_applications() -> None:
     print("\n--- Export Applications ---")
 
@@ -975,8 +1001,35 @@ def add_interview() -> None:
         )
 
     print("Interview scheduled successfully.")
+def sort_interviews() -> None:
+    print("\n--- Interviews (Newest First) ---")
 
+    with SessionLocal() as session:
+        interview_service = (
+            InterviewService(session)
+        )
 
+        interviews = (
+            interview_service
+            .get_recent_interviews()
+        )
+
+        if not interviews:
+            print("No interviews found.")
+            return
+
+        for interview in interviews:
+            print(
+                f"[{interview.id}] "
+                f"Application ID: "
+                f"{interview.application_id} | "
+                f"Type: "
+                f"{interview.interview_type} | "
+                f"Status: "
+                f"{interview.status} | "
+                f"Date: "
+                f"{interview.scheduled_at}"
+            )
 def list_interviews() -> None:
     print("\n--- Interviews ---")
 
@@ -1316,5 +1369,8 @@ def run() -> None:
             filter_interviews()
 
         elif choice == "25":
+            sort_interviews()
+
+        elif choice == "26":
             print("\nGoodbye!")
             break

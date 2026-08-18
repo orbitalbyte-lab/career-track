@@ -123,4 +123,27 @@ class InterviewRepository:
             )
             .all()
         )  
-    
+    def get_this_week(
+        self,
+    ):
+        return (
+            self.session.query(
+                InterviewDB
+            )
+            .order_by(
+                InterviewDB.scheduled_at
+            )
+            .all()
+        )
+    def get_all_sorted_by_date(
+        self,
+    ):
+        return (
+            self.session.query(
+                InterviewDB
+            )
+            .order_by(
+                InterviewDB.scheduled_at.desc()
+            )
+            .all()
+        )    
