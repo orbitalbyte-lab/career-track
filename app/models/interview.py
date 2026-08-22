@@ -15,14 +15,26 @@ class InterviewStatus(str, Enum):
     CANCELED = "Canceled"
 
 
+class InterviewOutcome(str, Enum):
+    PASSED = "Passed"
+    FAILED = "Failed"
+    PENDING = "Pending"
+
+
 @dataclass
 class Interview:
     application_id: int
     scheduled_at: datetime
     interview_type: InterviewType
+
     status: InterviewStatus = (
         InterviewStatus.SCHEDULED
     )
+
+    outcome: InterviewOutcome = (
+        InterviewOutcome.PENDING
+    )
+
     notes: str | None = None
 
     def __post_init__(self) -> None:
@@ -45,4 +57,12 @@ class Interview:
         ):
             raise ValueError(
                 "Invalid interview status."
+            )
+
+        if not isinstance(
+            self.outcome,
+            InterviewOutcome,
+        ):
+            raise ValueError(
+                "Invalid interview outcome."
             )

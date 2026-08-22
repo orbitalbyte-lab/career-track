@@ -15,6 +15,7 @@ class InterviewRepository:
                 interview.interview_type.value
             ),
             status=interview.status.value,
+            outcome=interview.outcome.value,
             notes=interview.notes,
         )
 
@@ -48,6 +49,7 @@ class InterviewRepository:
         self,
         interview_id,
         status,
+        outcome,
     ):
         interview = self.get_by_id(
             interview_id
@@ -57,10 +59,12 @@ class InterviewRepository:
             return None
 
         interview.status = status
+        interview.outcome = outcome
 
         self.session.commit()
 
-        return interview    
+        return interview
+
     def delete(
         self,
         interview_id,
@@ -78,19 +82,26 @@ class InterviewRepository:
 
         self.session.commit()
 
-        return True 
+        return True
+
     def get_upcoming(
         self,
     ):
+        from datetime import datetime
+
         return (
-        self.session.query(
-            InterviewDB
+            self.session.query(
+                InterviewDB
+            )
+            .filter(
+                InterviewDB.scheduled_at
+                >= datetime.now()
+            )
+            .order_by(
+                InterviewDB.scheduled_at
+           )
+            .all()
         )
-        .order_by(
-            InterviewDB.scheduled_at
-        )
-        .all()
-    )  
     def get_by_status(
         self,
         status,
@@ -103,7 +114,8 @@ class InterviewRepository:
                 status=status
             )
             .all()
-    )    
+        )
+
     def search(
         self,
         query,
@@ -122,13 +134,40 @@ class InterviewRepository:
                 )
             )
             .all()
-        )  
+        )
+
     def get_this_week(
         self,
     ):
+        from datetime import datetime, timedelta
+
+        now = datetime.now()
+
+        start_of_week = now - timedelta(
+            days=now.weekday()
+        )
+
+        start_of_week = start_of_week.replace(
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
+        )
+
+        end_of_week = (
+            start_of_week
+            + timedelta(days=7)
+        )
+
         return (
             self.session.query(
                 InterviewDB
+            )
+            .filter(
+                InterviewDB.scheduled_at
+                >= start_of_week,
+                InterviewDB.scheduled_at
+                < end_of_week,
             )
             .order_by(
                 InterviewDB.scheduled_at
@@ -146,4 +185,4 @@ class InterviewRepository:
                 InterviewDB.scheduled_at.desc()
             )
             .all()
-        )    
+        )

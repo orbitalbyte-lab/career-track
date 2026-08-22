@@ -9,6 +9,7 @@ from app.models.application import (
 )
 from app.models.interview import (
     Interview,
+    InterviewOutcome,
     InterviewStatus,
     InterviewType,
 )
@@ -270,12 +271,16 @@ def add_application() -> None:
     print("\n--- Add Application ---")
 
     try:
-        company_id = int(input("Company ID: ").strip())
+        company_id = int(
+            input("Company ID: ").strip()
+        )
     except ValueError:
         print("Company ID must be a number.")
         return
 
-    position = input("Position: ").strip()
+    position = input(
+        "Position: "
+    ).strip()
 
     print("\nSelect application type:")
 
@@ -285,23 +290,57 @@ def add_application() -> None:
         application_types,
         start=1,
     ):
-        print(f"{index}. {application_type_option.value}")
+        print(
+            f"{index}. "
+            f"{application_type_option.value}"
+        )
 
     application_type_choice = input(
         "Application type: "
     ).strip()
 
+    application_type = None
+
+    # Accept either a number or the actual type name.
     try:
         application_type_index = (
             int(application_type_choice) - 1
         )
 
-        application_type = application_types[
-            application_type_index
-        ].value
+        if (
+            0
+            <= application_type_index
+            < len(application_types)
+        ):
+            application_type = (
+                application_types[
+                    application_type_index
+                ].value
+            )
 
-    except (ValueError, IndexError):
-        print("Invalid application type selection.")
+    except ValueError:
+        choice_normalized = (
+            application_type_choice
+            .strip()
+            .lower()
+        )
+
+        for application_type_option in (
+            application_types
+        ):
+            if (
+                application_type_option.value.lower()
+                == choice_normalized
+            ):
+                application_type = (
+                    application_type_option.value
+                )
+                break
+
+    if application_type is None:
+        print(
+            "Invalid application type selection."
+        )
         return
 
     date_applied = input(
@@ -316,44 +355,99 @@ def add_application() -> None:
         statuses,
         start=1,
     ):
-        print(f"{index}. {application_status.value}")
+        print(
+            f"{index}. "
+            f"{application_status.value}"
+        )
 
-    status_choice = input("Status: ").strip()
+    status_choice = input(
+        "Status: "
+    ).strip()
 
+    status = None
+
+    # Accept either a number or the actual status name.
     try:
-        status_index = int(status_choice) - 1
-        status = statuses[status_index].value
+        status_index = (
+            int(status_choice) - 1
+        )
 
-    except (ValueError, IndexError):
-        print("Invalid status selection.")
+        if (
+            0
+            <= status_index
+            < len(statuses)
+        ):
+            status = (
+                statuses[
+                    status_index
+                ].value
+            )
+
+    except ValueError:
+        choice_normalized = (
+            status_choice
+            .strip()
+            .lower()
+        )
+
+        for status_option in statuses:
+            if (
+                status_option.value.lower()
+                == choice_normalized
+            ):
+                status = (
+                    status_option.value
+                )
+                break
+
+    if status is None:
+        print(
+            "Invalid status selection."
+        )
         return
 
     try:
-        parsed_date = date.fromisoformat(date_applied)
+        parsed_date = date.fromisoformat(
+            date_applied
+        )
 
     except ValueError:
-        print("Invalid date. Use YYYY-MM-DD.")
+        print(
+            "Invalid date. Use YYYY-MM-DD."
+        )
         return
 
     with SessionLocal() as session:
-        service = ApplicationService(session)
+        service = ApplicationService(
+            session
+        )
 
         try:
-            application = service.create_application(
-                company_id=company_id,
-                position=position,
-                application_type=application_type,
-                date_applied=parsed_date,
-                status=status,
+            application = (
+                service.create_application(
+                    company_id=company_id,
+                    position=position,
+                    application_type=(
+                        application_type
+                    ),
+                    date_applied=parsed_date,
+                    status=status,
+                )
             )
 
-            print("\nApplication created successfully!")
-            print(f"Application ID: {application.id}")
+            print(
+                "\nApplication created successfully!"
+            )
+
+            print(
+                f"Application ID: "
+                f"{application.id}"
+            )
 
         except ValueError as error:
-            print(f"\nError: {error}")
-
-
+            print(
+                f"\nError: {error}"
+            )
 def list_applications() -> None:
     print("\n--- Applications ---")
 
@@ -683,6 +777,12 @@ def show_dashboard() -> None:
             interview_service
             .get_interview_statistics()
         )
+
+        interview_analytics = (
+            interview_service
+            .get_interview_analytics()
+        )
+
         upcoming_interviews = (
             interview_service
             .get_upcoming_interviews()
@@ -838,23 +938,81 @@ def show_dashboard() -> None:
                 print(f"{status}: {count}")
         else:
             print("No interviews found.")
-
         print("-" * 60)
 
+        print("\nInterview Analytics")
+        print("-" * 35)
+
+        print(
+            f"Total Interviews: "
+            f"{interview_analytics['total']}"
+        )
+
+        print(
+            f"Completed Interviews: "
+            f"{interview_analytics['completed']}"
+        )
+
+        print(
+            f"Cancelled Interviews: "
+            f"{interview_analytics['cancelled']}"
+        )
+
+        print(
+            f"Passed Interviews: "
+            f"{interview_analytics['passed']}"
+        )
+
+        print(
+            f"Failed Interviews: "
+            f"{interview_analytics['failed']}"
+        )
+
+        print(
+            f"Pending Interviews: "
+            f"{interview_analytics['pending']}"
+        )
+
+        print(
+            f"Online Interviews: "
+            f"{interview_analytics['online']}"
+        )
+
+        print(
+            f"Phone Interviews: "
+            f"{interview_analytics['phone']}"
+        )
+
+        print(
+            f"On-site Interviews: "
+            f"{interview_analytics['on_site']}"
+        )
+
+        print("-" * 60)
+        
         print("\nUpcoming Interviews")
         print("-" * 60)
 
         if upcoming_interviews:
             for interview in upcoming_interviews:
-                company_name = (
-                    interview.application.company.name
-                    if interview.application.company
-                    else "N/A"
-                )
+                if interview.application:
+                    position = (
+                        interview.application.position
+                    )
+
+                    company_name = (
+                        interview.application.company.name
+                        if interview.application.company
+                        else "N/A"
+                    )
+
+                else:
+                    position = "N/A"
+                    company_name = "N/A"
 
                 print(
                     f"{interview.scheduled_at} | "
-                    f"{interview.application.position} | "
+                    f"{position} | "
                     f"{company_name} | "
                     f"{interview.interview_type}"
                 )
@@ -868,20 +1026,42 @@ def show_dashboard() -> None:
 
         if this_week_interviews:
             for interview in this_week_interviews:
-                company_name = (
-                    interview.application.company.name
-                    if interview.application.company
-                    else "N/A"
+                application = getattr(
+                    interview,
+                    "application",
+                    None,
                 )
+
+                if application:
+                    position = (
+                        application.position
+                    )
+
+                    company = getattr(
+                        application,
+                        "company",
+                        None,
+                    )
+
+                    company_name = (
+                        company.name
+                        if company
+                        else "N/A"
+                    )
+
+                else:
+                    position = "N/A"
+                    company_name = "N/A"
 
                 print(
                     f"{interview.scheduled_at} | "
-                    f"{interview.application.position} | "
+                    f"{position} | "
                     f"{company_name}"
                 )
         else:
-            print("No interviews scheduled this week.")
-
+            print(
+                "No interviews scheduled this week."
+            )
         print("-" * 60)
 def export_applications() -> None:
     print("\n--- Export Applications ---")
@@ -966,8 +1146,9 @@ def add_interview() -> None:
 
         except ValueError:
             print(
-               "Please enter a valid number."
+                "Please enter a valid number."
             )
+
     while True:
         try:
             scheduled_at = (
@@ -990,7 +1171,8 @@ def add_interview() -> None:
                 InterviewType(
                     input(
                         "Interview type (Online/Phone/On-site): "
-                    ).strip()
+                    )
+                    .strip()
                     .title()
                 )
             )
@@ -1001,8 +1183,12 @@ def add_interview() -> None:
                 "Please choose Online, Phone, or On-site."
             )
 
+    outcome = InterviewOutcome.PENDING
+
     notes = (
-        input("Notes (optional): ").strip()
+        input(
+            "Notes (optional): "
+        ).strip()
         or None
     )
 
@@ -1010,6 +1196,7 @@ def add_interview() -> None:
         application_id=application_id,
         scheduled_at=scheduled_at,
         interview_type=interview_type,
+        outcome=outcome,
         notes=notes,
     )
 
@@ -1022,7 +1209,9 @@ def add_interview() -> None:
             interview
         )
 
-    print("Interview scheduled successfully.")
+    print(
+        "Interview scheduled successfully."
+    )
 def sort_interviews() -> None:
     print("\n--- Interviews (Newest First) ---")
 
@@ -1176,6 +1365,25 @@ def update_interview() -> None:
         )
         return
 
+    print(
+        "Pending | Passed | Failed"
+    )
+
+    try:
+        outcome = InterviewOutcome(
+            input(
+                "Interview outcome: "
+            )
+            .strip()
+            .title()
+        )
+
+    except ValueError:
+        print(
+            "Invalid outcome."
+        )
+        return
+
     with SessionLocal() as session:
         interview_service = (
             InterviewService(session)
@@ -1185,6 +1393,7 @@ def update_interview() -> None:
             interview_service.update_interview(
                 interview_id,
                 status.value,
+                outcome.value,
             )
         )
 
@@ -1196,8 +1405,7 @@ def update_interview() -> None:
 
     print(
         "Interview updated successfully."
-    )   
-
+    )
 def delete_interview() -> None:
     print("\n--- Delete Interview ---")
 

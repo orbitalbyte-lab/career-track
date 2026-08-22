@@ -45,6 +45,12 @@ class InterviewDB(Base):
         nullable=False,
     )
 
+    outcome: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        default="Pending",
+    )
+
     notes: Mapped[str | None] = (
         mapped_column(
             String(2000),
