@@ -1273,7 +1273,7 @@ def view_interview() -> None:
         interview_id = int(
             input(
                 "Interview ID: "
-            )
+            ).strip()
         )
 
     except ValueError:
@@ -1300,6 +1300,22 @@ def view_interview() -> None:
             )
             return
 
+        application = getattr(
+            interview,
+            "application",
+            None,
+        )
+
+        company = (
+            getattr(
+                application,
+                "company",
+                None,
+            )
+            if application
+            else None
+        )
+
         print(
             f"\nInterview ID: "
             f"{interview.id}"
@@ -1308,6 +1324,16 @@ def view_interview() -> None:
         print(
             f"Application ID: "
             f"{interview.application_id}"
+        )
+
+        print(
+            f"Company: "
+            f"{company.name if company else 'N/A'}"
+        )
+
+        print(
+            f"Position: "
+            f"{application.position if application else 'N/A'}"
         )
 
         print(
@@ -1326,9 +1352,14 @@ def view_interview() -> None:
         )
 
         print(
+            f"Outcome: "
+            f"{interview.outcome}"
+        )
+
+        print(
             f"Notes: "
             f"{interview.notes or ''}"
-        )            
+        )
             
 def update_interview() -> None:
     print("\n--- Update Interview ---")
