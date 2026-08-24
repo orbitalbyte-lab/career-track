@@ -469,16 +469,33 @@ def list_applications() -> None:
                 f"Status: {application.status} | "
                 f"Applied: {application.date_applied}"
             )
-
 def sort_applications() -> None:
-    print("\n--- Applications (Newest First) ---")
+    print("\n--- Sort Applications ---")
+    print("1. Date (Newest First)")
+    print("2. Position (A-Z)")
+
+    choice = input(
+        "Choose sorting option: "
+    ).strip()
+
+    if choice == "1":
+        field = "date"
+        title = "Applications (Newest First)"
+    elif choice == "2":
+        field = "position"
+        title = "Applications (Position A-Z)"
+    else:
+        print("Invalid sorting option.")
+        return
 
     with SessionLocal() as session:
         service = ApplicationService(session)
 
         applications = (
-            service.get_recent_applications()
+            service.get_sorted_applications(field)
         )
+
+        print(f"\n--- {title} ---")
 
         if not applications:
             print("No applications found.")
@@ -492,9 +509,7 @@ def sort_applications() -> None:
                 f"Type: {application.application_type} | "
                 f"Status: {application.status} | "
                 f"Applied: {application.date_applied}"
-            )            
-
-
+            )
 def view_application() -> None:
     print("\n--- View Application ---")
 

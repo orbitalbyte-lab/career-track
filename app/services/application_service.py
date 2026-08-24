@@ -291,11 +291,11 @@ class ApplicationService:
         self.application_repository.delete(application)
 
         return True
-def get_sorted_applications(
-    self,
-    field: str,
-) -> list[ApplicationDB]:
-    return (
-        self.application_repository
-        .get_all_sorted(field)
-    )
+    def get_sorted_applications(
+        self,
+        field: str,
+    ) -> list[ApplicationDB]:
+        return (
+            self.application_repository
+            .get_all_sorted(field)
+        )

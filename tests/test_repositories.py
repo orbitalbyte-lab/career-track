@@ -623,6 +623,94 @@ def test_application_repository_sorts_by_date_applied_descending():
         assert len(results) == 2
         assert results[0].position == "New Application"
         assert results[1].position == "Old Application"
+def test_application_repository_sorts_by_date_field():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_repository = CompanyRepository(session)
+        application_repository = ApplicationRepository(session)
+
+        company = company_repository.create(
+            CompanyDB(name="Google")
+        )
+
+        application_repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Old Application",
+                application_type="Full-time",
+                date_applied=date(2026, 8, 1),
+                status="Applied",
+            )
+        )
+
+        application_repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="New Application",
+                application_type="Full-time",
+                date_applied=date(2026, 8, 5),
+                status="Applied",
+            )
+        )
+
+        results = application_repository.get_all_sorted(
+            "date"
+        )
+
+        assert len(results) == 2
+        assert results[0].position == "New Application"
+        assert results[1].position == "Old Application"
+
+
+def test_application_repository_sorts_by_position():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_repository = CompanyRepository(session)
+        application_repository = ApplicationRepository(session)
+
+        company = company_repository.create(
+            CompanyDB(name="Google")
+        )
+
+        application_repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Software Engineer",
+                application_type="Full-time",
+                date_applied=date(2026, 8, 5),
+                status="Applied",
+            )
+        )
+
+        application_repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Backend Engineer",
+                application_type="Full-time",
+                date_applied=date(2026, 8, 4),
+                status="Applied",
+            )
+        )
+
+        application_repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Frontend Engineer",
+                application_type="Internship",
+                date_applied=date(2026, 8, 3),
+                status="Applied",
+            )
+        )
+
+        results = application_repository.get_all_sorted(
+            "position"
+        )
+        assert len(results) == 3
+        assert results[0].position == "Backend Engineer"
+        assert results[1].position == "Frontend Engineer"
+        assert results[2].position == "Software Engineer"
 def test_get_monthly_application_counts():
     setup_database()
 
