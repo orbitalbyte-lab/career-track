@@ -186,3 +186,31 @@ class InterviewRepository:
             )
             .all()
         )
+
+    def get_all_sorted(
+        self,
+        field: str,
+    ):
+        query = self.session.query(
+            InterviewDB
+        )
+
+        if field == "date":
+            return (
+                query
+                .order_by(
+                    InterviewDB.scheduled_at.desc()
+                )
+                .all()
+            )
+
+        if field == "type":
+            return (
+                query
+                .order_by(
+                    InterviewDB.interview_type.asc()
+                )
+                .all()
+            )
+
+        return query.all()

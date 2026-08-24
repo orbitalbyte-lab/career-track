@@ -195,3 +195,10 @@ class InterviewService:
             self.repository
             .get_all_sorted_by_date()
         )
+    def get_sorted_interviews(
+        self,
+        field,
+    ):
+        return self.repository.get_all_sorted(
+            field
+        )

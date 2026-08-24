@@ -1228,17 +1228,35 @@ def add_interview() -> None:
         "Interview scheduled successfully."
     )
 def sort_interviews() -> None:
-    print("\n--- Interviews (Newest First) ---")
+    print("\n--- Sort Interviews ---")
+    print("1. Date (Newest First)")
+    print("2. Interview Type (A-Z)")
+
+    choice = input(
+        "Choose sorting option: "
+    ).strip()
+
+    if choice == "1":
+        field = "date"
+        title = "Interviews (Newest First)"
+    elif choice == "2":
+        field = "type"
+        title = "Interviews (Type A-Z)"
+    else:
+        print("Invalid sorting option.")
+        return
 
     with SessionLocal() as session:
-        interview_service = (
-            InterviewService(session)
+        interview_service = InterviewService(
+            session
         )
 
         interviews = (
             interview_service
-            .get_recent_interviews()
+            .get_sorted_interviews(field)
         )
+
+        print(f"\n--- {title} ---")
 
         if not interviews:
             print("No interviews found.")

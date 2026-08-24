@@ -6,6 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from app.database.connection import Base
 from app.models.interview import (
     Interview,
+    InterviewOutcome,
     InterviewStatus,
     InterviewType,
 )
@@ -138,4 +139,157 @@ def test_delete_interview():
                 created.id
             )
             is None
-        )       
+        )
+def test_interview_repository_sorts_by_date():
+    engine = create_engine(
+        "sqlite:///:memory:"
+    )
+
+    Base.metadata.create_all(engine)
+
+    Session = sessionmaker(bind=engine)
+
+    with Session() as session:
+        repository = InterviewRepository(
+            session
+        )
+
+        repository.create(
+            Interview(
+                application_id=1,
+                scheduled_at=datetime(
+                    2026,
+                    8,
+                    1,
+                    10,
+                    0,
+                ),
+                interview_type=(
+                    InterviewType.ONLINE
+                ),
+                status=(
+                    InterviewStatus.SCHEDULED
+                ),
+            )
+        )
+
+        repository.create(
+            Interview(
+                application_id=1,
+                scheduled_at=datetime(
+                    2026,
+                    8,
+                    5,
+                    10,
+                    0,
+                ),
+                interview_type=(
+                    InterviewType.PHONE
+                ),
+                status=(
+                    InterviewStatus.SCHEDULED
+                ),
+            )
+        )
+
+        results = (
+            repository.get_all_sorted(
+                "date"
+            )
+        )
+
+        assert len(results) == 2
+
+        assert (
+            results[0].scheduled_at
+            == datetime(
+                2026,
+                8,
+                5,
+                10,
+                0,
+            )
+        )
+
+        assert (
+            results[1].scheduled_at
+            == datetime(
+                2026,
+                8,
+                1,
+                10,
+                0,
+            )
+        )
+
+
+def test_interview_repository_sorts_by_type():
+    engine = create_engine(
+        "sqlite:///:memory:"
+    )
+
+    Base.metadata.create_all(engine)
+
+    Session = sessionmaker(bind=engine)
+
+    with Session() as session:
+        repository = InterviewRepository(
+            session
+        )
+
+        repository.create(
+            Interview(
+                application_id=1,
+                scheduled_at=datetime(
+                    2026,
+                    8,
+                    5,
+                    10,
+                    0,
+                ),
+                interview_type=(
+                    InterviewType.ONLINE
+                ),
+                status=(
+                    InterviewStatus.SCHEDULED
+                ),
+            )
+        )
+
+        repository.create(
+            Interview(
+                application_id=1,
+                scheduled_at=datetime(
+                    2026,
+                    8,
+                    4,
+                    10,
+                    0,
+                ),
+                interview_type=(
+                    InterviewType.PHONE
+                ),
+                status=(
+                    InterviewStatus.SCHEDULED
+                ),
+            )
+        )
+
+        results = (
+            repository.get_all_sorted(
+                "type"
+            )
+        )
+
+    assert len(results) == 2
+
+    assert (
+        results[0].interview_type
+        == "Online"
+    )
+
+    assert (
+        results[1].interview_type
+        == "Phone"
+    )
+       
