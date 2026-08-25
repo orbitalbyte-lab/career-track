@@ -13,6 +13,9 @@ from app.models.interview import (
     InterviewStatus,
     InterviewType,
 )
+from app.models.follow_up import (
+    FollowUp,
+)
 from app.services.application_service import (
     ApplicationService,
 )
@@ -27,6 +30,9 @@ from app.services.import_service import (
 )
 from app.services.interview_service import (
     InterviewService,
+)
+from app.services.follow_up_service import (
+    FollowUpService,
 )
 
 def show_menu() -> None:
@@ -60,7 +66,16 @@ def show_menu() -> None:
     print("24. Search interviews")
     print("25. Filter interviews")
     print("26. Sort interviews")
-    print("27. Exit")
+    print("27. Add follow-up")
+    print("28. List follow-ups")
+    print("29. View follow-up")
+    print("30. Complete follow-up")
+    print("31. Reopen follow-up")
+    print("32. Delete follow-up")
+    print("33. Upcoming follow-ups")
+    print("34. Pending follow-ups")
+    print("35. Completed follow-ups")
+    print("36. Exit")
 def add_company() -> None:
     print("\n--- Add Company ---")
 
@@ -787,7 +802,7 @@ def show_dashboard() -> None:
         )
         location_statistics = (
             service.get_location_statistics()
-        )    
+        )
         interview_statistics = (
             interview_service
             .get_interview_statistics()
@@ -942,7 +957,7 @@ def show_dashboard() -> None:
                 )
         else:
             print("No upcoming deadlines.")
-        
+
         print("\nInterview Statistics")
         print("-" * 35)
 
@@ -1004,7 +1019,7 @@ def show_dashboard() -> None:
         )
 
         print("-" * 60)
-        
+
         print("\nUpcoming Interviews")
         print("-" * 60)
 
@@ -1035,7 +1050,7 @@ def show_dashboard() -> None:
             print("No upcoming interviews found.")
 
         print("-" * 60)
-        
+
         print("\nInterviews This Week")
         print("-" * 60)
 
@@ -1117,7 +1132,7 @@ def export_interviews() -> None:
 
         print(
             f"Interviews exported to: {path}"
-        )        
+        )
 def import_applications() -> None:
     print("\n--- Import Applications ---")
 
@@ -1146,7 +1161,7 @@ def import_applications() -> None:
             )
 
         except FileNotFoundError as error:
-            print(error)  
+            print(error)
 def add_interview() -> None:
     print("\n--- Add Interview ---")
 
@@ -1274,6 +1289,289 @@ def sort_interviews() -> None:
                 f"Date: "
                 f"{interview.scheduled_at}"
             )
+def add_follow_up() -> None:
+    print("\n--- Add Follow-Up ---")
+
+    try:
+        application_id = int(
+            input("Application ID: ").strip()
+        )
+    except ValueError:
+        print("Application ID must be a number.")
+        return
+
+    date_text = input(
+        "Follow-up date and time "
+        "(YYYY-MM-DD HH:MM): "
+    ).strip()
+
+    try:
+        follow_up_at = datetime.strptime(
+            date_text,
+            "%Y-%m-%d %H:%M",
+        )
+    except ValueError:
+        print(
+            "Invalid date format. "
+            "Use YYYY-MM-DD HH:MM."
+        )
+        return
+
+    note = input(
+        "Follow-up note: "
+    ).strip()
+
+    try:
+        follow_up = FollowUp(
+            application_id=application_id,
+            follow_up_at=follow_up_at,
+            note=note,
+        )
+    except ValueError as error:
+        print(f"Error: {error}")
+        return
+
+    with SessionLocal() as session:
+        service = FollowUpService(session)
+
+        result = service.create_follow_up(
+            follow_up
+        )
+
+        print(
+            "\nFollow-up created successfully!"
+        )
+        print(f"Follow-Up ID: {result.id}")
+
+
+def list_follow_ups() -> None:
+    print("\n--- Follow-Ups ---")
+
+    with SessionLocal() as session:
+        service = FollowUpService(session)
+
+        follow_ups = (
+            service.get_follow_ups()
+        )
+
+        if not follow_ups:
+            print("No follow-ups found.")
+            return
+
+        for follow_up in follow_ups:
+            status = (
+                "Completed"
+                if follow_up.completed
+                else "Pending"
+            )
+
+            print(
+                f"[{follow_up.id}] "
+                f"Application ID: "
+                f"{follow_up.application_id} | "
+                f"Date: "
+                f"{follow_up.follow_up_at} | "
+                f"Status: {status} | "
+                f"Note: {follow_up.note}"
+            )
+
+
+def view_follow_up() -> None:
+    print("\n--- View Follow-Up ---")
+
+    try:
+        follow_up_id = int(
+            input("Follow-Up ID: ").strip()
+        )
+    except ValueError:
+        print("Follow-Up ID must be a number.")
+        return
+
+    with SessionLocal() as session:
+        service = FollowUpService(session)
+
+        follow_up = service.get_follow_up(
+            follow_up_id
+        )
+
+        if follow_up is None:
+            print("Follow-up not found.")
+            return
+
+        status = (
+            "Completed"
+            if follow_up.completed
+            else "Pending"
+        )
+
+        print("\nFollow-Up Details")
+        print("-" * 30)
+        print(f"ID:             {follow_up.id}")
+        print(
+            f"Application ID: "
+            f"{follow_up.application_id}"
+        )
+        print(
+            f"Date:           "
+            f"{follow_up.follow_up_at}"
+        )
+        print(f"Status:         {status}")
+        print(f"Note:           {follow_up.note}")
+        print("-" * 30)
+
+
+def complete_follow_up() -> None:
+    print("\n--- Complete Follow-Up ---")
+
+    try:
+        follow_up_id = int(
+            input("Follow-Up ID: ").strip()
+        )
+    except ValueError:
+        print("Follow-Up ID must be a number.")
+        return
+
+    with SessionLocal() as session:
+        service = FollowUpService(session)
+
+        result = service.complete_follow_up(
+            follow_up_id
+        )
+
+        if result is None:
+            print("Follow-up not found.")
+            return
+
+        print(
+            "Follow-up marked as completed."
+        )
+
+
+def reopen_follow_up() -> None:
+    print("\n--- Reopen Follow-Up ---")
+
+    try:
+        follow_up_id = int(
+            input("Follow-Up ID: ").strip()
+        )
+    except ValueError:
+        print("Follow-Up ID must be a number.")
+        return
+
+    with SessionLocal() as session:
+        service = FollowUpService(session)
+
+        result = service.reopen_follow_up(
+            follow_up_id
+        )
+
+        if result is None:
+            print("Follow-up not found.")
+            return
+
+        print(
+            "Follow-up marked as pending."
+        )
+
+
+def delete_follow_up() -> None:
+    print("\n--- Delete Follow-Up ---")
+
+    try:
+        follow_up_id = int(
+            input("Follow-Up ID: ").strip()
+        )
+    except ValueError:
+        print("Follow-Up ID must be a number.")
+        return
+
+    with SessionLocal() as session:
+        service = FollowUpService(session)
+
+        result = service.delete_follow_up(
+            follow_up_id
+        )
+
+        if not result:
+            print("Follow-up not found.")
+            return
+
+        print(
+            "Follow-up deleted successfully."
+        )
+
+
+def upcoming_follow_ups() -> None:
+    print("\n--- Upcoming Follow-Ups ---")
+
+    with SessionLocal() as session:
+        service = FollowUpService(session)
+
+        follow_ups = (
+            service.get_upcoming_follow_ups()
+        )
+
+        if not follow_ups:
+            print("No upcoming follow-ups.")
+            return
+
+        for follow_up in follow_ups:
+            print(
+                f"[{follow_up.id}] "
+                f"Application ID: "
+                f"{follow_up.application_id} | "
+                f"Date: "
+                f"{follow_up.follow_up_at} | "
+                f"Note: {follow_up.note}"
+            )
+def list_pending_follow_ups() -> None:
+    print("\n--- Pending Follow-Ups ---")
+
+    with SessionLocal() as session:
+        service = FollowUpService(session)
+
+        follow_ups = (
+            service.get_pending_follow_ups()
+        )
+
+        if not follow_ups:
+            print("No pending follow-ups.")
+            return
+
+        for follow_up in follow_ups:
+            print(
+                f"[{follow_up.id}] "
+                f"Application ID: "
+                f"{follow_up.application_id} | "
+                f"Date: "
+                f"{follow_up.follow_up_at} | "
+                f"Note: {follow_up.note}"
+            )
+
+
+def list_completed_follow_ups() -> None:
+    print("\n--- Completed Follow-Ups ---")
+
+    with SessionLocal() as session:
+        service = FollowUpService(session)
+
+        follow_ups = (
+            service.get_completed_follow_ups()
+        )
+
+        if not follow_ups:
+            print("No completed follow-ups.")
+            return
+
+        for follow_up in follow_ups:
+            print(
+                f"[{follow_up.id}] "
+                f"Application ID: "
+                f"{follow_up.application_id} | "
+                f"Date: "
+                f"{follow_up.follow_up_at} | "
+                f"Note: {follow_up.note}"
+            )
 def list_interviews() -> None:
     print("\n--- Interviews ---")
 
@@ -1393,7 +1691,7 @@ def view_interview() -> None:
             f"Notes: "
             f"{interview.notes or ''}"
         )
-            
+
 def update_interview() -> None:
     print("\n--- Update Interview ---")
 
@@ -1541,7 +1839,7 @@ def search_interviews() -> None:
                 f"{interview.interview_type} | "
                 f"Status: "
                 f"{interview.status}"
-            )  
+            )
 
 def filter_interviews() -> None:
     print("\n--- Filter Interviews ---")
@@ -1580,8 +1878,8 @@ def filter_interviews() -> None:
                 f"{interview.interview_type} | "
                 f"Status: "
                 f"{interview.status}"
-            )              
-        
+            )
+
 def run() -> None:
     while True:
         show_menu()
@@ -1669,5 +1967,32 @@ def run() -> None:
             sort_interviews()
 
         elif choice == "27":
+            add_follow_up()
+
+        elif choice == "28":
+            list_follow_ups()
+
+        elif choice == "29":
+            view_follow_up()
+
+        elif choice == "30":
+            complete_follow_up()
+
+        elif choice == "31":
+            reopen_follow_up()
+
+        elif choice == "32":
+            delete_follow_up()
+
+        elif choice == "33":
+            upcoming_follow_ups()
+
+        elif choice == "34":
+            list_pending_follow_ups()
+
+        elif choice == "35":
+            list_completed_follow_ups()
+
+        elif choice == "36":
             print("\nGoodbye!")
             break
