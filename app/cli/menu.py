@@ -795,6 +795,8 @@ def show_dashboard() -> None:
             InterviewService(session)
         )
 
+        follow_up_service = FollowUpService(session)
+
         statistics = service.get_dashboard_statistics()
 
         monthly_applications = (
@@ -811,6 +813,16 @@ def show_dashboard() -> None:
         interview_analytics = (
             interview_service
             .get_interview_analytics()
+        )
+
+        follow_up_statistics = (
+            follow_up_service
+            .get_follow_up_statistics()
+        )
+
+        upcoming_follow_ups = (
+            follow_up_service
+            .get_upcoming_follow_ups()
         )
 
         upcoming_interviews = (
@@ -1092,6 +1104,41 @@ def show_dashboard() -> None:
             print(
                 "No interviews scheduled this week."
             )
+        print("-" * 60)
+        print("\nFollow-Up Statistics")
+        print("-" * 35)
+
+        print(
+            f"Total Follow-Ups: "
+            f"{follow_up_statistics['total']}"
+        )
+
+        print(
+            f"Completed Follow-Ups: "
+            f"{follow_up_statistics['completed']}"
+        )
+
+        print(
+            f"Pending Follow-Ups: "
+            f"{follow_up_statistics['pending']}"
+        )
+
+        print("-" * 60)
+
+        print("\nUpcoming Follow-Ups")
+        print("-" * 60)
+
+        if upcoming_follow_ups:
+            for follow_up in upcoming_follow_ups:
+                print(
+                    f"{follow_up.follow_up_at} | "
+                    f"Application ID: "
+                    f"{follow_up.application_id} | "
+                    f"{follow_up.note}"
+                )
+        else:
+            print("No upcoming follow-ups.")
+
         print("-" * 60)
 def export_applications() -> None:
     print("\n--- Export Applications ---")
