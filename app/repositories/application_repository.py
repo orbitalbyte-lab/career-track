@@ -21,14 +21,12 @@ class ApplicationRepository:
         return application
 
     def get_all(self) -> list[ApplicationDB]:
-        return list(
-            self.session.query(ApplicationDB).all()
-        )
+        return self.session.query(ApplicationDB).all()
 
     def get_all_sorted_by_date(
         self,
     ) -> list[ApplicationDB]:
-        return list(
+        return (
             self.session.query(ApplicationDB)
             .order_by(
                 ApplicationDB.date_applied.desc()
@@ -40,7 +38,7 @@ class ApplicationRepository:
         self,
         company_id: int,
     ) -> list[ApplicationDB]:
-        return list(
+        return (
             self.session.query(ApplicationDB)
             .filter(
                 ApplicationDB.company_id == company_id
@@ -52,11 +50,9 @@ class ApplicationRepository:
         self,
         status: str,
     ) -> list[ApplicationDB]:
-        return list(
+        return (
             self.session.query(ApplicationDB)
-            .filter(
-                ApplicationDB.status == status
-            )
+            .filter(ApplicationDB.status == status)
             .order_by(ApplicationDB.position)
             .all()
         )
@@ -65,7 +61,7 @@ class ApplicationRepository:
         self,
         application_type: str,
     ) -> list[ApplicationDB]:
-        return list(
+        return (
             self.session.query(ApplicationDB)
             .filter(
                 ApplicationDB.application_type
@@ -79,7 +75,7 @@ class ApplicationRepository:
         self,
         application_date: date,
     ) -> list[ApplicationDB]:
-        return list(
+        return (
             self.session.query(ApplicationDB)
             .filter(
                 ApplicationDB.date_applied
@@ -93,7 +89,7 @@ class ApplicationRepository:
         self,
         deadline: date,
     ) -> list[ApplicationDB]:
-        return list(
+        return (
             self.session.query(ApplicationDB)
             .filter(
                 ApplicationDB.deadline == deadline
@@ -101,23 +97,22 @@ class ApplicationRepository:
             .order_by(ApplicationDB.position)
             .all()
         )
+
     def get_upcoming_deadlines(
         self,
         today: date,
         limit: int = 5,
     ) -> list[ApplicationDB]:
-       return list(
-           self.session.query(ApplicationDB)
-           .filter(
-               ApplicationDB.deadline.isnot(None),
-               ApplicationDB.deadline >= today,
-           )
-           .order_by(
-               ApplicationDB.deadline.asc()
-           )
-           .limit(limit)
-           .all()
-       )
+        return (
+            self.session.query(ApplicationDB)
+            .filter(
+                ApplicationDB.deadline.isnot(None),
+                ApplicationDB.deadline >= today,
+            )
+            .order_by(ApplicationDB.deadline.asc())
+            .limit(limit)
+            .all()
+        )
 
     def filter_applications(
         self,
@@ -150,7 +145,7 @@ class ApplicationRepository:
                 == date_applied
             )
 
-        return list(
+        return (
             query
             .order_by(
                 ApplicationDB.date_applied.desc()
@@ -168,27 +163,17 @@ class ApplicationRepository:
             self.session.query(ApplicationDB)
             .join(ApplicationDB.company)
             .filter(
-                (
-                    ApplicationDB.position.ilike(
-                        search_pattern
-                    )
+                ApplicationDB.position.ilike(
+                    search_pattern
                 )
-                | (
-                    ApplicationDB.company.has(
-                        CompanyDB.name.ilike(
-                            search_pattern
-                        )
-                    )
+                | ApplicationDB.company.has(
+                    CompanyDB.name.ilike(search_pattern)
                 )
-                | (
-                    ApplicationDB.status.ilike(
-                        search_pattern
-                    )
+                | ApplicationDB.status.ilike(
+                    search_pattern
                 )
-                | (
-                    ApplicationDB.application_type.ilike(
-                        search_pattern
-                    )
+                | ApplicationDB.application_type.ilike(
+                    search_pattern
                 )
             )
             .order_by(ApplicationDB.position)
@@ -196,9 +181,7 @@ class ApplicationRepository:
         )
 
     def count_all(self) -> int:
-        return self.session.query(
-            ApplicationDB
-        ).count()
+        return self.session.query(ApplicationDB).count()
 
     def count_by_status(
         self,
@@ -206,9 +189,7 @@ class ApplicationRepository:
     ) -> int:
         return (
             self.session.query(ApplicationDB)
-            .filter(
-                ApplicationDB.status == status
-            )
+            .filter(ApplicationDB.status == status)
             .count()
         )
 
@@ -235,26 +216,19 @@ class ApplicationRepository:
         )
 
     def get_total_count(self) -> int:
-        return self.session.query(
-            ApplicationDB
-        ).count()
+        return self.session.query(ApplicationDB).count()
 
     def get_application_type_counts(
         self,
     ) -> dict[str, int]:
         applications = self.get_all()
-
         statistics: dict[str, int] = {}
 
         for application in applications:
-            application_type = (
-                application.application_type
+            application_type = application.application_type
+            statistics[application_type] = (
+                statistics.get(application_type, 0) + 1
             )
-
-            if application_type not in statistics:
-                statistics[application_type] = 0
-
-            statistics[application_type] += 1
 
         return statistics
 
@@ -262,16 +236,13 @@ class ApplicationRepository:
         self,
     ) -> dict[str, int]:
         applications = self.get_all()
-
         statistics: dict[str, int] = {}
 
         for application in applications:
             status = application.status
-
-            if status not in statistics:
-                statistics[status] = 0
-
-            statistics[status] += 1
+            statistics[status] = (
+                statistics.get(status, 0) + 1
+            )
 
         return statistics
 
@@ -287,50 +258,44 @@ class ApplicationRepository:
         statistics: dict[str, int] = {}
 
         for application in applications:
-            company_name = (
-                application.company.name
+            company_name = application.company.name
+            statistics[company_name] = (
+                statistics.get(company_name, 0) + 1
             )
-
-            if company_name not in statistics:
-                statistics[company_name] = 0
-
-            statistics[company_name] += 1
 
         return statistics
 
     def get_monthly_application_counts(
-       self,
-    ) -> dict[str, int]:
-         applications = self.get_all()
-
-         statistics: dict[str, int] = {}
-
-         for application in applications:
-             month = application.date_applied.strftime(
-                 "%Y-%m"
-             )
-
-             if month not in statistics:
-                 statistics[month] = 0
-
-             statistics[month] += 1
-
-         return statistics
-
-    def get_location_statistics(
-       self,
+        self,
     ) -> dict[str, int]:
         applications = self.get_all()
-
         statistics: dict[str, int] = {}
 
         for application in applications:
-            location = application.location or "Not specified"
+            month = application.date_applied.strftime(
+                "%Y-%m"
+            )
+            statistics[month] = (
+                statistics.get(month, 0) + 1
+            )
 
-            if location not in statistics:
-                statistics[location] = 0
+        return statistics
 
-            statistics[location] += 1
+    def get_location_statistics(
+        self,
+    ) -> dict[str, int]:
+        applications = self.get_all()
+        statistics: dict[str, int] = {}
+
+        for application in applications:
+            location = (
+                application.location
+                or "Not specified"
+            )
+
+            statistics[location] = (
+                statistics.get(location, 0) + 1
+            )
 
         return statistics
 
@@ -338,29 +303,25 @@ class ApplicationRepository:
         self,
         field: str,
     ) -> list[ApplicationDB]:
+        query = self.session.query(ApplicationDB)
+
         if field == "date":
-            return list(
-                self.session.query(
-                    ApplicationDB
-                )
+            return (
+                query
                 .order_by(
                     ApplicationDB.date_applied.desc()
-                )
-               .all()
-            )
-
-        if field == "position":
-            return list(
-                self.session.query(
-                    ApplicationDB
-                )
-                .order_by(
-                    ApplicationDB.position
                 )
                 .all()
             )
 
-        return self.get_all()     
+        if field == "position":
+            return (
+                query
+                .order_by(ApplicationDB.position)
+                .all()
+            )
+
+        return query.all()
 
     def update(
         self,
