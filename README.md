@@ -54,7 +54,7 @@ Future versions will include screenshots of:
 
 ### Testing
 
-* 83 automated tests
+* 109 automated tests
 
 
 ## Technology Stack
@@ -205,7 +205,7 @@ This project follows modern software engineering practices:
 
 Development statistics:
 
-- 83 automated tests
+- 109 automated tests
 - Multiple feature branches and commits
 - SQLite database integration
 - CSV import and export support
