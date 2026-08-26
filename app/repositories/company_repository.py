@@ -18,7 +18,7 @@ class CompanyRepository:
         return self.session.get(CompanyDB, company_id)
 
     def get_all(self) -> list[CompanyDB]:
-        return list(self.session.query(CompanyDB).all())
+        return self.session.query(CompanyDB).all()
 
     def search(self, query: str) -> list[CompanyDB]:
         return (

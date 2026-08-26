@@ -16,12 +16,17 @@ class CompanyService:
         location: str | None = None,
         notes: str | None = None,
     ) -> CompanyDB:
+        name = name.strip()
+
+        if not name:
+            raise ValueError("Company name cannot be empty.")
+
         company = CompanyDB(
             name=name,
-            website=website,
-            industry=industry,
-            location=location,
-            notes=notes,
+            website=website.strip() if website else None,
+            industry=industry.strip() if industry else None,
+            location=location.strip() if location else None,
+            notes=notes.strip() if notes else None,
         )
 
         return self.repository.create(company)
