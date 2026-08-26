@@ -1,14 +1,12 @@
-from sqlalchemy.orm import Session
-
-from app.database.models.interview import InterviewDB
 from app.models.interview import Interview
 from app.repositories.interview_repository import (
     InterviewRepository,
 )
+from app.database.models.interview import InterviewDB
 
 
 class InterviewService:
-    def __init__(self, session: Session) -> None:
+    def __init__(self, session) -> None:
         self.repository = InterviewRepository(session)
 
     def create_interview(
@@ -32,6 +30,9 @@ class InterviewService:
         status: str,
         outcome: str | None = None,
     ) -> InterviewDB | None:
+        if outcome is None:
+            outcome = "Pending"
+
         return self.repository.update(
             interview_id,
             status,
@@ -48,7 +49,6 @@ class InterviewService:
         self,
     ) -> dict[str, int]:
         interviews = self.get_interviews()
-
         statistics: dict[str, int] = {}
 
         for interview in interviews:
@@ -96,25 +96,32 @@ class InterviewService:
 
         for interview in interviews:
             status = interview.status.lower()
-            interview_type = interview.interview_type.lower()
+            interview_type = (
+                interview.interview_type.lower()
+            )
             outcome = interview.outcome.lower()
 
             if status == "completed":
                 analytics["completed"] += 1
+
             elif status in ("cancelled", "canceled"):
                 analytics["cancelled"] += 1
 
             if interview_type == "online":
                 analytics["online"] += 1
+
             elif interview_type == "phone":
                 analytics["phone"] += 1
+
             elif interview_type in ("on-site", "on site"):
                 analytics["on_site"] += 1
 
             if outcome == "passed":
                 analytics["passed"] += 1
+
             elif outcome == "failed":
                 analytics["failed"] += 1
+
             elif outcome == "pending":
                 analytics["pending"] += 1
 

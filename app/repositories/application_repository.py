@@ -91,9 +91,7 @@ class ApplicationRepository:
     ) -> list[ApplicationDB]:
         return (
             self.session.query(ApplicationDB)
-            .filter(
-                ApplicationDB.deadline == deadline
-            )
+            .filter(ApplicationDB.deadline == deadline)
             .order_by(ApplicationDB.position)
             .all()
         )
@@ -167,7 +165,9 @@ class ApplicationRepository:
                     search_pattern
                 )
                 | ApplicationDB.company.has(
-                    CompanyDB.name.ilike(search_pattern)
+                    CompanyDB.name.ilike(
+                        search_pattern
+                    )
                 )
                 | ApplicationDB.status.ilike(
                     search_pattern
@@ -181,7 +181,9 @@ class ApplicationRepository:
         )
 
     def count_all(self) -> int:
-        return self.session.query(ApplicationDB).count()
+        return self.session.query(
+            ApplicationDB
+        ).count()
 
     def count_by_status(
         self,
@@ -216,7 +218,9 @@ class ApplicationRepository:
         )
 
     def get_total_count(self) -> int:
-        return self.session.query(ApplicationDB).count()
+        return self.session.query(
+            ApplicationDB
+        ).count()
 
     def get_application_type_counts(
         self,
@@ -225,7 +229,10 @@ class ApplicationRepository:
         statistics: dict[str, int] = {}
 
         for application in applications:
-            application_type = application.application_type
+            application_type = (
+                application.application_type
+            )
+
             statistics[application_type] = (
                 statistics.get(application_type, 0) + 1
             )
@@ -240,6 +247,7 @@ class ApplicationRepository:
 
         for application in applications:
             status = application.status
+
             statistics[status] = (
                 statistics.get(status, 0) + 1
             )
@@ -259,6 +267,7 @@ class ApplicationRepository:
 
         for application in applications:
             company_name = application.company.name
+
             statistics[company_name] = (
                 statistics.get(company_name, 0) + 1
             )
@@ -275,6 +284,7 @@ class ApplicationRepository:
             month = application.date_applied.strftime(
                 "%Y-%m"
             )
+
             statistics[month] = (
                 statistics.get(month, 0) + 1
             )

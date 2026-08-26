@@ -23,6 +23,7 @@ class FollowUpRepository:
 
         self.session.add(follow_up_db)
         self.session.commit()
+        self.session.refresh(follow_up_db)
 
         return follow_up_db
 
@@ -54,8 +55,8 @@ class FollowUpRepository:
             return None
 
         follow_up.completed = completed
-
         self.session.commit()
+        self.session.refresh(follow_up)
 
         return follow_up
 

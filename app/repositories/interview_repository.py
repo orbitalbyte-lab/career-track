@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from sqlalchemy.orm import Session
 
@@ -25,6 +25,7 @@ class InterviewRepository:
 
         self.session.add(interview_db)
         self.session.commit()
+        self.session.refresh(interview_db)
 
         return interview_db
 
@@ -45,7 +46,7 @@ class InterviewRepository:
         self,
         interview_id: int,
         status: str,
-        outcome: str | None,
+        outcome: str,
     ) -> InterviewDB | None:
         interview = self.get_by_id(interview_id)
 
@@ -56,6 +57,7 @@ class InterviewRepository:
         interview.outcome = outcome
 
         self.session.commit()
+        self.session.refresh(interview)
 
         return interview
 
@@ -97,18 +99,22 @@ class InterviewRepository:
         self,
         query: str,
     ) -> list[InterviewDB]:
+        search_pattern = f"%{query}%"
+
         return (
             self.session.query(InterviewDB)
             .filter(
-                InterviewDB.status.ilike(f"%{query}%")
+                InterviewDB.status.ilike(search_pattern)
                 | InterviewDB.interview_type.ilike(
-                    f"%{query}%"
+                    search_pattern
                 )
             )
             .all()
         )
 
     def get_this_week(self) -> list[InterviewDB]:
+        from datetime import timedelta
+
         now = datetime.now()
 
         start_of_week = now - timedelta(
