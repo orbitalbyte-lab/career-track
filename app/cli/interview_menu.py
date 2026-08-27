@@ -8,6 +8,7 @@ from app.models.interview import (
     InterviewType,
 )
 from app.services.interview_service import InterviewService
+from app.services.export_service import ExportService
 
 
 def add_interview() -> None:
@@ -280,3 +281,24 @@ def sort_interviews() -> None:
                 f"Status: {interview.status} | "
                 f"Date: {interview.scheduled_at}"
             )
+def export_interviews() -> None:
+    print("\n--- Export Interviews ---")
+
+    with SessionLocal() as session:
+        interview_service = (
+            InterviewService(session)
+        )
+
+        exporter = ExportService(
+            interview_service=(
+                interview_service
+            )
+        )
+
+        path = (
+            exporter.export_interviews_to_csv()
+        )
+
+        print(
+            f"Interviews exported to: {path}"
+        )

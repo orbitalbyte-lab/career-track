@@ -1,6 +1,50 @@
 from datetime import date
 from datetime import datetime
 
+from app.cli.company_menu import (
+    add_company,
+    list_companies,
+    view_company,
+    update_company,
+    delete_company,
+    search_companies,
+)
+from app.cli.application_menu import (
+    add_application,
+    list_applications,
+    view_application,
+    update_application,
+    delete_application,
+    search_applications,
+    show_dashboard,
+    filter_applications,
+    export_applications,
+    sort_applications,
+    import_applications,
+)
+from app.cli.interview_menu import (
+    add_interview,
+    list_interviews,
+    view_interview,
+    update_interview,
+    delete_interview,
+    search_interviews,
+    filter_interviews,
+    sort_interviews,
+    export_interviews,
+)
+from app.cli.follow_up_menu import (
+    add_follow_up,
+    list_follow_ups,
+    view_follow_up,
+    complete_follow_up,
+    reopen_follow_up,
+    delete_follow_up,
+    upcoming_follow_ups,
+    list_pending_follow_ups,
+    list_completed_follow_ups,
+)
+
 from app.database.connection import SessionLocal
 
 from app.models.application import (

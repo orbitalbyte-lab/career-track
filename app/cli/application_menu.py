@@ -518,3 +518,406 @@ def delete_application() -> None:
             )
         else:
             print("Application not found.")
+def show_dashboard() -> None:
+    print("\n--- CareerTrack Dashboard ---")
+
+    with SessionLocal() as session:
+        service = ApplicationService(session)
+
+        interview_service = (
+            InterviewService(session)
+        )
+
+        follow_up_service = FollowUpService(session)
+
+        statistics = service.get_dashboard_statistics()
+
+        monthly_applications = (
+            service.get_monthly_application_counts()
+        )
+        location_statistics = (
+            service.get_location_statistics()
+        )
+        interview_statistics = (
+            interview_service
+            .get_interview_statistics()
+        )
+
+        interview_analytics = (
+            interview_service
+            .get_interview_analytics()
+        )
+
+        follow_up_statistics = (
+            follow_up_service
+            .get_follow_up_statistics()
+        )
+
+        upcoming_follow_ups = (
+            follow_up_service
+            .get_upcoming_follow_ups()
+        )
+
+        upcoming_interviews = (
+            interview_service
+            .get_upcoming_interviews()
+        )
+        this_week_interviews = (
+            interview_service
+            .get_this_week_interviews()
+)
+        total = statistics["total"]
+        total_companies = (
+            statistics["total_companies"]
+        )
+        success_rate = (
+            statistics["success_rate"]
+        )
+        by_status = statistics["by_status"]
+
+        by_application_type = (
+            statistics[
+                "by_application_type"
+            ]
+        )
+
+        by_company = (
+            statistics["by_company"]
+        )
+        # Get recent applications and upcoming deadlines
+        recent_applications = service.get_recent_applications()
+
+        upcoming_deadlines = service.get_upcoming_deadlines(
+            today=date.today(),
+        )
+
+        print("\nTotal Applications")
+        print("-" * 35)
+        print(total)
+
+        print("\nTotal Companies")
+        print("-" * 35)
+        print(total_companies)
+
+        print("\nSuccess Rate")
+        print("-" * 35)
+        print(f"{success_rate:.1f}%")
+
+        print("\nApplications by Status")
+        print("-" * 35)
+
+        if by_status:
+            for status, count in sorted(
+                by_status.items()
+            ):
+                print(f"{status}: {count}")
+        else:
+            print("No applications found.")
+
+        print("\nApplications by Type")
+        print("-" * 35)
+
+        if by_application_type:
+            for application_type, count in sorted(
+                by_application_type.items()
+            ):
+                print(f"{application_type}: {count}")
+        else:
+            print("No applications found.")
+
+        print("\nApplications by Company")
+        print("-" * 35)
+
+        if by_company:
+            for company, count in sorted(
+                by_company.items()
+            ):
+                print(f"{company}: {count}")
+        else:
+            print("No applications found.")
+
+        print("\nApplications by Month")
+        print("-" * 35)
+
+        if monthly_applications:
+            for month, count in sorted(
+                monthly_applications.items()
+            ):
+                print(f"{month}: {count}")
+        else:
+            print("No applications found.")
+
+        print("-" * 35)
+
+        print("\nApplications by Location")
+        print("-" * 35)
+
+        if location_statistics:
+            for location, count in sorted(
+                location_statistics.items()
+            ):
+                print(f"{location}: {count}")
+        else:
+            print("No applications found.")
+
+        print("-" * 35)
+
+        print("\nRecent Applications")
+        print("-" * 35)
+
+        if recent_applications:
+            for application in recent_applications:
+                company_name = (
+                    application.company.name
+                    if application.company
+                    else "N/A"
+                )
+
+                print(
+                    f"{application.position} | "
+                    f"{company_name} | "
+                    f"{application.date_applied}"
+                )
+        else:
+            print("No applications found.")
+
+        print("-" * 35)
+
+        print("\nUpcoming Deadlines")
+        print("-" * 60)
+
+        if upcoming_deadlines:
+            for application in upcoming_deadlines:
+                company_name = (
+                    application.company.name
+                    if application.company
+                    else "N/A"
+                )
+
+                print(
+                    f"{application.position} | "
+                    f"{company_name} | "
+                    f"Deadline: {application.deadline} | "
+                    f"Status: {application.status}"
+                )
+        else:
+            print("No upcoming deadlines.")
+
+        print("\nInterview Statistics")
+        print("-" * 35)
+
+        if interview_statistics:
+            for status, count in sorted(
+                interview_statistics.items()
+            ):
+                print(f"{status}: {count}")
+        else:
+            print("No interviews found.")
+        print("-" * 60)
+
+        print("\nInterview Analytics")
+        print("-" * 35)
+
+        print(
+            f"Total Interviews: "
+            f"{interview_analytics['total']}"
+        )
+
+        print(
+            f"Completed Interviews: "
+            f"{interview_analytics['completed']}"
+        )
+
+        print(
+            f"Cancelled Interviews: "
+            f"{interview_analytics['cancelled']}"
+        )
+
+        print(
+            f"Passed Interviews: "
+            f"{interview_analytics['passed']}"
+        )
+
+        print(
+            f"Failed Interviews: "
+            f"{interview_analytics['failed']}"
+        )
+
+        print(
+            f"Pending Interviews: "
+            f"{interview_analytics['pending']}"
+        )
+
+        print(
+            f"Online Interviews: "
+            f"{interview_analytics['online']}"
+        )
+
+        print(
+            f"Phone Interviews: "
+            f"{interview_analytics['phone']}"
+        )
+
+        print(
+            f"On-site Interviews: "
+            f"{interview_analytics['on_site']}"
+        )
+
+        print("-" * 60)
+
+        print("\nUpcoming Interviews")
+        print("-" * 60)
+
+        if upcoming_interviews:
+            for interview in upcoming_interviews:
+                if interview.application:
+                    position = (
+                        interview.application.position
+                    )
+
+                    company_name = (
+                        interview.application.company.name
+                        if interview.application.company
+                        else "N/A"
+                    )
+
+                else:
+                    position = "N/A"
+                    company_name = "N/A"
+
+                print(
+                    f"{interview.scheduled_at} | "
+                    f"{position} | "
+                    f"{company_name} | "
+                    f"{interview.interview_type}"
+                )
+        else:
+            print("No upcoming interviews found.")
+
+        print("-" * 60)
+
+        print("\nInterviews This Week")
+        print("-" * 60)
+
+        if this_week_interviews:
+            for interview in this_week_interviews:
+                application = getattr(
+                    interview,
+                    "application",
+                    None,
+                )
+
+                if application:
+                    position = (
+                        application.position
+                    )
+
+                    company = getattr(
+                        application,
+                        "company",
+                        None,
+                    )
+
+                    company_name = (
+                        company.name
+                        if company
+                        else "N/A"
+                    )
+
+                else:
+                    position = "N/A"
+                    company_name = "N/A"
+
+                print(
+                    f"{interview.scheduled_at} | "
+                    f"{position} | "
+                    f"{company_name}"
+                )
+        else:
+            print(
+                "No interviews scheduled this week."
+            )
+        print("-" * 60)
+        print("\nFollow-Up Statistics")
+        print("-" * 35)
+
+        print(
+            f"Total Follow-Ups: "
+            f"{follow_up_statistics['total']}"
+        )
+
+        print(
+            f"Completed Follow-Ups: "
+            f"{follow_up_statistics['completed']}"
+        )
+
+        print(
+            f"Pending Follow-Ups: "
+            f"{follow_up_statistics['pending']}"
+        )
+
+        print("-" * 60)
+
+        print("\nUpcoming Follow-Ups")
+        print("-" * 60)
+
+        if upcoming_follow_ups:
+            for follow_up in upcoming_follow_ups:
+                print(
+                    f"{follow_up.follow_up_at} | "
+                    f"Application ID: "
+                    f"{follow_up.application_id} | "
+                    f"{follow_up.note}"
+                )
+        else:
+            print("No upcoming follow-ups.")
+
+        print("-" * 60)
+def export_applications() -> None:
+    print("\n--- Export Applications ---")
+
+    with SessionLocal() as session:
+        application_service = (
+            ApplicationService(session)
+        )
+
+        exporter = ExportService(
+            application_service
+        )
+
+        path = (
+            exporter.export_applications_to_csv()
+        )
+
+        print(
+            f"Applications exported to: {path}"
+        )
+def import_applications() -> None:
+    print("\n--- Import Applications ---")
+
+    file_path = input(
+        "CSV file path: "
+    ).strip()
+
+    with SessionLocal() as session:
+        application_service = (
+            ApplicationService(session)
+        )
+
+        importer = ImportService(
+            application_service
+        )
+
+        try:
+            rows = (
+                importer.import_applications_from_csv(
+                    file_path
+                )
+            )
+
+            print(
+                f"Imported {len(rows)} applications."
+            )
+
+        except FileNotFoundError as error:
+            print(error)
