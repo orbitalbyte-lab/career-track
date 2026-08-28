@@ -5,6 +5,9 @@ from app.models.interview import (
     InterviewStatus,
     InterviewType,
 )
+from app.services.interview_service import (
+    InterviewService,
+)
 
 
 def test_interview_model():
@@ -32,54 +35,33 @@ def test_interview_model():
         interview.status
         == InterviewStatus.SCHEDULED
     )
-def test_search_interviews():
-    from sqlalchemy import create_engine
-    from sqlalchemy.orm import sessionmaker
 
-    from app.database.connection import Base
-    from app.services.interview_service import (
-        InterviewService,
+
+def test_search_interviews(db_session):
+    service = InterviewService(
+        db_session
     )
 
-    engine = create_engine(
-        "sqlite:///:memory:"
+    interview = Interview(
+        application_id=1,
+        scheduled_at=datetime(
+            2026,
+            9,
+            1,
+            10,
+            0,
+        ),
+        interview_type=InterviewType.ONLINE,
+        status=InterviewStatus.SCHEDULED,
     )
 
-    Base.metadata.create_all(engine)
+    service.create_interview(
+        interview
+    )
 
-    Session = sessionmaker(bind=engine)
+    results = service.search_interviews(
+        "Scheduled"
+    )
 
-    with Session() as session:
-        service = InterviewService(
-            session
-        )
-
-        interview = Interview(
-            application_id=1,
-            scheduled_at=datetime(
-                2026,
-                9,
-                1,
-                10,
-                0,
-            ),
-            interview_type=(
-                InterviewType.ONLINE
-            ),
-            status=(
-                InterviewStatus.SCHEDULED
-            ),
-        )
-
-        service.create_interview(
-            interview
-        )
-
-        results = (
-            service.search_interviews(
-                "Scheduled"
-            )
-        )
-
-        assert len(results) == 1
-        assert results[0].status == "Scheduled"
+    assert len(results) == 1
+    assert results[0].status == "Scheduled"

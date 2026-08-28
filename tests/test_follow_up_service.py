@@ -1,28 +1,42 @@
 from datetime import datetime
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-from app.database.connection import Base
 from app.models.follow_up import FollowUp
 from app.services.follow_up_service import (
     FollowUpService,
 )
 
 
-def test_create_follow_up():
-    engine = create_engine(
-        "sqlite:///:memory:"
+def test_create_follow_up(db_session):
+    service = FollowUpService(
+        db_session
     )
 
-    Base.metadata.create_all(engine)
+    follow_up = FollowUp(
+        application_id=1,
+        follow_up_at=datetime(
+            2026,
+            8,
+            30,
+            10,
+            0,
+        ),
+        note="Email recruiter",
+    )
 
-    Session = sessionmaker(bind=engine)
+    result = service.create_follow_up(
+        follow_up
+    )
 
-    with Session() as session:
-        service = FollowUpService(session)
+    assert result.id == 1
 
-        follow_up = FollowUp(
+
+def test_get_follow_ups(db_session):
+    service = FollowUpService(
+        db_session
+    )
+
+    service.create_follow_up(
+        FollowUp(
             application_id=1,
             follow_up_at=datetime(
                 2026,
@@ -33,190 +47,130 @@ def test_create_follow_up():
             ),
             note="Email recruiter",
         )
-
-        result = service.create_follow_up(
-            follow_up
-        )
-
-        assert result.id == 1
-
-
-def test_get_follow_ups():
-    engine = create_engine(
-        "sqlite:///:memory:"
     )
 
-    Base.metadata.create_all(engine)
+    results = service.get_follow_ups()
 
-    Session = sessionmaker(bind=engine)
-
-    with Session() as session:
-        service = FollowUpService(session)
-
-        service.create_follow_up(
-            FollowUp(
-                application_id=1,
-                follow_up_at=datetime(
-                    2026,
-                    8,
-                    30,
-                    10,
-                    0,
-                ),
-                note="Email recruiter",
-            )
-        )
-
-        results = service.get_follow_ups()
-
-        assert len(results) == 1
+    assert len(results) == 1
 
 
-def test_complete_follow_up():
-    engine = create_engine(
-        "sqlite:///:memory:"
+def test_complete_follow_up(db_session):
+    service = FollowUpService(
+        db_session
     )
 
-    Base.metadata.create_all(engine)
-
-    Session = sessionmaker(bind=engine)
-
-    with Session() as session:
-        service = FollowUpService(session)
-
-        created = service.create_follow_up(
-            FollowUp(
-                application_id=1,
-                follow_up_at=datetime(
-                    2026,
-                    8,
-                    30,
-                    10,
-                    0,
-                ),
-                note="Email recruiter",
-            )
+    created = service.create_follow_up(
+        FollowUp(
+            application_id=1,
+            follow_up_at=datetime(
+                2026,
+                8,
+                30,
+                10,
+                0,
+            ),
+            note="Email recruiter",
         )
-
-        result = service.complete_follow_up(
-            created.id
-        )
-
-        assert result.completed is True
-
-
-def test_reopen_follow_up():
-    engine = create_engine(
-        "sqlite:///:memory:"
     )
 
-    Base.metadata.create_all(engine)
-
-    Session = sessionmaker(bind=engine)
-
-    with Session() as session:
-        service = FollowUpService(session)
-
-        created = service.create_follow_up(
-            FollowUp(
-                application_id=1,
-                follow_up_at=datetime(
-                    2026,
-                    8,
-                    30,
-                    10,
-                    0,
-                ),
-                note="Email recruiter",
-                completed=True,
-            )
-        )
-
-        result = service.reopen_follow_up(
-            created.id
-        )
-
-        assert result.completed is False
-
-
-def test_delete_follow_up():
-    engine = create_engine(
-        "sqlite:///:memory:"
+    result = service.complete_follow_up(
+        created.id
     )
 
-    Base.metadata.create_all(engine)
-
-    Session = sessionmaker(bind=engine)
-
-    with Session() as session:
-        service = FollowUpService(session)
-
-        created = service.create_follow_up(
-            FollowUp(
-                application_id=1,
-                follow_up_at=datetime(
-                    2026,
-                    8,
-                    30,
-                    10,
-                    0,
-                ),
-                note="Email recruiter",
-            )
-        )
-
-        result = service.delete_follow_up(
-            created.id
-        )
-
-        assert result is True
+    assert result.completed is True
 
 
-def test_follow_up_statistics():
-    engine = create_engine(
-        "sqlite:///:memory:"
+def test_reopen_follow_up(db_session):
+    service = FollowUpService(
+        db_session
     )
 
-    Base.metadata.create_all(engine)
-
-    Session = sessionmaker(bind=engine)
-
-    with Session() as session:
-        service = FollowUpService(session)
-
-        service.create_follow_up(
-            FollowUp(
-                application_id=1,
-                follow_up_at=datetime(
-                    2026,
-                    8,
-                    30,
-                    10,
-                    0,
-                ),
-                note="Pending follow-up",
-            )
+    created = service.create_follow_up(
+        FollowUp(
+            application_id=1,
+            follow_up_at=datetime(
+                2026,
+                8,
+                30,
+                10,
+                0,
+            ),
+            note="Email recruiter",
+            completed=True,
         )
+    )
 
-        service.create_follow_up(
-            FollowUp(
-                application_id=2,
-                follow_up_at=datetime(
-                    2026,
-                    9,
-                    1,
-                    10,
-                    0,
-                ),
-                note="Completed follow-up",
-                completed=True,
-            )
+    result = service.reopen_follow_up(
+        created.id
+    )
+
+    assert result.completed is False
+
+
+def test_delete_follow_up(db_session):
+    service = FollowUpService(
+        db_session
+    )
+
+    created = service.create_follow_up(
+        FollowUp(
+            application_id=1,
+            follow_up_at=datetime(
+                2026,
+                8,
+                30,
+                10,
+                0,
+            ),
+            note="Email recruiter",
         )
+    )
 
-        statistics = (
-            service.get_follow_up_statistics()
+    result = service.delete_follow_up(
+        created.id
+    )
+
+    assert result is True
+
+
+def test_follow_up_statistics(db_session):
+    service = FollowUpService(
+        db_session
+    )
+
+    service.create_follow_up(
+        FollowUp(
+            application_id=1,
+            follow_up_at=datetime(
+                2026,
+                8,
+                30,
+                10,
+                0,
+            ),
+            note="Pending follow-up",
         )
+    )
 
-        assert statistics["total"] == 2
-        assert statistics["pending"] == 1
-        assert statistics["completed"] == 1
+    service.create_follow_up(
+        FollowUp(
+            application_id=2,
+            follow_up_at=datetime(
+                2026,
+                9,
+                1,
+                10,
+                0,
+            ),
+            note="Completed follow-up",
+            completed=True,
+        )
+    )
+
+    statistics = (
+        service.get_follow_up_statistics()
+    )
+
+    assert statistics["total"] == 2
+    assert statistics["pending"] == 1
+    assert statistics["completed"] == 1

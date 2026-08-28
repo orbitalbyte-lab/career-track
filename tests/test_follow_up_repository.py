@@ -1,33 +1,45 @@
 from datetime import datetime
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-from app.database.connection import Base
-from app.database.models.follow_up import (
-    FollowUpDB,
-)
 from app.models.follow_up import FollowUp
 from app.repositories.follow_up_repository import (
     FollowUpRepository,
 )
 
 
-def test_create_follow_up():
-    engine = create_engine(
-        "sqlite:///:memory:"
+def test_create_follow_up(db_session):
+    repository = FollowUpRepository(
+        db_session
     )
 
-    Base.metadata.create_all(engine)
+    follow_up = FollowUp(
+        application_id=1,
+        follow_up_at=datetime(
+            2026,
+            8,
+            30,
+            10,
+            0,
+        ),
+        note="Email recruiter",
+    )
 
-    Session = sessionmaker(bind=engine)
+    result = repository.create(
+        follow_up
+    )
 
-    with Session() as session:
-        repository = FollowUpRepository(
-            session
-        )
+    assert result.id == 1
+    assert result.application_id == 1
+    assert result.note == "Email recruiter"
+    assert result.completed is False
 
-        follow_up = FollowUp(
+
+def test_get_all_follow_ups(db_session):
+    repository = FollowUpRepository(
+        db_session
+    )
+
+    repository.create(
+        FollowUp(
             application_id=1,
             follow_up_at=datetime(
                 2026,
@@ -38,212 +50,139 @@ def test_create_follow_up():
             ),
             note="Email recruiter",
         )
-
-        result = repository.create(
-            follow_up
-        )
-
-        assert result.id == 1
-        assert result.application_id == 1
-        assert result.note == "Email recruiter"
-        assert result.completed is False
-
-
-def test_get_all_follow_ups():
-    engine = create_engine(
-        "sqlite:///:memory:"
     )
 
-    Base.metadata.create_all(engine)
+    results = repository.get_all()
 
-    Session = sessionmaker(bind=engine)
-
-    with Session() as session:
-        repository = FollowUpRepository(
-            session
-        )
-
-        repository.create(
-            FollowUp(
-                application_id=1,
-                follow_up_at=datetime(
-                    2026,
-                    8,
-                    30,
-                    10,
-                    0,
-                ),
-                note="Email recruiter",
-            )
-        )
-
-        results = repository.get_all()
-
-        assert len(results) == 1
+    assert len(results) == 1
 
 
-def test_update_follow_up_completion():
-    engine = create_engine(
-        "sqlite:///:memory:"
+def test_update_follow_up_completion(db_session):
+    repository = FollowUpRepository(
+        db_session
     )
 
-    Base.metadata.create_all(engine)
-
-    Session = sessionmaker(bind=engine)
-
-    with Session() as session:
-        repository = FollowUpRepository(
-            session
+    created = repository.create(
+        FollowUp(
+            application_id=1,
+            follow_up_at=datetime(
+                2026,
+                8,
+                30,
+                10,
+                0,
+            ),
+            note="Email recruiter",
         )
-
-        created = repository.create(
-            FollowUp(
-                application_id=1,
-                follow_up_at=datetime(
-                    2026,
-                    8,
-                    30,
-                    10,
-                    0,
-                ),
-                note="Email recruiter",
-            )
-        )
-
-        result = repository.update(
-            created.id,
-            True,
-        )
-
-        assert result.completed is True
-
-
-def test_delete_follow_up():
-    engine = create_engine(
-        "sqlite:///:memory:"
     )
 
-    Base.metadata.create_all(engine)
+    result = repository.update(
+        created.id,
+        True,
+    )
 
-    Session = sessionmaker(bind=engine)
+    assert result.completed is True
 
-    with Session() as session:
-        repository = FollowUpRepository(
-            session
+
+def test_delete_follow_up(db_session):
+    repository = FollowUpRepository(
+        db_session
+    )
+
+    created = repository.create(
+        FollowUp(
+            application_id=1,
+            follow_up_at=datetime(
+                2026,
+                8,
+                30,
+                10,
+                0,
+            ),
+            note="Email recruiter",
         )
+    )
 
-        created = repository.create(
-            FollowUp(
-                application_id=1,
-                follow_up_at=datetime(
-                    2026,
-                    8,
-                    30,
-                    10,
-                    0,
-                ),
-                note="Email recruiter",
-            )
-        )
+    result = repository.delete(
+        created.id
+    )
 
-        result = repository.delete(
+    assert result is True
+
+    assert (
+        repository.get_by_id(
             created.id
         )
-
-        assert result is True
-
-        assert (
-            repository.get_by_id(
-                created.id
-            )
-            is None
-        )
-
-
-def test_get_pending_follow_ups():
-    engine = create_engine(
-        "sqlite:///:memory:"
+        is None
     )
 
-    Base.metadata.create_all(engine)
 
-    Session = sessionmaker(bind=engine)
-
-    with Session() as session:
-        repository = FollowUpRepository(
-            session
-        )
-
-        repository.create(
-            FollowUp(
-                application_id=1,
-                follow_up_at=datetime(
-                    2026,
-                    8,
-                    30,
-                    10,
-                    0,
-                ),
-                note="Pending follow-up",
-            )
-        )
-
-        repository.create(
-            FollowUp(
-                application_id=1,
-                follow_up_at=datetime(
-                    2026,
-                    8,
-                    1,
-                    10,
-                    0,
-                ),
-                note="Completed follow-up",
-                completed=True,
-            )
-        )
-
-        results = repository.get_pending()
-
-        assert len(results) == 1
-        assert (
-            results[0].note
-            == "Pending follow-up"
-        )
-
-
-def test_get_completed_follow_ups():
-    engine = create_engine(
-        "sqlite:///:memory:"
+def test_get_pending_follow_ups(db_session):
+    repository = FollowUpRepository(
+        db_session
     )
 
-    Base.metadata.create_all(engine)
-
-    Session = sessionmaker(bind=engine)
-
-    with Session() as session:
-        repository = FollowUpRepository(
-            session
+    repository.create(
+        FollowUp(
+            application_id=1,
+            follow_up_at=datetime(
+                2026,
+                8,
+                30,
+                10,
+                0,
+            ),
+            note="Pending follow-up",
         )
+    )
 
-        repository.create(
-            FollowUp(
-                application_id=1,
-                follow_up_at=datetime(
-                    2026,
-                    8,
-                    30,
-                    10,
-                    0,
-                ),
-                note="Completed follow-up",
-                completed=True,
-            )
+    repository.create(
+        FollowUp(
+            application_id=1,
+            follow_up_at=datetime(
+                2026,
+                8,
+                1,
+                10,
+                0,
+            ),
+            note="Completed follow-up",
+            completed=True,
         )
+    )
 
-        results = repository.get_completed()
+    results = repository.get_pending()
 
-        assert len(results) == 1
-        assert (
-            results[0].completed is True
+    assert len(results) == 1
+    assert (
+        results[0].note
+        == "Pending follow-up"
+    )
+
+
+def test_get_completed_follow_ups(db_session):
+    repository = FollowUpRepository(
+        db_session
+    )
+
+    repository.create(
+        FollowUp(
+            application_id=1,
+            follow_up_at=datetime(
+                2026,
+                8,
+                30,
+                10,
+                0,
+            ),
+            note="Completed follow-up",
+            completed=True,
         )
+    )
+
+    results = repository.get_completed()
+
+    assert len(results) == 1
+    assert (
+        results[0].completed is True
+    )
