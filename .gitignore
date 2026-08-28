@@ -23,3 +23,5 @@ career_track.db
 exports/
 # Generated packaging metadata
 *.egg-info/
+
+logs/
