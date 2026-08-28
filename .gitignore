@@ -29,3 +29,6 @@ logs/
 .coverage
 coverage.xml
 htmlcov/
+# Test coverage output
+.coverage
+htmlcov/
