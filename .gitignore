@@ -25,3 +25,7 @@ exports/
 *.egg-info/
 
 logs/
+# Test coverage
+.coverage
+coverage.xml
+htmlcov/
