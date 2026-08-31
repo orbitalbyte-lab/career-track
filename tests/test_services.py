@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 import pytest
 
@@ -8,8 +8,17 @@ from app.database.models.company import CompanyDB
 from app.repositories.company_repository import CompanyRepository
 from app.services.application_service import ApplicationService
 from app.services.company_service import CompanyService
+from app.services.follow_up_service import FollowUpService
+from app.services.import_service import ImportService
+from app.services.interview_service import InterviewService
 
-
+from app.models.follow_up import FollowUp
+from app.models.interview import (
+    Interview,
+    InterviewType,
+    InterviewStatus,
+    InterviewOutcome,
+)
 def setup_database():
     Base.metadata.drop_all(bind=engine)
     initialize_database()
@@ -386,6 +395,119 @@ def test_application_service_update_keeps_existing_values():
         assert updated.notes == "Original notes"
 
 
+def test_application_service_update_unknown_application():
+    setup_database()
+
+    with SessionLocal() as session:
+        application_service = ApplicationService(session)
+
+        result = application_service.update_application(
+            application_id=9999,
+            position="Software Engineer",
+        )
+
+        assert result is None
+
+
+def test_application_service_rejects_empty_updated_position():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Google",
+        )
+
+        application = application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 4),
+            status="Applied",
+        )
+
+        with pytest.raises(
+            ValueError,
+            match="Position cannot be empty",
+        ):
+            application_service.update_application(
+                application_id=application.id,
+                position="   ",
+            )
+
+
+def test_application_service_updates_all_optional_fields():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Microsoft",
+        )
+
+        application = application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Internship",
+            date_applied=date(2026, 8, 1),
+            status="Applied",
+            location="Remote",
+            notes="Original",
+        )
+
+        updated = application_service.update_application(
+            application_id=application.id,
+            application_type=" Full-time ",
+            date_applied=date(2026, 8, 5),
+            status=" Interview ",
+            location=" ",
+            job_url=" ",
+            notes=" ",
+            deadline=date(2026, 8, 20),
+        )
+
+        assert updated is not None
+        assert updated.application_type == "Full-time"
+        assert updated.date_applied == date(2026, 8, 5)
+        assert updated.status == "Interview"
+        assert updated.location is None
+        assert updated.job_url is None
+        assert updated.notes is None
+        assert updated.deadline == date(2026, 8, 20)
+
+
+def test_application_service_rejects_deadline_before_application_date():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Google",
+        )
+
+        application = application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 10),
+            status="Applied",
+        )
+
+        with pytest.raises(
+            ValueError,
+            match="Deadline cannot be before the application date",
+        ):
+            application_service.update_application(
+                application_id=application.id,
+                deadline=date(2026, 8, 9),
+            )
+
 def test_application_service_deletes_application():
     setup_database()
 
@@ -716,6 +838,59 @@ def test_application_service_filters_by_deadline():
         assert len(results) == 1
         assert results[0].position == "Backend Engineer"
         assert results[0].deadline == date(2026, 8, 20)
+
+def test_application_service_filters_blank_optional_values():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Google",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Internship",
+            date_applied=date(2026, 8, 4),
+            status="Applied",
+        )
+
+        results = application_service.filter_applications(
+            status="   ",
+            application_type="   ",
+        )
+
+        assert len(results) == 1
+        assert results[0].position == "Software Engineer"
+
+
+def test_application_service_returns_zero_for_blank_status_count():
+    setup_database()
+
+    with SessionLocal() as session:
+        application_service = ApplicationService(session)
+
+        result = application_service.get_applications_count_by_status(
+            "   "
+        )
+
+        assert result == 0
+
+
+def test_application_service_returns_zero_for_blank_type_count():
+    setup_database()
+
+    with SessionLocal() as session:
+        application_service = ApplicationService(session)
+
+        result = application_service.get_applications_count_by_type(
+            "   "
+        )
+
+        assert result == 0
 
 def test_application_service_gets_total_applications_count():
     setup_database()
@@ -1360,3 +1535,408 @@ def test_application_service_gets_monthly_application_counts():
             "2026-07": 2,
             "2026-08": 1,
         }
+def test_application_service_gets_applications_by_status_with_valid_status():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Google",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 4),
+            status="Applied",
+        )
+
+        results = application_service.get_applications_by_status(
+            " Applied "
+        )
+
+        assert len(results) == 1
+        assert results[0].status == "Applied"
+
+
+def test_application_service_application_type_returns_empty_for_blank_type():
+    setup_database()
+
+    with SessionLocal() as session:
+        application_service = ApplicationService(session)
+
+        results = (
+            application_service.get_applications_by_application_type(
+                "   "
+            )
+        )
+
+        assert results == []
+
+
+def test_application_service_gets_applications_by_application_type_with_valid_type():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Microsoft",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Software Engineering Intern",
+            application_type="Internship",
+            date_applied=date(2026, 8, 4),
+            status="Applied",
+        )
+
+        results = (
+            application_service.get_applications_by_application_type(
+                " Internship "
+            )
+        )
+
+        assert len(results) == 1
+        assert results[0].application_type == "Internship"
+
+
+def test_application_service_upcoming_deadlines_returns_empty_for_invalid_limit():
+    setup_database()
+
+    with SessionLocal() as session:
+        application_service = ApplicationService(session)
+
+        results = application_service.get_upcoming_deadlines(
+            today=date(2026, 8, 1),
+            limit=0,
+        )
+
+        assert results == []
+
+
+def test_application_service_gets_sorted_applications():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+
+        company = company_service.create_company(
+            name="Google",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Backend Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 5),
+            status="Applied",
+        )
+
+        application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 4),
+            status="Interview",
+        )
+
+        results = application_service.get_sorted_applications(
+            "date_applied"
+        )
+
+        assert len(results) == 2
+        assert results[0].date_applied == date(2026, 8, 5)
+        assert results[1].date_applied == date(2026, 8, 4)
+def test_company_service_rejects_empty_name():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+
+        with pytest.raises(
+            ValueError,
+            match="Company name cannot be empty.",
+        ):
+            company_service.create_company(
+                name="   ",
+            )
+
+
+def test_company_service_gets_all_companies():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+
+        company_service.create_company(
+            name="Google",
+        )
+
+        company_service.create_company(
+            name="Microsoft",
+        )
+
+        companies = company_service.get_companies()
+
+        assert len(companies) == 2
+        assert companies[0].name == "Google"
+        assert companies[1].name == "Microsoft"
+
+
+def test_company_service_delete_unknown_company():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+
+        result = company_service.delete_company(9999)
+
+        assert result is False        
+def test_follow_up_service_gets_follow_up():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+        follow_up_service = FollowUpService(session)
+
+        company = company_service.create_company(
+            name="Google",
+        )
+
+        application = application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Internship",
+            date_applied=date(2026, 8, 20),
+            status="Applied",
+        )
+
+        follow_up = follow_up_service.create_follow_up(
+            FollowUp(
+                application_id=application.id,
+                follow_up_at=datetime(
+                    2026,
+                    8,
+                    25,
+                    10,
+                    0,
+                ),
+                note="Send follow-up email.",
+            )
+        )
+
+        result = follow_up_service.get_follow_up(
+            follow_up.id
+        )
+
+        assert result is not None
+        assert result.id == follow_up.id
+        assert result.application_id == application.id
+        assert result.follow_up_at == datetime(
+            2026,
+            8,
+            25,
+            10,
+            0,
+        )
+        assert result.note == "Send follow-up email."
+        assert result.completed is False
+
+
+def test_follow_up_service_gets_pending_follow_ups():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+        follow_up_service = FollowUpService(session)
+
+        company = company_service.create_company(
+            name="Microsoft",
+        )
+
+        application = application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 20),
+            status="Applied",
+        )
+
+        follow_up_service.create_follow_up(
+            FollowUp(
+                application_id=application.id,
+                follow_up_at=datetime(
+                    2026,
+                    8,
+                    25,
+                    10,
+                    0,
+                ),
+                note="Pending follow-up.",
+            )
+        )
+
+        results = (
+            follow_up_service.get_pending_follow_ups()
+        )
+
+        assert len(results) == 1
+        assert results[0].application_id == application.id
+        assert results[0].completed is False
+        assert results[0].note == "Pending follow-up."
+
+
+def test_follow_up_service_gets_completed_follow_ups():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+        follow_up_service = FollowUpService(session)
+
+        company = company_service.create_company(
+            name="Amazon",
+        )
+
+        application = application_service.create_application(
+            company_id=company.id,
+            position="Backend Engineer",
+            application_type="Internship",
+            date_applied=date(2026, 8, 20),
+            status="Applied",
+        )
+
+        follow_up = follow_up_service.create_follow_up(
+            FollowUp(
+                application_id=application.id,
+                follow_up_at=datetime(
+                    2026,
+                    8,
+                    25,
+                    10,
+                    0,
+                ),
+                note="Completed follow-up.",
+            )
+        )
+
+        follow_up_service.complete_follow_up(
+            follow_up.id
+        )
+
+        results = (
+            follow_up_service.get_completed_follow_ups()
+        )
+
+        assert len(results) == 1
+        assert results[0].application_id == application.id
+        assert results[0].completed is True
+        assert results[0].note == "Completed follow-up."
+def test_interview_service_analytics_counts_canceled_onsite_passed_and_failed():
+    setup_database()
+
+    with SessionLocal() as session:
+        company_service = CompanyService(session)
+        application_service = ApplicationService(session)
+        interview_service = InterviewService(session)
+
+        company = company_service.create_company(
+            name="Google",
+        )
+
+        application = application_service.create_application(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 20),
+            status="Applied",
+        )
+
+        canceled_interview = Interview(
+            application_id=application.id,
+            scheduled_at=datetime(
+                2026,
+                8,
+                25,
+                10,
+                0,
+            ),
+            interview_type=InterviewType.ONLINE,
+            status=InterviewStatus.CANCELED,
+        )
+
+        onsite_passed_interview = Interview(
+            application_id=application.id,
+            scheduled_at=datetime(
+                2026,
+                8,
+                26,
+                10,
+                0,
+            ),
+            interview_type=InterviewType.ONSITE,
+            status=InterviewStatus.COMPLETED,
+            outcome=InterviewOutcome.PASSED,
+        )
+
+        onsite_failed_interview = Interview(
+            application_id=application.id,
+            scheduled_at=datetime(
+                2026,
+                8,
+                27,
+                10,
+                0,
+            ),
+            interview_type=InterviewType.ONSITE,
+            status=InterviewStatus.COMPLETED,
+            outcome=InterviewOutcome.FAILED,
+        )
+
+        interview_service.create_interview(
+            canceled_interview
+        )
+
+        interview_service.create_interview(
+            onsite_passed_interview
+        )
+
+        interview_service.create_interview(
+            onsite_failed_interview
+        )
+
+        analytics = (
+            interview_service.get_interview_analytics()
+        )
+
+        assert analytics["total"] == 3
+        assert analytics["cancelled"] == 1
+        assert analytics["on_site"] == 2
+        assert analytics["passed"] == 1
+        assert analytics["failed"] == 1
+        assert analytics["pending"] == 1
+def test_import_service_raises_file_not_found_error():
+    setup_database()
+
+    with SessionLocal() as session:
+        application_service = ApplicationService(
+            session
+        )
+
+        import_service = ImportService(
+            application_service
+        )
+
+        with pytest.raises(FileNotFoundError):
+            import_service.import_applications_from_csv(
+                "nonexistent_file.csv"
+            )        

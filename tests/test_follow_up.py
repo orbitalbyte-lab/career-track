@@ -94,3 +94,14 @@ def test_follow_up_rejects_invalid_completion_status():
             note="Email recruiter",
             completed="yes",
         )
+
+def test_follow_up_rejects_invalid_follow_up_date():
+    with pytest.raises(
+        ValueError,
+        match="Invalid follow-up date",
+    ):
+        FollowUp(
+            application_id=1,
+            follow_up_at="invalid date",
+            note="Email recruiter",
+        )        

@@ -1,13 +1,39 @@
-from datetime import date
+from datetime import date, datetime
 
-from app.database.connection import Base, SessionLocal, engine
+import pytest
+
+from app.database.connection import (
+    Base,
+    SessionLocal,
+    engine,
+)
 from app.database.init_db import initialize_database
 from app.database.models.application import ApplicationDB
 from app.database.models.company import CompanyDB
-from app.repositories.application_repository import ApplicationRepository
-from app.repositories.company_repository import CompanyRepository
 
+from app.repositories.application_repository import (
+    ApplicationRepository,
+)
+from app.repositories.company_repository import (
+    CompanyRepository,
+)
+from app.repositories.follow_up_repository import (
+    FollowUpRepository,
+)
+from app.repositories.interview_repository import (
+    InterviewRepository,
+)
 
+from app.models.application import (
+    Application,
+    ApplicationType,
+    ApplicationStatus,
+)
+
+from app.models.interview import (
+    Interview,
+    InterviewType,
+)
 def setup_database():
     Base.metadata.drop_all(bind=engine)
     initialize_database()
@@ -95,13 +121,12 @@ def test_application_repository_get_all():
         repository.create(
             ApplicationDB(
                 company_id=company.id,
-                position="Software Engineer",
-                application_type="Full-time",
-                date_applied=date(2026, 7, 30),
-                status="Applied",
+                position="Backend Engineer",
+                application_type=ApplicationType.FULL_TIME.value,
+                date_applied=date(2026, 8, 4),
+                status=ApplicationStatus.APPLIED.value,
             )
         )
-
         applications = repository.get_all()
 
         assert len(applications) == 1
@@ -817,3 +842,158 @@ def test_get_location_statistics():
             "Addis Ababa": 1,
             "Not specified": 1,
         }
+
+def test_application_repository_filters_by_date_applied():
+    setup_database()
+
+    with SessionLocal() as session:
+        company = CompanyDB(
+            name="Google",
+        )
+
+        session.add(company)
+        session.commit()
+        session.refresh(company)
+
+        repository = ApplicationRepository(session)
+
+        repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Backend Engineer",
+                application_type=ApplicationType.FULL_TIME.value,
+                date_applied=date(2026, 8, 4),
+                status=ApplicationStatus.APPLIED.value,
+            )
+        )
+
+        repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Software Engineer",
+                application_type=ApplicationType.FULL_TIME.value,
+                date_applied=date(2026, 8, 5),
+                status=ApplicationStatus.APPLIED.value,
+            )
+        )
+
+        results = repository.filter_applications(
+            date_applied=date(2026, 8, 4),
+        )
+
+        assert len(results) == 1
+        assert results[0].position == "Backend Engineer"
+def test_application_repository_count_all():
+    setup_database()
+
+    with SessionLocal() as session:
+        company = CompanyDB(
+            name="Microsoft",
+        )
+
+        session.add(company)
+        session.commit()
+        session.refresh(company)
+
+        repository = ApplicationRepository(session)
+
+        repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Software Engineer",
+                application_type=ApplicationType.FULL_TIME.value,
+                date_applied=date(2026, 8, 20),
+                status=ApplicationStatus.APPLIED.value,
+            )
+        )
+
+        repository.create(
+            ApplicationDB(
+                company_id=company.id,
+                position="Backend Engineer",
+                application_type=ApplicationType.INTERNSHIP.value,
+                date_applied=date(2026, 8, 21),
+                status=ApplicationStatus.INTERVIEW.value,
+            )
+        )
+        assert repository.count_all() == 2
+
+def test_follow_up_repository_update_returns_none_for_missing_follow_up():
+    setup_database()
+
+    with SessionLocal() as session:
+        repository = FollowUpRepository(session)
+
+        result = repository.update(
+            follow_up_id=999999,
+            completed=True,
+        )
+
+        assert result is None
+
+
+def test_follow_up_repository_delete_returns_false_for_missing_follow_up():
+    setup_database()
+
+    with SessionLocal() as session:
+        repository = FollowUpRepository(session)
+
+        result = repository.delete(
+            follow_up_id=999999
+        )
+
+        assert result is False
+
+
+def test_interview_repository_get_all_sorted_returns_results():
+    setup_database()
+
+    with SessionLocal() as session:
+        company = CompanyDB(
+            name="Amazon",
+        )
+
+        session.add(company)
+        session.commit()
+        session.refresh(company)
+
+        application = ApplicationDB(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type=ApplicationType.FULL_TIME,
+            date_applied=date(2026, 8, 20),
+            status="Applied",
+        )
+
+        session.add(application)
+        session.commit()
+        session.refresh(application)
+
+        repository = InterviewRepository(session)
+
+        repository.create(
+            Interview(
+                application_id=application.id,
+                scheduled_at=datetime(
+                    2026,
+                    8,
+                    25,
+                    10,
+                    0,
+                ),
+                interview_type=InterviewType.ONLINE,
+            )
+        )
+
+        results = repository.get_all_sorted(
+            "scheduled_at"
+        )
+
+        assert len(results) == 1
+        assert results[0].scheduled_at == datetime(
+            2026,
+            8,
+            25,
+            10,
+            0,
+        )

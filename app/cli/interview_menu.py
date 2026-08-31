@@ -187,11 +187,9 @@ def delete_interview() -> None:
         deleted = interview_service.delete_interview(
             interview_id
         )
-
-        if deleted is None:
+        if not deleted:
             print("Interview not found.")
             return
-
     print("Interview deleted successfully.")
 
 

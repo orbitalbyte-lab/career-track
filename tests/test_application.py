@@ -113,3 +113,33 @@ def test_application_rejects_invalid_application_type():
             application_type="Invalid",
             date_applied=date(2026, 7, 30),
         )
+def test_application_rejects_invalid_application_type():
+    company = Company(name="Google")
+
+    with pytest.raises(
+        ValueError,
+        match="Invalid application type.",
+    ):
+        Application(
+            company=company,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 20),
+            status=ApplicationStatus.APPLIED,
+        )
+
+
+def test_application_rejects_invalid_status():
+    company = Company(name="Microsoft")
+
+    with pytest.raises(
+        ValueError,
+        match="Invalid application status",
+    ):
+        Application(
+            company=company,
+            position="Software Engineering Intern",
+            application_type=ApplicationType.INTERNSHIP,
+            date_applied=date(2026, 7, 30),
+            status="Invalid",
+        )

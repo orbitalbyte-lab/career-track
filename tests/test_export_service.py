@@ -1,12 +1,17 @@
 import csv
-from datetime import date
+from datetime import date, datetime
 
 from app.database.connection import Base, SessionLocal, engine
 from app.database.init_db import initialize_database
 from app.database.models.application import ApplicationDB
 from app.database.models.company import CompanyDB
+from app.models.interview import (
+    Interview,
+    InterviewType,
+)
 from app.services.application_service import ApplicationService
 from app.services.export_service import ExportService
+from app.services.interview_service import InterviewService
 
 
 def setup_database():
@@ -49,7 +54,7 @@ def test_export_applications_to_csv(
         )
 
         exporter = ExportService(
-            application_service
+            application_service=application_service
         )
 
         monkeypatch.chdir(tmp_path)
@@ -87,4 +92,87 @@ def test_export_applications_to_csv(
         "2026-08-20",
         "https://example.com/job",
         "Follow up after one week.",
+    ]
+
+
+def test_export_interviews_to_csv(
+    tmp_path,
+    monkeypatch,
+):
+    setup_database()
+
+    with SessionLocal() as session:
+        company = CompanyDB(
+            name="Google",
+        )
+
+        session.add(company)
+        session.commit()
+        session.refresh(company)
+
+        application = ApplicationDB(
+            company_id=company.id,
+            position="Software Engineer",
+            application_type="Full-time",
+            date_applied=date(2026, 8, 1),
+            status="Applied",
+        )
+
+        session.add(application)
+        session.commit()
+        session.refresh(application)
+        
+        application_id = application.id
+
+        interview_service = InterviewService(
+            session
+        )
+
+        interview = Interview(
+            application_id=application.id,
+            scheduled_at=datetime(
+                2026,
+                8,
+                25,
+                10,
+                0,
+            ),
+            interview_type=InterviewType.ONLINE,
+        )
+
+        interview_service.create_interview(
+            interview
+        )
+
+        exporter = ExportService(
+            interview_service=interview_service
+        )
+
+        monkeypatch.chdir(tmp_path)
+
+        export_path = (
+            exporter.export_interviews_to_csv()
+        )
+
+        with open(
+            export_path,
+            newline="",
+            encoding="utf-8",
+        ) as file:
+            rows = list(csv.reader(file))
+
+    assert rows[0] == [
+        "Application ID",
+        "Interview Date",
+        "Interview Type",
+        "Status",
+        "Notes",
+    ]
+
+    assert rows[1] == [
+        str(application_id),
+        "2026-08-25 10:00:00",
+        "Online",
+        "Scheduled",
+        "",
     ]

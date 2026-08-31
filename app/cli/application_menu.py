@@ -6,7 +6,10 @@ from app.models.application import (
     ApplicationType,
 )
 from app.services.application_service import ApplicationService
-
+from app.services.interview_service import InterviewService
+from app.services.export_service import ExportService
+from app.services.import_service import ImportService
+from app.services.follow_up_service import FollowUpService
 
 def add_application() -> None:
     print("\n--- Add Application ---")

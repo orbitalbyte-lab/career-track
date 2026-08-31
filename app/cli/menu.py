@@ -1886,15 +1886,15 @@ def delete_interview() -> None:
             )
         )
 
-        if deleted is None:
+        if not deleted:
             print(
                 "Interview not found."
             )
             return
 
-    print(
-        "Interview deleted successfully."
-    )
+        print(
+            "Interview deleted successfully."
+        )
 def search_interviews() -> None:
     print("\n--- Search Interviews ---")
 
