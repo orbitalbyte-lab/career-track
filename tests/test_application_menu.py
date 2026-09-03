@@ -2,8 +2,6 @@ from datetime import date
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from app.cli import application_menu
 
 
@@ -55,23 +53,27 @@ def test_add_application():
     service = MagicMock()
     service.create_application.return_value = application
 
-    with patch.object(
-        application_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        application_menu,
-        "ApplicationService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        side_effect=[
-            "1",
-            "Software Engineer",
-            "2",
-            "2026-08-01",
-            "2",
-        ],
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            side_effect=[
+                "1",
+                "Software Engineer",
+                "2",
+                "2026-08-01",
+                "2",
+            ],
+        ),
     ):
         application_menu.add_application()
 
@@ -152,27 +154,29 @@ def test_add_application_handles_value_error(capsys):
     session = MagicMock()
     service = MagicMock()
 
-    service.create_application.side_effect = ValueError(
-        "Company not found"
-    )
+    service.create_application.side_effect = ValueError("Company not found")
 
-    with patch.object(
-        application_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        application_menu,
-        "ApplicationService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        side_effect=[
-            "999",
-            "Software Engineer",
-            "1",
-            "2026-08-01",
-            "1",
-        ],
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            side_effect=[
+                "999",
+                "Software Engineer",
+                "1",
+                "2026-08-01",
+                "1",
+            ],
+        ),
     ):
         application_menu.add_application()
 
@@ -197,14 +201,17 @@ def test_list_applications(capsys):
     service = MagicMock()
     service.get_applications.return_value = applications
 
-    with patch.object(
-        application_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        application_menu,
-        "ApplicationService",
-        return_value=service,
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=service,
+        ),
     ):
         application_menu.list_applications()
 
@@ -221,14 +228,17 @@ def test_list_applications_when_empty(capsys):
     service = MagicMock()
     service.get_applications.return_value = []
 
-    with patch.object(
-        application_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        application_menu,
-        "ApplicationService",
-        return_value=service,
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=service,
+        ),
     ):
         application_menu.list_applications()
 
@@ -248,23 +258,25 @@ def test_sort_applications_by_date(capsys):
     service = MagicMock()
     service.get_sorted_applications.return_value = applications
 
-    with patch.object(
-        application_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        application_menu,
-        "ApplicationService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="1",
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="1",
+        ),
     ):
         application_menu.sort_applications()
 
-    service.get_sorted_applications.assert_called_once_with(
-        "date"
-    )
+    service.get_sorted_applications.assert_called_once_with("date")
 
     output = capsys.readouterr().out
 
@@ -277,23 +289,25 @@ def test_sort_applications_by_position(capsys):
     service = MagicMock()
     service.get_sorted_applications.return_value = []
 
-    with patch.object(
-        application_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        application_menu,
-        "ApplicationService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="2",
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="2",
+        ),
     ):
         application_menu.sort_applications()
 
-    service.get_sorted_applications.assert_called_once_with(
-        "position"
-    )
+    service.get_sorted_applications.assert_called_once_with("position")
 
 
 def test_sort_applications_invalid_choice(capsys):
@@ -325,17 +339,21 @@ def test_view_application_not_found(capsys):
     service = MagicMock()
     service.get_application.return_value = None
 
-    with patch.object(
-        application_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        application_menu,
-        "ApplicationService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="999",
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="999",
+        ),
     ):
         application_menu.view_application()
 
@@ -351,17 +369,21 @@ def test_view_application(capsys):
     service = MagicMock()
     service.get_application.return_value = application
 
-    with patch.object(
-        application_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        application_menu,
-        "ApplicationService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="1",
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="1",
+        ),
     ):
         application_menu.view_application()
 
@@ -392,17 +414,21 @@ def test_update_application_not_found(capsys):
     service = MagicMock()
     service.get_application.return_value = None
 
-    with patch.object(
-        application_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        application_menu,
-        "ApplicationService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="999",
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="999",
+        ),
     ):
         application_menu.update_application()
 
@@ -429,25 +455,29 @@ def test_update_application(capsys):
     service.get_application.return_value = application
     service.update_application.return_value = updated_application
 
-    with patch.object(
-        application_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        application_menu,
-        "ApplicationService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        side_effect=[
-            "1",
-            "Senior Software Engineer",
-            "Interview",
-            "California",
-            "2026-09-15",
-            "https://google.com/job",
-            "Updated notes",
-        ],
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            side_effect=[
+                "1",
+                "Senior Software Engineer",
+                "Interview",
+                "California",
+                "2026-09-15",
+                "https://google.com/job",
+                "Updated notes",
+            ],
+        ),
     ):
         application_menu.update_application()
 
@@ -473,25 +503,29 @@ def test_update_application_invalid_deadline(capsys):
     service = MagicMock()
     service.get_application.return_value = application
 
-    with patch.object(
-        application_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        application_menu,
-        "ApplicationService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        side_effect=[
-            "1",
-            "",
-            "",
-            "",
-            "wrong-date",
-            "",
-            "",
-        ],
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            side_effect=[
+                "1",
+                "",
+                "",
+                "",
+                "wrong-date",
+                "",
+                "",
+            ],
+        ),
     ):
         application_menu.update_application()
 
@@ -511,34 +545,35 @@ def test_update_application_handles_value_error(capsys):
         "Deadline cannot be before the application date"
     )
 
-    with patch.object(
-        application_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        application_menu,
-        "ApplicationService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        side_effect=[
-            "1",
-            "",
-            "",
-            "",
-            "2026-07-01",
-            "",
-            "",
-        ],
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            side_effect=[
+                "1",
+                "",
+                "",
+                "",
+                "2026-07-01",
+                "",
+                "",
+            ],
+        ),
     ):
         application_menu.update_application()
 
     output = capsys.readouterr().out
 
-    assert (
-        "Error: Deadline cannot be before the application date"
-        in output
-    )
+    assert "Error: Deadline cannot be before the application date" in output
 
 
 def test_search_applications_empty_query(capsys):
@@ -564,23 +599,25 @@ def test_search_applications(capsys):
     service = MagicMock()
     service.search_applications.return_value = applications
 
-    with patch.object(
-        application_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        application_menu,
-        "ApplicationService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="Software",
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="Software",
+        ),
     ):
         application_menu.search_applications()
 
-    service.search_applications.assert_called_once_with(
-        "Software"
-    )
+    service.search_applications.assert_called_once_with("Software")
 
     output = capsys.readouterr().out
 
@@ -593,17 +630,21 @@ def test_search_applications_no_results(capsys):
     service = MagicMock()
     service.search_applications.return_value = []
 
-    with patch.object(
-        application_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        application_menu,
-        "ApplicationService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="Unknown",
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="Unknown",
+        ),
     ):
         application_menu.search_applications()
 
@@ -621,21 +662,25 @@ def test_filter_applications(capsys):
     service = MagicMock()
     service.filter_applications.return_value = applications
 
-    with patch.object(
-        application_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        application_menu,
-        "ApplicationService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        side_effect=[
-            "Applied",
-            "Full-time",
-            "1",
-        ],
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            side_effect=[
+                "Applied",
+                "Full-time",
+                "1",
+            ],
+        ),
     ):
         application_menu.filter_applications()
 
@@ -688,21 +733,25 @@ def test_filter_applications_no_results(capsys):
     service = MagicMock()
     service.filter_applications.return_value = []
 
-    with patch.object(
-        application_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        application_menu,
-        "ApplicationService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        side_effect=[
-            "Applied",
-            "",
-            "",
-        ],
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            side_effect=[
+                "Applied",
+                "",
+                "",
+            ],
+        ),
     ):
         application_menu.filter_applications()
 
@@ -728,17 +777,21 @@ def test_delete_application_not_found(capsys):
     service = MagicMock()
     service.get_application.return_value = None
 
-    with patch.object(
-        application_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        application_menu,
-        "ApplicationService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="999",
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="999",
+        ),
     ):
         application_menu.delete_application()
 
@@ -754,20 +807,24 @@ def test_delete_application_cancelled(capsys):
     service = MagicMock()
     service.get_application.return_value = application
 
-    with patch.object(
-        application_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        application_menu,
-        "ApplicationService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        side_effect=[
-            "1",
-            "n",
-        ],
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            side_effect=[
+                "1",
+                "n",
+            ],
+        ),
     ):
         application_menu.delete_application()
 
@@ -787,20 +844,24 @@ def test_delete_application(capsys):
     service.get_application.return_value = application
     service.delete_application.return_value = True
 
-    with patch.object(
-        application_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        application_menu,
-        "ApplicationService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        side_effect=[
-            "1",
-            "y",
-        ],
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            side_effect=[
+                "1",
+                "y",
+            ],
+        ),
     ):
         application_menu.delete_application()
 
@@ -820,26 +881,32 @@ def test_delete_application_when_delete_fails(capsys):
     service.get_application.return_value = application
     service.delete_application.return_value = False
 
-    with patch.object(
-        application_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        application_menu,
-        "ApplicationService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        side_effect=[
-            "1",
-            "y",
-        ],
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            side_effect=[
+                "1",
+                "y",
+            ],
+        ),
     ):
         application_menu.delete_application()
 
     output = capsys.readouterr().out
 
     assert "Application not found." in output
+
+
 def test_show_dashboard(capsys):
     session = MagicMock()
 
@@ -909,22 +976,27 @@ def test_show_dashboard(capsys):
 
     follow_up_service.get_upcoming_follow_ups.return_value = []
 
-    with patch.object(
-        application_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        application_menu,
-        "ApplicationService",
-        return_value=application_service,
-    ), patch.object(
-        application_menu,
-        "InterviewService",
-        return_value=interview_service,
-    ), patch.object(
-        application_menu,
-        "FollowUpService",
-        return_value=follow_up_service,
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=application_service,
+        ),
+        patch.object(
+            application_menu,
+            "InterviewService",
+            return_value=interview_service,
+        ),
+        patch.object(
+            application_menu,
+            "FollowUpService",
+            return_value=follow_up_service,
+        ),
     ):
         application_menu.show_dashboard()
 
@@ -958,22 +1030,24 @@ def test_export_applications(capsys):
     application_service = MagicMock()
 
     exporter = MagicMock()
-    exporter.export_applications_to_csv.return_value = (
-        "exports/applications.csv"
-    )
+    exporter.export_applications_to_csv.return_value = "exports/applications.csv"
 
-    with patch.object(
-        application_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        application_menu,
-        "ApplicationService",
-        return_value=application_service,
-    ), patch.object(
-        application_menu,
-        "ExportService",
-        return_value=exporter,
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=application_service,
+        ),
+        patch.object(
+            application_menu,
+            "ExportService",
+            return_value=exporter,
+        ),
     ):
         application_menu.export_applications()
 
@@ -982,10 +1056,7 @@ def test_export_applications(capsys):
     output = capsys.readouterr().out
 
     assert "Export Applications" in output
-    assert (
-        "Applications exported to: exports/applications.csv"
-        in output
-    )
+    assert "Applications exported to: exports/applications.csv" in output
 
 
 def test_import_applications(capsys):
@@ -1000,29 +1071,32 @@ def test_import_applications(capsys):
         {"position": "Backend Developer"},
     ]
 
-    with patch.object(
-        application_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        application_menu,
-        "ApplicationService",
-        return_value=application_service,
-    ), patch.object(
-        application_menu,
-        "ImportService",
-        return_value=importer,
-    ), patch(
-        "builtins.input",
-        return_value="applications.csv",
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=application_service,
+        ),
+        patch.object(
+            application_menu,
+            "ImportService",
+            return_value=importer,
+        ),
+        patch(
+            "builtins.input",
+            return_value="applications.csv",
+        ),
     ):
         application_menu.import_applications()
 
-    importer.import_applications_from_csv.assert_called_once_with(
-        "applications.csv"
-    )
+    importer.import_applications_from_csv.assert_called_once_with("applications.csv")
 
     output = capsys.readouterr().out
 
     assert "Import Applications" in output
-    assert "Imported 2 applications." in output    
+    assert "Imported 2 applications." in output

@@ -11,9 +11,7 @@ class ImportService:
         self,
         application_service: ApplicationService,
     ) -> None:
-        self.application_service = (
-            application_service
-        )
+        self.application_service = application_service
 
     def import_applications_from_csv(
         self,
@@ -22,9 +20,7 @@ class ImportService:
         path = Path(file_path)
 
         if not path.exists():
-            raise FileNotFoundError(
-                f"{file_path} does not exist."
-            )
+            raise FileNotFoundError(f"{file_path} does not exist.")
 
         with open(
             path,

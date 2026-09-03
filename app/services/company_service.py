@@ -43,7 +43,7 @@ class CompanyService:
         if not query:
             return []
 
-        return self.repository.search(query)    
+        return self.repository.search(query)
 
     def update_company(
         self,

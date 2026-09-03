@@ -1,10 +1,17 @@
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 
 import pytest
 
 from app.database.connection import Base, SessionLocal, engine
 from app.database.init_db import initialize_database
 from app.database.models.company import CompanyDB
+from app.models.follow_up import FollowUp
+from app.models.interview import (
+    Interview,
+    InterviewOutcome,
+    InterviewStatus,
+    InterviewType,
+)
 from app.repositories.company_repository import CompanyRepository
 from app.services.application_service import ApplicationService
 from app.services.company_service import CompanyService
@@ -12,13 +19,7 @@ from app.services.follow_up_service import FollowUpService
 from app.services.import_service import ImportService
 from app.services.interview_service import InterviewService
 
-from app.models.follow_up import FollowUp
-from app.models.interview import (
-    Interview,
-    InterviewType,
-    InterviewStatus,
-    InterviewOutcome,
-)
+
 def setup_database():
     Base.metadata.drop_all(bind=engine)
     initialize_database()
@@ -116,9 +117,7 @@ def test_application_service_gets_company_applications():
             status="Applied",
         )
 
-        applications = application_service.get_company_applications(
-            company.id
-        )
+        applications = application_service.get_company_applications(company.id)
 
         assert len(applications) == 1
         assert applications[0].position == "Backend Engineering Intern"
@@ -508,6 +507,7 @@ def test_application_service_rejects_deadline_before_application_date():
                 deadline=date(2026, 8, 9),
             )
 
+
 def test_application_service_deletes_application():
     setup_database()
 
@@ -604,9 +604,7 @@ def test_application_service_searches_by_company_name():
         company_repository = CompanyRepository(session)
         application_service = ApplicationService(session)
 
-        company = company_repository.create(
-            CompanyDB(name="Microsoft")
-        )
+        company = company_repository.create(CompanyDB(name="Microsoft"))
 
         application_service.create_application(
             company_id=company.id,
@@ -629,9 +627,7 @@ def test_application_service_searches_by_status():
         company_repository = CompanyRepository(session)
         application_service = ApplicationService(session)
 
-        company = company_repository.create(
-            CompanyDB(name="Google")
-        )
+        company = company_repository.create(CompanyDB(name="Google"))
 
         application_service.create_application(
             company_id=company.id,
@@ -654,9 +650,7 @@ def test_application_service_searches_by_application_type():
         company_repository = CompanyRepository(session)
         application_service = ApplicationService(session)
 
-        company = company_repository.create(
-            CompanyDB(name="Amazon")
-        )
+        company = company_repository.create(CompanyDB(name="Amazon"))
 
         application_service.create_application(
             company_id=company.id,
@@ -670,6 +664,7 @@ def test_application_service_searches_by_application_type():
 
         assert len(results) == 1
         assert results[0].application_type == "Internship"
+
 
 def test_application_service_filters_by_status():
     setup_database()
@@ -706,13 +701,12 @@ def test_application_service_filters_by_status():
             status="Rejected",
         )
 
-        results = application_service.get_applications_by_status(
-            "Interview"
-        )
+        results = application_service.get_applications_by_status("Interview")
 
         assert len(results) == 1
         assert results[0].position == "Backend Engineer"
         assert results[0].status == "Interview"
+
 
 def test_application_service_status_filter_returns_empty_for_blank_status():
     setup_database()
@@ -723,6 +717,7 @@ def test_application_service_status_filter_returns_empty_for_blank_status():
         results = application_service.get_applications_by_status("   ")
 
         assert results == []
+
 
 def test_application_service_filters_by_application_type():
     setup_database()
@@ -759,13 +754,12 @@ def test_application_service_filters_by_application_type():
             status="Interview",
         )
 
-        results = application_service.get_applications_by_application_type(
-            "Internship"
-        )
+        results = application_service.get_applications_by_application_type("Internship")
 
         assert len(results) == 2
         assert results[0].application_type == "Internship"
         assert results[1].application_type == "Internship"
+
 
 def test_application_service_filters_by_date():
     setup_database()
@@ -794,13 +788,12 @@ def test_application_service_filters_by_date():
             status="Interview",
         )
 
-        results = application_service.get_applications_by_date(
-            date(2026, 8, 4)
-        )
+        results = application_service.get_applications_by_date(date(2026, 8, 4))
 
         assert len(results) == 1
         assert results[0].position == "Backend Engineer"
         assert results[0].date_applied == date(2026, 8, 4)
+
 
 def test_application_service_filters_by_deadline():
     setup_database()
@@ -831,13 +824,12 @@ def test_application_service_filters_by_deadline():
             status="Interview",
         )
 
-        results = application_service.get_applications_by_deadline(
-            date(2026, 8, 20)
-        )
+        results = application_service.get_applications_by_deadline(date(2026, 8, 20))
 
         assert len(results) == 1
         assert results[0].position == "Backend Engineer"
         assert results[0].deadline == date(2026, 8, 20)
+
 
 def test_application_service_filters_blank_optional_values():
     setup_database()
@@ -873,9 +865,7 @@ def test_application_service_returns_zero_for_blank_status_count():
     with SessionLocal() as session:
         application_service = ApplicationService(session)
 
-        result = application_service.get_applications_count_by_status(
-            "   "
-        )
+        result = application_service.get_applications_count_by_status("   ")
 
         assert result == 0
 
@@ -886,11 +876,10 @@ def test_application_service_returns_zero_for_blank_type_count():
     with SessionLocal() as session:
         application_service = ApplicationService(session)
 
-        result = application_service.get_applications_count_by_type(
-            "   "
-        )
+        result = application_service.get_applications_count_by_type("   ")
 
         assert result == 0
+
 
 def test_application_service_gets_total_applications_count():
     setup_database()
@@ -951,9 +940,7 @@ def test_application_service_counts_applications_by_status():
             status="Interview",
         )
 
-        result = application_service.get_applications_count_by_status(
-            "Interview"
-        )
+        result = application_service.get_applications_count_by_status("Interview")
 
         assert result == 1
 
@@ -985,11 +972,10 @@ def test_application_service_counts_applications_by_type():
             status="Applied",
         )
 
-        result = application_service.get_applications_count_by_type(
-            "Internship"
-        )
+        result = application_service.get_applications_count_by_type("Internship")
 
         assert result == 1
+
 
 def test_application_service_gets_total_applications():
     setup_database()
@@ -1063,6 +1049,7 @@ def test_application_service_gets_applications_by_status_count():
         assert result["Applied"] == 2
         assert result["Interview"] == 1
 
+
 def test_application_service_gets_applications_by_application_type_count():
     setup_database()
 
@@ -1104,6 +1091,7 @@ def test_application_service_gets_applications_by_application_type_count():
             "Full-time": 2,
             "Internship": 1,
         }
+
 
 def test_application_service_gets_applications_by_company_count():
     setup_database()
@@ -1150,6 +1138,7 @@ def test_application_service_gets_applications_by_company_count():
             "Microsoft": 2,
             "Google": 1,
         }
+
 
 def test_application_service_gets_location_statistics():
     setup_database()
@@ -1204,6 +1193,8 @@ def test_application_service_gets_location_statistics():
             "Addis Ababa": 1,
             "Not specified": 1,
         }
+
+
 def test_application_service_gets_dashboard_statistics():
     setup_database()
 
@@ -1260,8 +1251,10 @@ def test_application_service_gets_dashboard_statistics():
                 "Microsoft": 2,
                 "Google": 1,
             },
-           "success_rate": 0.0
+            "success_rate": 0.0,
         }
+
+
 def test_application_service_calculates_success_rate():
     setup_database()
 
@@ -1301,7 +1294,8 @@ def test_application_service_calculates_success_rate():
 
         assert result["success_rate"] == pytest.approx(33.33333333333333)
 
-def test_application_service_filters_by_status():
+
+def test_application_service_filter_applications_by_status():
     setup_database()
 
     with SessionLocal() as session:
@@ -1334,42 +1328,6 @@ def test_application_service_filters_by_status():
 
         assert len(result) == 1
         assert result[0].position == "Backend Engineer"
-
-
-def test_application_service_filters_by_application_type():
-    setup_database()
-
-    with SessionLocal() as session:
-        company_service = CompanyService(session)
-        application_service = ApplicationService(session)
-
-        company = company_service.create_company(
-            name="Google",
-        )
-
-        application_service.create_application(
-            company_id=company.id,
-            position="Software Engineer",
-            application_type="Full-time",
-            date_applied=date(2026, 8, 4),
-            status="Applied",
-        )
-
-        application_service.create_application(
-            company_id=company.id,
-            position="Frontend Intern",
-            application_type="Internship",
-            date_applied=date(2026, 8, 5),
-            status="Applied",
-        )
-
-        result = application_service.filter_applications(
-            application_type="Internship",
-        )
-
-        assert len(result) == 1
-        assert result[0].position == "Frontend Intern"
-
 
 def test_application_service_filters_by_company():
     setup_database()
@@ -1446,6 +1404,7 @@ def test_application_service_filters_by_multiple_fields():
         assert len(result) == 1
         assert result[0].position == "Backend Engineer"
 
+
 def test_application_service_gets_upcoming_deadlines():
     setup_database()
 
@@ -1491,6 +1450,8 @@ def test_application_service_gets_upcoming_deadlines():
         assert len(result) == 2
         assert result[0].position == "Backend Engineer"
         assert result[1].position == "Software Engineer"
+
+
 def test_application_service_gets_monthly_application_counts():
     setup_database()
 
@@ -1526,15 +1487,14 @@ def test_application_service_gets_monthly_application_counts():
             status="Applied",
         )
 
-        result = (
-            application_service
-            .get_monthly_application_counts()
-        )
+        result = application_service.get_monthly_application_counts()
 
         assert result == {
             "2026-07": 2,
             "2026-08": 1,
         }
+
+
 def test_application_service_gets_applications_by_status_with_valid_status():
     setup_database()
 
@@ -1554,9 +1514,7 @@ def test_application_service_gets_applications_by_status_with_valid_status():
             status="Applied",
         )
 
-        results = application_service.get_applications_by_status(
-            " Applied "
-        )
+        results = application_service.get_applications_by_status(" Applied ")
 
         assert len(results) == 1
         assert results[0].status == "Applied"
@@ -1568,11 +1526,7 @@ def test_application_service_application_type_returns_empty_for_blank_type():
     with SessionLocal() as session:
         application_service = ApplicationService(session)
 
-        results = (
-            application_service.get_applications_by_application_type(
-                "   "
-            )
-        )
+        results = application_service.get_applications_by_application_type("   ")
 
         assert results == []
 
@@ -1596,10 +1550,8 @@ def test_application_service_gets_applications_by_application_type_with_valid_ty
             status="Applied",
         )
 
-        results = (
-            application_service.get_applications_by_application_type(
-                " Internship "
-            )
+        results = application_service.get_applications_by_application_type(
+            " Internship "
         )
 
         assert len(results) == 1
@@ -1647,13 +1599,13 @@ def test_application_service_gets_sorted_applications():
             status="Interview",
         )
 
-        results = application_service.get_sorted_applications(
-            "date_applied"
-        )
+        results = application_service.get_sorted_applications("date_applied")
 
         assert len(results) == 2
         assert results[0].date_applied == date(2026, 8, 5)
         assert results[1].date_applied == date(2026, 8, 4)
+
+
 def test_company_service_rejects_empty_name():
     setup_database()
 
@@ -1698,7 +1650,9 @@ def test_company_service_delete_unknown_company():
 
         result = company_service.delete_company(9999)
 
-        assert result is False        
+        assert result is False
+
+
 def test_follow_up_service_gets_follow_up():
     setup_database()
 
@@ -1728,14 +1682,13 @@ def test_follow_up_service_gets_follow_up():
                     25,
                     10,
                     0,
+                    tzinfo=UTC,
                 ),
                 note="Send follow-up email.",
             )
         )
 
-        result = follow_up_service.get_follow_up(
-            follow_up.id
-        )
+        result = follow_up_service.get_follow_up(follow_up.id)
 
         assert result is not None
         assert result.id == follow_up.id
@@ -1746,6 +1699,7 @@ def test_follow_up_service_gets_follow_up():
             25,
             10,
             0,
+            tzinfo=UTC,
         )
         assert result.note == "Send follow-up email."
         assert result.completed is False
@@ -1780,14 +1734,13 @@ def test_follow_up_service_gets_pending_follow_ups():
                     25,
                     10,
                     0,
+                    tzinfo=UTC,
                 ),
                 note="Pending follow-up.",
             )
         )
 
-        results = (
-            follow_up_service.get_pending_follow_ups()
-        )
+        results = follow_up_service.get_pending_follow_ups()
 
         assert len(results) == 1
         assert results[0].application_id == application.id
@@ -1824,23 +1777,22 @@ def test_follow_up_service_gets_completed_follow_ups():
                     25,
                     10,
                     0,
+                    tzinfo=UTC,
                 ),
                 note="Completed follow-up.",
             )
         )
 
-        follow_up_service.complete_follow_up(
-            follow_up.id
-        )
+        follow_up_service.complete_follow_up(follow_up.id)
 
-        results = (
-            follow_up_service.get_completed_follow_ups()
-        )
+        results = follow_up_service.get_completed_follow_ups()
 
         assert len(results) == 1
         assert results[0].application_id == application.id
         assert results[0].completed is True
         assert results[0].note == "Completed follow-up."
+
+
 def test_interview_service_analytics_counts_canceled_onsite_passed_and_failed():
     setup_database()
 
@@ -1869,6 +1821,7 @@ def test_interview_service_analytics_counts_canceled_onsite_passed_and_failed():
                 25,
                 10,
                 0,
+                tzinfo=UTC,
             ),
             interview_type=InterviewType.ONLINE,
             status=InterviewStatus.CANCELED,
@@ -1882,6 +1835,7 @@ def test_interview_service_analytics_counts_canceled_onsite_passed_and_failed():
                 26,
                 10,
                 0,
+                tzinfo=UTC,
             ),
             interview_type=InterviewType.ONSITE,
             status=InterviewStatus.COMPLETED,
@@ -1896,27 +1850,20 @@ def test_interview_service_analytics_counts_canceled_onsite_passed_and_failed():
                 27,
                 10,
                 0,
+                tzinfo=UTC,
             ),
             interview_type=InterviewType.ONSITE,
             status=InterviewStatus.COMPLETED,
             outcome=InterviewOutcome.FAILED,
         )
 
-        interview_service.create_interview(
-            canceled_interview
-        )
+        interview_service.create_interview(canceled_interview)
 
-        interview_service.create_interview(
-            onsite_passed_interview
-        )
+        interview_service.create_interview(onsite_passed_interview)
 
-        interview_service.create_interview(
-            onsite_failed_interview
-        )
+        interview_service.create_interview(onsite_failed_interview)
 
-        analytics = (
-            interview_service.get_interview_analytics()
-        )
+        analytics = interview_service.get_interview_analytics()
 
         assert analytics["total"] == 3
         assert analytics["cancelled"] == 1
@@ -1924,19 +1871,15 @@ def test_interview_service_analytics_counts_canceled_onsite_passed_and_failed():
         assert analytics["passed"] == 1
         assert analytics["failed"] == 1
         assert analytics["pending"] == 1
+
+
 def test_import_service_raises_file_not_found_error():
     setup_database()
 
     with SessionLocal() as session:
-        application_service = ApplicationService(
-            session
-        )
+        application_service = ApplicationService(session)
 
-        import_service = ImportService(
-            application_service
-        )
+        import_service = ImportService(application_service)
 
         with pytest.raises(FileNotFoundError):
-            import_service.import_applications_from_csv(
-                "nonexistent_file.csv"
-            )        
+            import_service.import_applications_from_csv("nonexistent_file.csv")

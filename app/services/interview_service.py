@@ -1,8 +1,8 @@
+from app.database.models.interview import InterviewDB
 from app.models.interview import Interview
 from app.repositories.interview_repository import (
     InterviewRepository,
 )
-from app.database.models.interview import InterviewDB
 
 
 class InterviewService:
@@ -54,9 +54,7 @@ class InterviewService:
         for interview in interviews:
             status = interview.status
 
-            statistics[status] = (
-                statistics.get(status, 0) + 1
-            )
+            statistics[status] = statistics.get(status, 0) + 1
 
         return statistics
 
@@ -96,9 +94,7 @@ class InterviewService:
 
         for interview in interviews:
             status = interview.status.lower()
-            interview_type = (
-                interview.interview_type.lower()
-            )
+            interview_type = interview.interview_type.lower()
             outcome = interview.outcome.lower()
 
             if status == "completed":

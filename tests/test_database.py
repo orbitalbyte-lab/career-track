@@ -39,8 +39,7 @@ def test_application_has_company_foreign_key():
     foreign_keys = inspector.get_foreign_keys("applications")
 
     assert any(
-        foreign_key["referred_table"] == "companies"
-        for foreign_key in foreign_keys
+        foreign_key["referred_table"] == "companies" for foreign_key in foreign_keys
     )
 
 

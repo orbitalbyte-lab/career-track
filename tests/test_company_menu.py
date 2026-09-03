@@ -1,8 +1,6 @@
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from app.cli import company_menu
 
 
@@ -32,22 +30,26 @@ def test_add_company():
     service = MagicMock()
     service.create_company.return_value = company
 
-    with patch.object(
-        company_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        company_menu,
-        "CompanyService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        side_effect=[
-            "Microsoft",
-            "Technology",
-            "Seattle",
-            "https://microsoft.com",
-        ],
+    with (
+        patch.object(
+            company_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            company_menu,
+            "CompanyService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            side_effect=[
+                "Microsoft",
+                "Technology",
+                "Seattle",
+                "https://microsoft.com",
+            ],
+        ),
     ):
         company_menu.add_company()
 
@@ -79,14 +81,17 @@ def test_list_companies(capsys):
     service = MagicMock()
     service.get_companies.return_value = companies
 
-    with patch.object(
-        company_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        company_menu,
-        "CompanyService",
-        return_value=service,
+    with (
+        patch.object(
+            company_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            company_menu,
+            "CompanyService",
+            return_value=service,
+        ),
     ):
         company_menu.list_companies()
 
@@ -103,14 +108,17 @@ def test_list_companies_when_empty(capsys):
     service = MagicMock()
     service.get_companies.return_value = []
 
-    with patch.object(
-        company_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        company_menu,
-        "CompanyService",
-        return_value=service,
+    with (
+        patch.object(
+            company_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            company_menu,
+            "CompanyService",
+            return_value=service,
+        ),
     ):
         company_menu.list_companies()
 
@@ -144,17 +152,21 @@ def test_search_companies(capsys):
     service = MagicMock()
     service.search_companies.return_value = companies
 
-    with patch.object(
-        company_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        company_menu,
-        "CompanyService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="Microsoft",
+    with (
+        patch.object(
+            company_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            company_menu,
+            "CompanyService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="Microsoft",
+        ),
     ):
         company_menu.search_companies()
 
@@ -170,17 +182,21 @@ def test_search_companies_when_no_results(capsys):
     service = MagicMock()
     service.search_companies.return_value = []
 
-    with patch.object(
-        company_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        company_menu,
-        "CompanyService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="Unknown",
+    with (
+        patch.object(
+            company_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            company_menu,
+            "CompanyService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="Unknown",
+        ),
     ):
         company_menu.search_companies()
 
@@ -206,17 +222,21 @@ def test_view_company_not_found(capsys):
     service = MagicMock()
     service.get_company.return_value = None
 
-    with patch.object(
-        company_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        company_menu,
-        "CompanyService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="999",
+    with (
+        patch.object(
+            company_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            company_menu,
+            "CompanyService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="999",
+        ),
     ):
         company_menu.view_company()
 
@@ -232,17 +252,21 @@ def test_view_company(capsys):
     service = MagicMock()
     service.get_company.return_value = company
 
-    with patch.object(
-        company_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        company_menu,
-        "CompanyService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="1",
+    with (
+        patch.object(
+            company_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            company_menu,
+            "CompanyService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="1",
+        ),
     ):
         company_menu.view_company()
 
@@ -273,17 +297,21 @@ def test_update_company_not_found(capsys):
     service = MagicMock()
     service.get_company.return_value = None
 
-    with patch.object(
-        company_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        company_menu,
-        "CompanyService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="999",
+    with (
+        patch.object(
+            company_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            company_menu,
+            "CompanyService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="999",
+        ),
     ):
         company_menu.update_company()
 
@@ -308,24 +336,28 @@ def test_update_company(capsys):
     service.get_company.return_value = company
     service.update_company.return_value = updated_company
 
-    with patch.object(
-        company_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        company_menu,
-        "CompanyService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        side_effect=[
-            "1",
-            "Google",
-            "Technology",
-            "California",
-            "https://google.com",
-            "Updated notes",
-        ],
+    with (
+        patch.object(
+            company_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            company_menu,
+            "CompanyService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            side_effect=[
+                "1",
+                "Google",
+                "Technology",
+                "California",
+                "https://google.com",
+                "Updated notes",
+            ],
+        ),
     ):
         company_menu.update_company()
 
@@ -349,28 +381,30 @@ def test_update_company_handles_value_error(capsys):
     session = MagicMock()
     service = MagicMock()
     service.get_company.return_value = company
-    service.update_company.side_effect = ValueError(
-        "Company name cannot be empty."
-    )
+    service.update_company.side_effect = ValueError("Company name cannot be empty.")
 
-    with patch.object(
-        company_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        company_menu,
-        "CompanyService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        side_effect=[
-            "1",
-            "",
-            "Technology",
-            "Seattle",
-            "https://microsoft.com",
-            "Notes",
-        ],
+    with (
+        patch.object(
+            company_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            company_menu,
+            "CompanyService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            side_effect=[
+                "1",
+                "",
+                "Technology",
+                "Seattle",
+                "https://microsoft.com",
+                "Notes",
+            ],
+        ),
     ):
         company_menu.update_company()
 
@@ -396,17 +430,21 @@ def test_delete_company_not_found(capsys):
     service = MagicMock()
     service.get_company.return_value = None
 
-    with patch.object(
-        company_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        company_menu,
-        "CompanyService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="999",
+    with (
+        patch.object(
+            company_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            company_menu,
+            "CompanyService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="999",
+        ),
     ):
         company_menu.delete_company()
 
@@ -422,17 +460,21 @@ def test_delete_company_cancelled(capsys):
     service = MagicMock()
     service.get_company.return_value = company
 
-    with patch.object(
-        company_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        company_menu,
-        "CompanyService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        side_effect=["1", "n"],
+    with (
+        patch.object(
+            company_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            company_menu,
+            "CompanyService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            side_effect=["1", "n"],
+        ),
     ):
         company_menu.delete_company()
 
@@ -451,17 +493,21 @@ def test_delete_company(capsys):
     service.get_company.return_value = company
     service.delete_company.return_value = True
 
-    with patch.object(
-        company_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        company_menu,
-        "CompanyService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        side_effect=["1", "y"],
+    with (
+        patch.object(
+            company_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            company_menu,
+            "CompanyService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            side_effect=["1", "y"],
+        ),
     ):
         company_menu.delete_company()
 
@@ -482,23 +528,24 @@ def test_delete_company_handles_value_error(capsys):
         "Cannot delete company with 2 application(s)."
     )
 
-    with patch.object(
-        company_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        company_menu,
-        "CompanyService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        side_effect=["1", "y"],
+    with (
+        patch.object(
+            company_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            company_menu,
+            "CompanyService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            side_effect=["1", "y"],
+        ),
     ):
         company_menu.delete_company()
 
     output = capsys.readouterr().out
 
-    assert (
-        "Cannot delete company with 2 application(s)."
-        in output
-    )
+    assert "Cannot delete company with 2 application(s)." in output

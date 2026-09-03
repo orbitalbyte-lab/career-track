@@ -1,5 +1,6 @@
-import pytest
 from datetime import date
+
+import pytest
 
 from app.models.application import (
     Application,
@@ -106,26 +107,12 @@ def test_application_accepts_valid_application_type():
 def test_application_rejects_invalid_application_type():
     company = Company(name="Microsoft")
 
-    with pytest.raises(ValueError, match="Invalid application type"):
+    with pytest.raises(TypeError, match="Invalid application type"):
         Application(
             company=company,
             position="Software Engineering Intern",
             application_type="Invalid",
             date_applied=date(2026, 7, 30),
-        )
-def test_application_rejects_invalid_application_type():
-    company = Company(name="Google")
-
-    with pytest.raises(
-        ValueError,
-        match="Invalid application type.",
-    ):
-        Application(
-            company=company,
-            position="Software Engineer",
-            application_type="Full-time",
-            date_applied=date(2026, 8, 20),
-            status=ApplicationStatus.APPLIED,
         )
 
 
@@ -133,7 +120,7 @@ def test_application_rejects_invalid_status():
     company = Company(name="Microsoft")
 
     with pytest.raises(
-        ValueError,
+        TypeError,
         match="Invalid application status",
     ):
         Application(

@@ -1,5 +1,5 @@
 import csv
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 
 from app.database.connection import Base, SessionLocal, engine
 from app.database.init_db import initialize_database
@@ -49,19 +49,13 @@ def test_export_applications_to_csv(
         session.add(application)
         session.commit()
 
-        application_service = ApplicationService(
-            session
-        )
+        application_service = ApplicationService(session)
 
-        exporter = ExportService(
-            application_service=application_service
-        )
+        exporter = ExportService(application_service=application_service)
 
         monkeypatch.chdir(tmp_path)
 
-        export_path = (
-            exporter.export_applications_to_csv()
-        )
+        export_path = exporter.export_applications_to_csv()
 
         with open(
             export_path,
@@ -121,12 +115,10 @@ def test_export_interviews_to_csv(
         session.add(application)
         session.commit()
         session.refresh(application)
-        
+
         application_id = application.id
 
-        interview_service = InterviewService(
-            session
-        )
+        interview_service = InterviewService(session)
 
         interview = Interview(
             application_id=application.id,
@@ -136,23 +128,19 @@ def test_export_interviews_to_csv(
                 25,
                 10,
                 0,
+                tzinfo=UTC,
+
             ),
             interview_type=InterviewType.ONLINE,
         )
 
-        interview_service.create_interview(
-            interview
-        )
+        interview_service.create_interview(interview)
 
-        exporter = ExportService(
-            interview_service=interview_service
-        )
+        exporter = ExportService(interview_service=interview_service)
 
         monkeypatch.chdir(tmp_path)
 
-        export_path = (
-            exporter.export_interviews_to_csv()
-        )
+        export_path = exporter.export_interviews_to_csv()
 
         with open(
             export_path,

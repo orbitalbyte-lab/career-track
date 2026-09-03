@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -16,8 +16,7 @@ def make_follow_up(
         id=follow_up_id,
         application_id=application_id,
         follow_up_at=(
-            follow_up_at
-            or datetime(2026, 8, 30, 10, 0)
+            follow_up_at or datetime(2026, 8, 30, 10, 0, tzinfo=UTC)
         ),
         note=note,
         completed=completed,
@@ -31,33 +30,40 @@ def test_add_follow_up():
     service = MagicMock()
     service.create_follow_up.return_value = follow_up
 
-    with patch.object(
-        follow_up_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        follow_up_menu,
-        "FollowUpService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        side_effect=[
-            "1",
-            "2026-08-30 10:00",
-            "Email recruiter",
-        ],
+    with (
+        patch.object(
+            follow_up_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            follow_up_menu,
+            "FollowUpService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            side_effect=[
+                "1",
+                "2026-08-30 10:00",
+                "Email recruiter",
+            ],
+        ),
     ):
         follow_up_menu.add_follow_up()
 
     service.create_follow_up.assert_called_once()
 
-    created_follow_up = (
-        service.create_follow_up.call_args.args[0]
-    )
+    created_follow_up = service.create_follow_up.call_args.args[0]
 
     assert created_follow_up.application_id == 1
     assert created_follow_up.follow_up_at == datetime(
-        2026, 8, 30, 10, 0
+        2026,
+        8,
+        30,
+        10,
+        0,
+        tzinfo=UTC,
     )
     assert created_follow_up.note == "Email recruiter"
 
@@ -130,14 +136,17 @@ def test_list_follow_ups(capsys):
     service = MagicMock()
     service.get_follow_ups.return_value = follow_ups
 
-    with patch.object(
-        follow_up_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        follow_up_menu,
-        "FollowUpService",
-        return_value=service,
+    with (
+        patch.object(
+            follow_up_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            follow_up_menu,
+            "FollowUpService",
+            return_value=service,
+        ),
     ):
         follow_up_menu.list_follow_ups()
 
@@ -154,14 +163,17 @@ def test_list_follow_ups_when_empty(capsys):
     service = MagicMock()
     service.get_follow_ups.return_value = []
 
-    with patch.object(
-        follow_up_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        follow_up_menu,
-        "FollowUpService",
-        return_value=service,
+    with (
+        patch.object(
+            follow_up_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            follow_up_menu,
+            "FollowUpService",
+            return_value=service,
+        ),
     ):
         follow_up_menu.list_follow_ups()
 
@@ -187,17 +199,21 @@ def test_view_follow_up_not_found(capsys):
     service = MagicMock()
     service.get_follow_up.return_value = None
 
-    with patch.object(
-        follow_up_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        follow_up_menu,
-        "FollowUpService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="999",
+    with (
+        patch.object(
+            follow_up_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            follow_up_menu,
+            "FollowUpService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="999",
+        ),
     ):
         follow_up_menu.view_follow_up()
 
@@ -216,17 +232,21 @@ def test_view_follow_up(capsys):
     service = MagicMock()
     service.get_follow_up.return_value = follow_up
 
-    with patch.object(
-        follow_up_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        follow_up_menu,
-        "FollowUpService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="1",
+    with (
+        patch.object(
+            follow_up_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            follow_up_menu,
+            "FollowUpService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="1",
+        ),
     ):
         follow_up_menu.view_follow_up()
 
@@ -247,17 +267,21 @@ def test_complete_follow_up():
     service = MagicMock()
     service.complete_follow_up.return_value = follow_up
 
-    with patch.object(
-        follow_up_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        follow_up_menu,
-        "FollowUpService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="1",
+    with (
+        patch.object(
+            follow_up_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            follow_up_menu,
+            "FollowUpService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="1",
+        ),
     ):
         follow_up_menu.complete_follow_up()
 
@@ -269,17 +293,21 @@ def test_complete_follow_up_not_found(capsys):
     service = MagicMock()
     service.complete_follow_up.return_value = None
 
-    with patch.object(
-        follow_up_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        follow_up_menu,
-        "FollowUpService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="999",
+    with (
+        patch.object(
+            follow_up_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            follow_up_menu,
+            "FollowUpService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="999",
+        ),
     ):
         follow_up_menu.complete_follow_up()
 
@@ -309,17 +337,21 @@ def test_reopen_follow_up():
     service = MagicMock()
     service.reopen_follow_up.return_value = follow_up
 
-    with patch.object(
-        follow_up_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        follow_up_menu,
-        "FollowUpService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="1",
+    with (
+        patch.object(
+            follow_up_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            follow_up_menu,
+            "FollowUpService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="1",
+        ),
     ):
         follow_up_menu.reopen_follow_up()
 
@@ -331,17 +363,21 @@ def test_reopen_follow_up_not_found(capsys):
     service = MagicMock()
     service.reopen_follow_up.return_value = None
 
-    with patch.object(
-        follow_up_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        follow_up_menu,
-        "FollowUpService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="999",
+    with (
+        patch.object(
+            follow_up_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            follow_up_menu,
+            "FollowUpService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="999",
+        ),
     ):
         follow_up_menu.reopen_follow_up()
 
@@ -367,17 +403,21 @@ def test_delete_follow_up():
     service = MagicMock()
     service.delete_follow_up.return_value = True
 
-    with patch.object(
-        follow_up_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        follow_up_menu,
-        "FollowUpService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="1",
+    with (
+        patch.object(
+            follow_up_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            follow_up_menu,
+            "FollowUpService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="1",
+        ),
     ):
         follow_up_menu.delete_follow_up()
 
@@ -389,17 +429,21 @@ def test_delete_follow_up_not_found(capsys):
     service = MagicMock()
     service.delete_follow_up.return_value = False
 
-    with patch.object(
-        follow_up_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        follow_up_menu,
-        "FollowUpService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="999",
+    with (
+        patch.object(
+            follow_up_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            follow_up_menu,
+            "FollowUpService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="999",
+        ),
     ):
         follow_up_menu.delete_follow_up()
 
@@ -432,14 +476,17 @@ def test_upcoming_follow_ups(capsys):
     service = MagicMock()
     service.get_upcoming_follow_ups.return_value = follow_ups
 
-    with patch.object(
-        follow_up_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        follow_up_menu,
-        "FollowUpService",
-        return_value=service,
+    with (
+        patch.object(
+            follow_up_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            follow_up_menu,
+            "FollowUpService",
+            return_value=service,
+        ),
     ):
         follow_up_menu.upcoming_follow_ups()
 
@@ -454,14 +501,17 @@ def test_upcoming_follow_ups_when_empty(capsys):
     service = MagicMock()
     service.get_upcoming_follow_ups.return_value = []
 
-    with patch.object(
-        follow_up_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        follow_up_menu,
-        "FollowUpService",
-        return_value=service,
+    with (
+        patch.object(
+            follow_up_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            follow_up_menu,
+            "FollowUpService",
+            return_value=service,
+        ),
     ):
         follow_up_menu.upcoming_follow_ups()
 
@@ -482,14 +532,17 @@ def test_pending_follow_ups(capsys):
     service = MagicMock()
     service.get_pending_follow_ups.return_value = follow_ups
 
-    with patch.object(
-        follow_up_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        follow_up_menu,
-        "FollowUpService",
-        return_value=service,
+    with (
+        patch.object(
+            follow_up_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            follow_up_menu,
+            "FollowUpService",
+            return_value=service,
+        ),
     ):
         follow_up_menu.list_pending_follow_ups()
 
@@ -504,14 +557,17 @@ def test_pending_follow_ups_when_empty(capsys):
     service = MagicMock()
     service.get_pending_follow_ups.return_value = []
 
-    with patch.object(
-        follow_up_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        follow_up_menu,
-        "FollowUpService",
-        return_value=service,
+    with (
+        patch.object(
+            follow_up_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            follow_up_menu,
+            "FollowUpService",
+            return_value=service,
+        ),
     ):
         follow_up_menu.list_pending_follow_ups()
 
@@ -532,14 +588,17 @@ def test_completed_follow_ups(capsys):
     service = MagicMock()
     service.get_completed_follow_ups.return_value = follow_ups
 
-    with patch.object(
-        follow_up_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        follow_up_menu,
-        "FollowUpService",
-        return_value=service,
+    with (
+        patch.object(
+            follow_up_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            follow_up_menu,
+            "FollowUpService",
+            return_value=service,
+        ),
     ):
         follow_up_menu.list_completed_follow_ups()
 
@@ -554,18 +613,20 @@ def test_completed_follow_ups_when_empty(capsys):
     service = MagicMock()
     service.get_completed_follow_ups.return_value = []
 
-    with patch.object(
-        follow_up_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        follow_up_menu,
-        "FollowUpService",
-        return_value=service,
+    with (
+        patch.object(
+            follow_up_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            follow_up_menu,
+            "FollowUpService",
+            return_value=service,
+        ),
     ):
         follow_up_menu.list_completed_follow_ups()
 
     output = capsys.readouterr().out
 
     assert "No completed follow-ups." in output
-    

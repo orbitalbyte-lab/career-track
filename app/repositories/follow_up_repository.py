@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
@@ -28,21 +28,13 @@ class FollowUpRepository:
         return follow_up_db
 
     def get_all(self) -> list[FollowUpDB]:
-        return (
-            self.session.query(FollowUpDB)
-            .order_by(FollowUpDB.follow_up_at)
-            .all()
-        )
+        return self.session.query(FollowUpDB).order_by(FollowUpDB.follow_up_at).all()
 
     def get_by_id(
         self,
         follow_up_id: int,
     ) -> FollowUpDB | None:
-        return (
-            self.session.query(FollowUpDB)
-            .filter_by(id=follow_up_id)
-            .first()
-        )
+        return self.session.query(FollowUpDB).filter_by(id=follow_up_id).first()
 
     def update(
         self,
@@ -78,7 +70,7 @@ class FollowUpRepository:
         return (
             self.session.query(FollowUpDB)
             .filter(
-                FollowUpDB.follow_up_at >= datetime.now(),
+                FollowUpDB.follow_up_at >= datetime.now(UTC),
                 FollowUpDB.completed.is_(False),
             )
             .order_by(FollowUpDB.follow_up_at)

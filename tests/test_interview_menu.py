@@ -1,11 +1,10 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from app.cli import interview_menu
 from app.models.interview import (
     InterviewOutcome,
-    InterviewStatus,
     InterviewType,
 )
 
@@ -23,10 +22,7 @@ def make_interview(
     return SimpleNamespace(
         id=interview_id,
         application_id=application_id,
-        scheduled_at=(
-            scheduled_at
-            or datetime(2026, 9, 1, 10, 0)
-        ),
+        scheduled_at=(scheduled_at or datetime(2026, 9, 1, 10, 0, tzinfo=UTC)),
         interview_type=interview_type,
         status=status,
         outcome=outcome,
@@ -42,22 +38,26 @@ def test_add_interview():
     service = MagicMock()
     service.create_interview.return_value = interview
 
-    with patch.object(
-        interview_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        interview_menu,
-        "InterviewService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        side_effect=[
-            "1",
-            "2026-09-01 10:00",
-            "Online",
-            "Technical interview",
-        ],
+    with (
+        patch.object(
+            interview_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            interview_menu,
+            "InterviewService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            side_effect=[
+                "1",
+                "2026-09-01 10:00",
+                "Online",
+                "Technical interview",
+            ],
+        ),
     ):
         interview_menu.add_interview()
 
@@ -66,9 +66,7 @@ def test_add_interview():
     created = service.create_interview.call_args.args[0]
 
     assert created.application_id == 1
-    assert created.scheduled_at == datetime(
-        2026, 9, 1, 10, 0
-    )
+    assert created.scheduled_at == datetime(2026, 9, 1, 10, 0, tzinfo=UTC)
     assert created.interview_type == InterviewType.ONLINE
     assert created.outcome == InterviewOutcome.PENDING
     assert created.notes == "Technical interview"
@@ -81,23 +79,27 @@ def test_add_interview_retries_invalid_application_id():
     service = MagicMock()
     service.create_interview.return_value = interview
 
-    with patch.object(
-        interview_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        interview_menu,
-        "InterviewService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        side_effect=[
-            "abc",
-            "1",
-            "2026-09-01 10:00",
-            "Online",
-            "",
-        ],
+    with (
+        patch.object(
+            interview_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            interview_menu,
+            "InterviewService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            side_effect=[
+                "abc",
+                "1",
+                "2026-09-01 10:00",
+                "Online",
+                "",
+            ],
+        ),
     ):
         interview_menu.add_interview()
 
@@ -113,32 +115,33 @@ def test_add_interview_retries_invalid_date(capsys):
     service = MagicMock()
     service.create_interview.return_value = interview
 
-    with patch.object(
-        interview_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        interview_menu,
-        "InterviewService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        side_effect=[
-            "1",
-            "bad-date",
-            "2026-09-01 10:00",
-            "Online",
-            "",
-        ],
+    with (
+        patch.object(
+            interview_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            interview_menu,
+            "InterviewService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            side_effect=[
+                "1",
+                "bad-date",
+                "2026-09-01 10:00",
+                "Online",
+                "",
+            ],
+        ),
     ):
         interview_menu.add_interview()
 
     output = capsys.readouterr().out
 
-    assert (
-        "Please enter the date as YYYY-MM-DD HH:MM."
-        in output
-    )
+    assert "Please enter the date as YYYY-MM-DD HH:MM." in output
 
 
 def test_add_interview_retries_invalid_type(capsys):
@@ -148,32 +151,33 @@ def test_add_interview_retries_invalid_type(capsys):
     service = MagicMock()
     service.create_interview.return_value = interview
 
-    with patch.object(
-        interview_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        interview_menu,
-        "InterviewService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        side_effect=[
-            "1",
-            "2026-09-01 10:00",
-            "Invalid",
-            "Online",
-            "",
-        ],
+    with (
+        patch.object(
+            interview_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            interview_menu,
+            "InterviewService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            side_effect=[
+                "1",
+                "2026-09-01 10:00",
+                "Invalid",
+                "Online",
+                "",
+            ],
+        ),
     ):
         interview_menu.add_interview()
 
     output = capsys.readouterr().out
 
-    assert (
-        "Please choose Online, Phone, or On-site."
-        in output
-    )
+    assert "Please choose Online, Phone, or On-site." in output
 
 
 def test_list_interviews(capsys):
@@ -196,14 +200,17 @@ def test_list_interviews(capsys):
     service = MagicMock()
     service.get_interviews.return_value = interviews
 
-    with patch.object(
-        interview_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        interview_menu,
-        "InterviewService",
-        return_value=service,
+    with (
+        patch.object(
+            interview_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            interview_menu,
+            "InterviewService",
+            return_value=service,
+        ),
     ):
         interview_menu.list_interviews()
 
@@ -222,14 +229,17 @@ def test_list_interviews_when_empty(capsys):
     service = MagicMock()
     service.get_interviews.return_value = []
 
-    with patch.object(
-        interview_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        interview_menu,
-        "InterviewService",
-        return_value=service,
+    with (
+        patch.object(
+            interview_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            interview_menu,
+            "InterviewService",
+            return_value=service,
+        ),
     ):
         interview_menu.list_interviews()
 
@@ -255,17 +265,21 @@ def test_view_interview_not_found(capsys):
     service = MagicMock()
     service.get_interview.return_value = None
 
-    with patch.object(
-        interview_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        interview_menu,
-        "InterviewService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="999",
+    with (
+        patch.object(
+            interview_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            interview_menu,
+            "InterviewService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="999",
+        ),
     ):
         interview_menu.view_interview()
 
@@ -275,9 +289,7 @@ def test_view_interview_not_found(capsys):
 
 
 def test_view_interview(capsys):
-    company = SimpleNamespace(
-        name="Microsoft"
-    )
+    company = SimpleNamespace(name="Microsoft")
 
     application = SimpleNamespace(
         position="Software Engineering Intern",
@@ -296,17 +308,21 @@ def test_view_interview(capsys):
     service = MagicMock()
     service.get_interview.return_value = interview
 
-    with patch.object(
-        interview_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        interview_menu,
-        "InterviewService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="1",
+    with (
+        patch.object(
+            interview_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            interview_menu,
+            "InterviewService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="1",
+        ),
     ):
         interview_menu.view_interview()
 
@@ -332,21 +348,25 @@ def test_update_interview():
     service = MagicMock()
     service.update_interview.return_value = interview
 
-    with patch.object(
-        interview_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        interview_menu,
-        "InterviewService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        side_effect=[
-            "1",
-            "Completed",
-            "Passed",
-        ],
+    with (
+        patch.object(
+            interview_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            interview_menu,
+            "InterviewService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            side_effect=[
+                "1",
+                "Completed",
+                "Passed",
+            ],
+        ),
     ):
         interview_menu.update_interview()
 
@@ -405,21 +425,25 @@ def test_update_interview_not_found(capsys):
     service = MagicMock()
     service.update_interview.return_value = None
 
-    with patch.object(
-        interview_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        interview_menu,
-        "InterviewService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        side_effect=[
-            "999",
-            "Completed",
-            "Passed",
-        ],
+    with (
+        patch.object(
+            interview_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            interview_menu,
+            "InterviewService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            side_effect=[
+                "999",
+                "Completed",
+                "Passed",
+            ],
+        ),
     ):
         interview_menu.update_interview()
 
@@ -433,17 +457,21 @@ def test_delete_interview():
     service = MagicMock()
     service.delete_interview.return_value = True
 
-    with patch.object(
-        interview_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        interview_menu,
-        "InterviewService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="1",
+    with (
+        patch.object(
+            interview_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            interview_menu,
+            "InterviewService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="1",
+        ),
     ):
         interview_menu.delete_interview()
 
@@ -467,17 +495,21 @@ def test_delete_interview_not_found(capsys):
     service = MagicMock()
     service.delete_interview.return_value = False
 
-    with patch.object(
-        interview_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        interview_menu,
-        "InterviewService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="999",
+    with (
+        patch.object(
+            interview_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            interview_menu,
+            "InterviewService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="999",
+        ),
     ):
         interview_menu.delete_interview()
 
@@ -498,23 +530,25 @@ def test_search_interviews(capsys):
     service = MagicMock()
     service.search_interviews.return_value = interviews
 
-    with patch.object(
-        interview_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        interview_menu,
-        "InterviewService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="Scheduled",
+    with (
+        patch.object(
+            interview_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            interview_menu,
+            "InterviewService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="Scheduled",
+        ),
     ):
         interview_menu.search_interviews()
 
-    service.search_interviews.assert_called_once_with(
-        "Scheduled"
-    )
+    service.search_interviews.assert_called_once_with("Scheduled")
 
     output = capsys.readouterr().out
 
@@ -527,17 +561,21 @@ def test_search_interviews_when_empty(capsys):
     service = MagicMock()
     service.search_interviews.return_value = []
 
-    with patch.object(
-        interview_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        interview_menu,
-        "InterviewService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="Nothing",
+    with (
+        patch.object(
+            interview_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            interview_menu,
+            "InterviewService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="Nothing",
+        ),
     ):
         interview_menu.search_interviews()
 
@@ -547,33 +585,31 @@ def test_search_interviews_when_empty(capsys):
 
 
 def test_filter_interviews(capsys):
-    interviews = [
-        make_interview(
-            status="Scheduled"
-        )
-    ]
+    interviews = [make_interview(status="Scheduled")]
 
     session = MagicMock()
     service = MagicMock()
     service.get_interviews_by_status.return_value = interviews
 
-    with patch.object(
-        interview_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        interview_menu,
-        "InterviewService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="Scheduled",
+    with (
+        patch.object(
+            interview_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            interview_menu,
+            "InterviewService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="Scheduled",
+        ),
     ):
         interview_menu.filter_interviews()
 
-    service.get_interviews_by_status.assert_called_once_with(
-        "Scheduled"
-    )
+    service.get_interviews_by_status.assert_called_once_with("Scheduled")
 
     output = capsys.readouterr().out
 
@@ -585,17 +621,21 @@ def test_filter_interviews_when_empty(capsys):
     service = MagicMock()
     service.get_interviews_by_status.return_value = []
 
-    with patch.object(
-        interview_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        interview_menu,
-        "InterviewService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="Completed",
+    with (
+        patch.object(
+            interview_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            interview_menu,
+            "InterviewService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="Completed",
+        ),
     ):
         interview_menu.filter_interviews()
 
@@ -608,15 +648,11 @@ def test_sort_interviews_by_date(capsys):
     interviews = [
         make_interview(
             interview_id=2,
-            scheduled_at=datetime(
-                2026, 9, 5, 10, 0
-            ),
+            scheduled_at=datetime(2026, 9, 5, 10, 0, tzinfo=UTC),
         ),
         make_interview(
             interview_id=1,
-            scheduled_at=datetime(
-                2026, 9, 1, 10, 0
-            ),
+            scheduled_at=datetime(2026, 9, 1, 10, 0, tzinfo=UTC),
         ),
     ]
 
@@ -624,23 +660,25 @@ def test_sort_interviews_by_date(capsys):
     service = MagicMock()
     service.get_sorted_interviews.return_value = interviews
 
-    with patch.object(
-        interview_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        interview_menu,
-        "InterviewService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="1",
+    with (
+        patch.object(
+            interview_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            interview_menu,
+            "InterviewService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="1",
+        ),
     ):
         interview_menu.sort_interviews()
 
-    service.get_sorted_interviews.assert_called_once_with(
-        "date"
-    )
+    service.get_sorted_interviews.assert_called_once_with("date")
 
     output = capsys.readouterr().out
 
@@ -664,23 +702,25 @@ def test_sort_interviews_by_type(capsys):
     service = MagicMock()
     service.get_sorted_interviews.return_value = interviews
 
-    with patch.object(
-        interview_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        interview_menu,
-        "InterviewService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="2",
+    with (
+        patch.object(
+            interview_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            interview_menu,
+            "InterviewService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="2",
+        ),
     ):
         interview_menu.sort_interviews()
 
-    service.get_sorted_interviews.assert_called_once_with(
-        "type"
-    )
+    service.get_sorted_interviews.assert_called_once_with("type")
 
     output = capsys.readouterr().out
 
@@ -706,17 +746,21 @@ def test_sort_interviews_when_empty(capsys):
     service = MagicMock()
     service.get_sorted_interviews.return_value = []
 
-    with patch.object(
-        interview_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        interview_menu,
-        "InterviewService",
-        return_value=service,
-    ), patch(
-        "builtins.input",
-        return_value="1",
+    with (
+        patch.object(
+            interview_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            interview_menu,
+            "InterviewService",
+            return_value=service,
+        ),
+        patch(
+            "builtins.input",
+            return_value="1",
+        ),
     ):
         interview_menu.sort_interviews()
 
@@ -730,22 +774,24 @@ def test_export_interviews():
     interview_service = MagicMock()
     exporter = MagicMock()
 
-    exporter.export_interviews_to_csv.return_value = (
-        "exports/interviews.csv"
-    )
+    exporter.export_interviews_to_csv.return_value = "exports/interviews.csv"
 
-    with patch.object(
-        interview_menu,
-        "SessionLocal",
-        return_value=session,
-    ), patch.object(
-        interview_menu,
-        "InterviewService",
-        return_value=interview_service,
-    ), patch.object(
-        interview_menu,
-        "ExportService",
-        return_value=exporter,
+    with (
+        patch.object(
+            interview_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            interview_menu,
+            "InterviewService",
+            return_value=interview_service,
+        ),
+        patch.object(
+            interview_menu,
+            "ExportService",
+            return_value=exporter,
+        ),
     ):
         interview_menu.export_interviews()
 

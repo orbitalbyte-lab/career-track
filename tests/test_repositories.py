@@ -1,6 +1,4 @@
-from datetime import date, datetime
-
-import pytest
+from datetime import UTC, date, datetime
 
 from app.database.connection import (
     Base,
@@ -10,7 +8,14 @@ from app.database.connection import (
 from app.database.init_db import initialize_database
 from app.database.models.application import ApplicationDB
 from app.database.models.company import CompanyDB
-
+from app.models.application import (
+    ApplicationStatus,
+    ApplicationType,
+)
+from app.models.interview import (
+    Interview,
+    InterviewType,
+)
 from app.repositories.application_repository import (
     ApplicationRepository,
 )
@@ -24,16 +29,7 @@ from app.repositories.interview_repository import (
     InterviewRepository,
 )
 
-from app.models.application import (
-    Application,
-    ApplicationType,
-    ApplicationStatus,
-)
 
-from app.models.interview import (
-    Interview,
-    InterviewType,
-)
 def setup_database():
     Base.metadata.drop_all(bind=engine)
     initialize_database()
@@ -86,9 +82,7 @@ def test_application_repository_create_and_get_by_company():
 
         assert created_application.id is not None
 
-        applications = application_repository.get_by_company_id(
-            company.id
-        )
+        applications = application_repository.get_by_company_id(company.id)
 
         assert len(applications) == 1
         assert applications[0].position == "Software Engineering Intern"
@@ -112,9 +106,7 @@ def test_application_repository_get_all():
     setup_database()
 
     with SessionLocal() as session:
-        company = CompanyRepository(session).create(
-            CompanyDB(name="Microsoft")
-        )
+        company = CompanyRepository(session).create(CompanyDB(name="Microsoft"))
 
         repository = ApplicationRepository(session)
 
@@ -191,9 +183,7 @@ def test_application_repository_searches_by_position():
         company_repository = CompanyRepository(session)
         application_repository = ApplicationRepository(session)
 
-        company = company_repository.create(
-            CompanyDB(name="Google")
-        )
+        company = company_repository.create(CompanyDB(name="Google"))
 
         application_repository.create(
             ApplicationDB(
@@ -228,9 +218,7 @@ def test_application_repository_search_orders_by_position():
         company_repository = CompanyRepository(session)
         application_repository = ApplicationRepository(session)
 
-        company = company_repository.create(
-            CompanyDB(name="Google")
-        )
+        company = company_repository.create(CompanyDB(name="Google"))
 
         application_repository.create(
             ApplicationDB(
@@ -278,13 +266,9 @@ def test_application_repository_searches_by_company_name():
         company_repository = CompanyRepository(session)
         application_repository = ApplicationRepository(session)
 
-        google = company_repository.create(
-            CompanyDB(name="Google")
-        )
+        google = company_repository.create(CompanyDB(name="Google"))
 
-        microsoft = company_repository.create(
-            CompanyDB(name="Microsoft")
-        )
+        microsoft = company_repository.create(CompanyDB(name="Microsoft"))
 
         application_repository.create(
             ApplicationDB(
@@ -320,13 +304,9 @@ def test_application_repository_searches_by_position_or_company_name():
         company_repository = CompanyRepository(session)
         application_repository = ApplicationRepository(session)
 
-        google = company_repository.create(
-            CompanyDB(name="Google")
-        )
+        google = company_repository.create(CompanyDB(name="Google"))
 
-        microsoft = company_repository.create(
-            CompanyDB(name="Microsoft")
-        )
+        microsoft = company_repository.create(CompanyDB(name="Microsoft"))
 
         application_repository.create(
             ApplicationDB(
@@ -366,9 +346,7 @@ def test_application_repository_searches_by_status():
         company_repository = CompanyRepository(session)
         application_repository = ApplicationRepository(session)
 
-        company = company_repository.create(
-            CompanyDB(name="Google")
-        )
+        company = company_repository.create(CompanyDB(name="Google"))
 
         application_repository.create(
             ApplicationDB(
@@ -404,9 +382,7 @@ def test_application_repository_searches_by_application_type():
         company_repository = CompanyRepository(session)
         application_repository = ApplicationRepository(session)
 
-        company = company_repository.create(
-            CompanyDB(name="Microsoft")
-        )
+        company = company_repository.create(CompanyDB(name="Microsoft"))
 
         application_repository.create(
             ApplicationDB(
@@ -442,9 +418,7 @@ def test_application_repository_filters_by_status():
         company_repository = CompanyRepository(session)
         application_repository = ApplicationRepository(session)
 
-        company = company_repository.create(
-            CompanyDB(name="Google")
-        )
+        company = company_repository.create(CompanyDB(name="Google"))
 
         application_repository.create(
             ApplicationDB(
@@ -490,9 +464,7 @@ def test_application_repository_filters_by_application_type():
         company_repository = CompanyRepository(session)
         application_repository = ApplicationRepository(session)
 
-        company = company_repository.create(
-            CompanyDB(name="Microsoft")
-        )
+        company = company_repository.create(CompanyDB(name="Microsoft"))
 
         application_repository.create(
             ApplicationDB(
@@ -524,13 +496,12 @@ def test_application_repository_filters_by_application_type():
             )
         )
 
-        results = application_repository.get_by_application_type(
-            "Internship"
-        )
+        results = application_repository.get_by_application_type("Internship")
 
         assert len(results) == 2
         assert results[0].application_type == "Internship"
         assert results[1].application_type == "Internship"
+
 
 def test_application_repository_filters_by_date():
     setup_database()
@@ -539,9 +510,7 @@ def test_application_repository_filters_by_date():
         company_repository = CompanyRepository(session)
         application_repository = ApplicationRepository(session)
 
-        company = company_repository.create(
-            CompanyDB(name="Google")
-        )
+        company = company_repository.create(CompanyDB(name="Google"))
 
         application_repository.create(
             ApplicationDB(
@@ -563,13 +532,12 @@ def test_application_repository_filters_by_date():
             )
         )
 
-        results = application_repository.get_by_date(
-            date(2026, 8, 4)
-        )
+        results = application_repository.get_by_date(date(2026, 8, 4))
 
         assert len(results) == 1
         assert results[0].position == "Backend Engineer"
         assert results[0].date_applied == date(2026, 8, 4)
+
 
 def test_application_repository_filters_by_deadline():
     setup_database()
@@ -578,9 +546,7 @@ def test_application_repository_filters_by_deadline():
         company_repository = CompanyRepository(session)
         application_repository = ApplicationRepository(session)
 
-        company = company_repository.create(
-            CompanyDB(name="Google")
-        )
+        company = company_repository.create(CompanyDB(name="Google"))
 
         application_repository.create(
             ApplicationDB(
@@ -604,13 +570,12 @@ def test_application_repository_filters_by_deadline():
             )
         )
 
-        results = application_repository.get_by_deadline(
-            date(2026, 8, 20)
-        )
+        results = application_repository.get_by_deadline(date(2026, 8, 20))
 
         assert len(results) == 1
         assert results[0].position == "Backend Engineer"
         assert results[0].deadline == date(2026, 8, 20)
+
 
 def test_application_repository_sorts_by_date_applied_descending():
     setup_database()
@@ -619,9 +584,7 @@ def test_application_repository_sorts_by_date_applied_descending():
         company_repository = CompanyRepository(session)
         application_repository = ApplicationRepository(session)
 
-        company = company_repository.create(
-            CompanyDB(name="Google")
-        )
+        company = company_repository.create(CompanyDB(name="Google"))
 
         application_repository.create(
             ApplicationDB(
@@ -648,6 +611,8 @@ def test_application_repository_sorts_by_date_applied_descending():
         assert len(results) == 2
         assert results[0].position == "New Application"
         assert results[1].position == "Old Application"
+
+
 def test_application_repository_sorts_by_date_field():
     setup_database()
 
@@ -655,9 +620,7 @@ def test_application_repository_sorts_by_date_field():
         company_repository = CompanyRepository(session)
         application_repository = ApplicationRepository(session)
 
-        company = company_repository.create(
-            CompanyDB(name="Google")
-        )
+        company = company_repository.create(CompanyDB(name="Google"))
 
         application_repository.create(
             ApplicationDB(
@@ -679,9 +642,7 @@ def test_application_repository_sorts_by_date_field():
             )
         )
 
-        results = application_repository.get_all_sorted(
-            "date"
-        )
+        results = application_repository.get_all_sorted("date")
 
         assert len(results) == 2
         assert results[0].position == "New Application"
@@ -695,9 +656,7 @@ def test_application_repository_sorts_by_position():
         company_repository = CompanyRepository(session)
         application_repository = ApplicationRepository(session)
 
-        company = company_repository.create(
-            CompanyDB(name="Google")
-        )
+        company = company_repository.create(CompanyDB(name="Google"))
 
         application_repository.create(
             ApplicationDB(
@@ -729,20 +688,18 @@ def test_application_repository_sorts_by_position():
             )
         )
 
-        results = application_repository.get_all_sorted(
-            "position"
-        )
+        results = application_repository.get_all_sorted("position")
         assert len(results) == 3
         assert results[0].position == "Backend Engineer"
         assert results[1].position == "Frontend Engineer"
         assert results[2].position == "Software Engineer"
+
+
 def test_get_monthly_application_counts():
     setup_database()
 
     with SessionLocal() as session:
-        company = CompanyRepository(session).create(
-             CompanyDB(name="Microsoft")
-        )
+        company = CompanyRepository(session).create(CompanyDB(name="Microsoft"))
         repository = ApplicationRepository(session)
 
         repository.create(
@@ -782,13 +739,12 @@ def test_get_monthly_application_counts():
             "2026-08": 1,
         }
 
+
 def test_get_location_statistics():
     setup_database()
 
     with SessionLocal() as session:
-        company = CompanyRepository(session).create(
-            CompanyDB(name="Microsoft")
-        )
+        company = CompanyRepository(session).create(CompanyDB(name="Microsoft"))
 
         repository = ApplicationRepository(session)
 
@@ -843,6 +799,7 @@ def test_get_location_statistics():
             "Not specified": 1,
         }
 
+
 def test_application_repository_filters_by_date_applied():
     setup_database()
 
@@ -883,6 +840,8 @@ def test_application_repository_filters_by_date_applied():
 
         assert len(results) == 1
         assert results[0].position == "Backend Engineer"
+
+
 def test_application_repository_count_all():
     setup_database()
 
@@ -918,6 +877,7 @@ def test_application_repository_count_all():
         )
         assert repository.count_all() == 2
 
+
 def test_follow_up_repository_update_returns_none_for_missing_follow_up():
     setup_database()
 
@@ -938,9 +898,7 @@ def test_follow_up_repository_delete_returns_false_for_missing_follow_up():
     with SessionLocal() as session:
         repository = FollowUpRepository(session)
 
-        result = repository.delete(
-            follow_up_id=999999
-        )
+        result = repository.delete(follow_up_id=999999)
 
         assert result is False
 
@@ -980,14 +938,13 @@ def test_interview_repository_get_all_sorted_returns_results():
                     25,
                     10,
                     0,
+                    tzinfo=UTC,
                 ),
                 interview_type=InterviewType.ONLINE,
             )
         )
 
-        results = repository.get_all_sorted(
-            "scheduled_at"
-        )
+        results = repository.get_all_sorted("scheduled_at")
 
         assert len(results) == 1
         assert results[0].scheduled_at == datetime(
@@ -996,4 +953,5 @@ def test_interview_repository_get_all_sorted_returns_results():
             25,
             10,
             0,
+            tzinfo=UTC,
         )

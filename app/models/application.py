@@ -43,10 +43,10 @@ class Application:
             raise ValueError("Position cannot be empty.")
 
         if not isinstance(self.application_type, ApplicationType):
-            raise ValueError("Invalid application type.")
+            raise TypeError("Invalid application type.")
 
         if not isinstance(self.status, ApplicationStatus):
-            raise ValueError("Invalid application status.")
+            raise TypeError("Invalid application status.")
 
         if self.deadline is not None and self.deadline < self.date_applied:
             raise ValueError("Deadline cannot be before the application date.")

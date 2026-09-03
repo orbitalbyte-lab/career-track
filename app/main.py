@@ -4,7 +4,6 @@ from app.cli.menu import run
 from app.database.init_db import initialize_database
 from app.logging_config import configure_logging
 
-
 logger = logging.getLogger(__name__)
 
 

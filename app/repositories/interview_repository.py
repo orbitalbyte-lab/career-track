@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
@@ -36,11 +36,7 @@ class InterviewRepository:
         self,
         interview_id: int,
     ) -> InterviewDB | None:
-        return (
-            self.session.query(InterviewDB)
-            .filter_by(id=interview_id)
-            .first()
-        )
+        return self.session.query(InterviewDB).filter_by(id=interview_id).first()
 
     def update(
         self,
@@ -78,9 +74,7 @@ class InterviewRepository:
     def get_upcoming(self) -> list[InterviewDB]:
         return (
             self.session.query(InterviewDB)
-            .filter(
-                InterviewDB.scheduled_at >= datetime.now()
-            )
+            .filter(InterviewDB.scheduled_at >= datetime.now(UTC))
             .order_by(InterviewDB.scheduled_at)
             .all()
         )
@@ -89,11 +83,7 @@ class InterviewRepository:
         self,
         status: str,
     ) -> list[InterviewDB]:
-        return (
-            self.session.query(InterviewDB)
-            .filter_by(status=status)
-            .all()
-        )
+        return self.session.query(InterviewDB).filter_by(status=status).all()
 
     def search(
         self,
@@ -105,9 +95,7 @@ class InterviewRepository:
             self.session.query(InterviewDB)
             .filter(
                 InterviewDB.status.ilike(search_pattern)
-                | InterviewDB.interview_type.ilike(
-                    search_pattern
-                )
+                | InterviewDB.interview_type.ilike(search_pattern)
             )
             .all()
         )
@@ -115,11 +103,9 @@ class InterviewRepository:
     def get_this_week(self) -> list[InterviewDB]:
         from datetime import timedelta
 
-        now = datetime.now()
+        now = datetime.now(UTC)
 
-        start_of_week = now - timedelta(
-            days=now.weekday()
-        )
+        start_of_week = now - timedelta(days=now.weekday())
 
         start_of_week = start_of_week.replace(
             hour=0,
@@ -145,9 +131,7 @@ class InterviewRepository:
     ) -> list[InterviewDB]:
         return (
             self.session.query(InterviewDB)
-            .order_by(
-                InterviewDB.scheduled_at.desc()
-            )
+            .order_by(InterviewDB.scheduled_at.desc())
             .all()
         )
 
@@ -158,21 +142,9 @@ class InterviewRepository:
         query = self.session.query(InterviewDB)
 
         if field == "date":
-            return (
-                query
-                .order_by(
-                    InterviewDB.scheduled_at.desc()
-                )
-                .all()
-            )
+            return query.order_by(InterviewDB.scheduled_at.desc()).all()
 
         if field == "type":
-            return (
-                query
-                .order_by(
-                    InterviewDB.interview_type.asc()
-                )
-                .all()
-            )
+            return query.order_by(InterviewDB.interview_type.asc()).all()
 
         return query.all()

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from app.models.follow_up import FollowUp
 from app.services.follow_up_service import (
@@ -7,9 +7,7 @@ from app.services.follow_up_service import (
 
 
 def test_create_follow_up(db_session):
-    service = FollowUpService(
-        db_session
-    )
+    service = FollowUpService(db_session)
 
     follow_up = FollowUp(
         application_id=1,
@@ -19,21 +17,18 @@ def test_create_follow_up(db_session):
             30,
             10,
             0,
+            tzinfo=UTC,
         ),
         note="Email recruiter",
     )
 
-    result = service.create_follow_up(
-        follow_up
-    )
+    result = service.create_follow_up(follow_up)
 
     assert result.id == 1
 
 
 def test_get_follow_ups(db_session):
-    service = FollowUpService(
-        db_session
-    )
+    service = FollowUpService(db_session)
 
     service.create_follow_up(
         FollowUp(
@@ -44,6 +39,7 @@ def test_get_follow_ups(db_session):
                 30,
                 10,
                 0,
+                tzinfo=UTC,
             ),
             note="Email recruiter",
         )
@@ -55,9 +51,7 @@ def test_get_follow_ups(db_session):
 
 
 def test_complete_follow_up(db_session):
-    service = FollowUpService(
-        db_session
-    )
+    service = FollowUpService(db_session)
 
     created = service.create_follow_up(
         FollowUp(
@@ -68,22 +62,19 @@ def test_complete_follow_up(db_session):
                 30,
                 10,
                 0,
+                tzinfo=UTC,
             ),
             note="Email recruiter",
         )
     )
 
-    result = service.complete_follow_up(
-        created.id
-    )
+    result = service.complete_follow_up(created.id)
 
     assert result.completed is True
 
 
 def test_reopen_follow_up(db_session):
-    service = FollowUpService(
-        db_session
-    )
+    service = FollowUpService(db_session)
 
     created = service.create_follow_up(
         FollowUp(
@@ -94,23 +85,20 @@ def test_reopen_follow_up(db_session):
                 30,
                 10,
                 0,
+                tzinfo=UTC,
             ),
             note="Email recruiter",
             completed=True,
         )
     )
 
-    result = service.reopen_follow_up(
-        created.id
-    )
+    result = service.reopen_follow_up(created.id)
 
     assert result.completed is False
 
 
 def test_delete_follow_up(db_session):
-    service = FollowUpService(
-        db_session
-    )
+    service = FollowUpService(db_session)
 
     created = service.create_follow_up(
         FollowUp(
@@ -121,22 +109,19 @@ def test_delete_follow_up(db_session):
                 30,
                 10,
                 0,
+                tzinfo=UTC,
             ),
             note="Email recruiter",
         )
     )
 
-    result = service.delete_follow_up(
-        created.id
-    )
+    result = service.delete_follow_up(created.id)
 
     assert result is True
 
 
 def test_follow_up_statistics(db_session):
-    service = FollowUpService(
-        db_session
-    )
+    service = FollowUpService(db_session)
 
     service.create_follow_up(
         FollowUp(
@@ -147,6 +132,7 @@ def test_follow_up_statistics(db_session):
                 30,
                 10,
                 0,
+                tzinfo=UTC,
             ),
             note="Pending follow-up",
         )
@@ -161,15 +147,14 @@ def test_follow_up_statistics(db_session):
                 1,
                 10,
                 0,
+                tzinfo=UTC,
             ),
             note="Completed follow-up",
             completed=True,
         )
     )
 
-    statistics = (
-        service.get_follow_up_statistics()
-    )
+    statistics = service.get_follow_up_statistics()
 
     assert statistics["total"] == 2
     assert statistics["pending"] == 1

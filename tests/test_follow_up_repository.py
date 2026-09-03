@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from app.models.follow_up import FollowUp
 from app.repositories.follow_up_repository import (
@@ -7,9 +7,7 @@ from app.repositories.follow_up_repository import (
 
 
 def test_create_follow_up(db_session):
-    repository = FollowUpRepository(
-        db_session
-    )
+    repository = FollowUpRepository(db_session)
 
     follow_up = FollowUp(
         application_id=1,
@@ -19,13 +17,12 @@ def test_create_follow_up(db_session):
             30,
             10,
             0,
+            tzinfo=UTC,
         ),
         note="Email recruiter",
     )
 
-    result = repository.create(
-        follow_up
-    )
+    result = repository.create(follow_up)
 
     assert result.id == 1
     assert result.application_id == 1
@@ -34,9 +31,7 @@ def test_create_follow_up(db_session):
 
 
 def test_get_all_follow_ups(db_session):
-    repository = FollowUpRepository(
-        db_session
-    )
+    repository = FollowUpRepository(db_session)
 
     repository.create(
         FollowUp(
@@ -47,6 +42,7 @@ def test_get_all_follow_ups(db_session):
                 30,
                 10,
                 0,
+                tzinfo=UTC,
             ),
             note="Email recruiter",
         )
@@ -58,9 +54,7 @@ def test_get_all_follow_ups(db_session):
 
 
 def test_update_follow_up_completion(db_session):
-    repository = FollowUpRepository(
-        db_session
-    )
+    repository = FollowUpRepository(db_session)
 
     created = repository.create(
         FollowUp(
@@ -71,6 +65,7 @@ def test_update_follow_up_completion(db_session):
                 30,
                 10,
                 0,
+                tzinfo=UTC,
             ),
             note="Email recruiter",
         )
@@ -85,9 +80,7 @@ def test_update_follow_up_completion(db_session):
 
 
 def test_delete_follow_up(db_session):
-    repository = FollowUpRepository(
-        db_session
-    )
+    repository = FollowUpRepository(db_session)
 
     created = repository.create(
         FollowUp(
@@ -98,29 +91,21 @@ def test_delete_follow_up(db_session):
                 30,
                 10,
                 0,
+                tzinfo=UTC,
             ),
             note="Email recruiter",
         )
     )
 
-    result = repository.delete(
-        created.id
-    )
+    result = repository.delete(created.id)
 
     assert result is True
 
-    assert (
-        repository.get_by_id(
-            created.id
-        )
-        is None
-    )
+    assert repository.get_by_id(created.id) is None
 
 
 def test_get_pending_follow_ups(db_session):
-    repository = FollowUpRepository(
-        db_session
-    )
+    repository = FollowUpRepository(db_session)
 
     repository.create(
         FollowUp(
@@ -131,6 +116,7 @@ def test_get_pending_follow_ups(db_session):
                 30,
                 10,
                 0,
+                tzinfo=UTC,
             ),
             note="Pending follow-up",
         )
@@ -145,6 +131,7 @@ def test_get_pending_follow_ups(db_session):
                 1,
                 10,
                 0,
+                tzinfo=UTC,
             ),
             note="Completed follow-up",
             completed=True,
@@ -154,16 +141,11 @@ def test_get_pending_follow_ups(db_session):
     results = repository.get_pending()
 
     assert len(results) == 1
-    assert (
-        results[0].note
-        == "Pending follow-up"
-    )
+    assert results[0].note == "Pending follow-up"
 
 
 def test_get_completed_follow_ups(db_session):
-    repository = FollowUpRepository(
-        db_session
-    )
+    repository = FollowUpRepository(db_session)
 
     repository.create(
         FollowUp(
@@ -174,6 +156,7 @@ def test_get_completed_follow_ups(db_session):
                 30,
                 10,
                 0,
+                tzinfo=UTC,
             ),
             note="Completed follow-up",
             completed=True,
@@ -183,6 +166,4 @@ def test_get_completed_follow_ups(db_session):
     results = repository.get_completed()
 
     assert len(results) == 1
-    assert (
-        results[0].completed is True
-    )
+    assert results[0].completed is True

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -15,18 +15,14 @@ from app.repositories.interview_repository import (
 
 
 def test_create_interview():
-    engine = create_engine(
-        "sqlite:///:memory:"
-    )
+    engine = create_engine("sqlite:///:memory:")
 
     Base.metadata.create_all(engine)
 
     Session = sessionmaker(bind=engine)
 
     with Session() as session:
-        repository = InterviewRepository(
-            session
-        )
+        repository = InterviewRepository(session)
 
         interview = Interview(
             application_id=1,
@@ -36,18 +32,13 @@ def test_create_interview():
                 1,
                 10,
                 0,
+                tzinfo=UTC,
             ),
-            interview_type=(
-                InterviewType.ONLINE
-            ),
-            status=(
-                InterviewStatus.SCHEDULED
-            ),
+            interview_type=(InterviewType.ONLINE),
+            status=(InterviewStatus.SCHEDULED),
         )
 
-        result = repository.create(
-            interview
-        )
+        result = repository.create(interview)
 
         assert result.id == 1
 
@@ -55,18 +46,14 @@ def test_create_interview():
 
 
 def test_get_all_interviews():
-    engine = create_engine(
-        "sqlite:///:memory:"
-    )
+    engine = create_engine("sqlite:///:memory:")
 
     Base.metadata.create_all(engine)
 
     Session = sessionmaker(bind=engine)
 
     with Session() as session:
-        repository = InterviewRepository(
-            session
-        )
+        repository = InterviewRepository(session)
 
         interview = Interview(
             application_id=1,
@@ -76,20 +63,15 @@ def test_get_all_interviews():
                 1,
                 10,
                 0,
+                tzinfo=UTC,
             ),
-            interview_type=(
-                InterviewType.ONLINE
-            ),
-            status=(
-                InterviewStatus.SCHEDULED
-            ),
+            interview_type=(InterviewType.ONLINE),
+            status=(InterviewStatus.SCHEDULED),
         )
 
         repository.create(interview)
 
-        interviews = (
-            repository.get_all()
-        )
+        interviews = repository.get_all()
 
         assert len(interviews) == 1
 
@@ -97,18 +79,14 @@ def test_get_all_interviews():
 
 
 def test_delete_interview():
-    engine = create_engine(
-        "sqlite:///:memory:"
-    )
+    engine = create_engine("sqlite:///:memory:")
 
     Base.metadata.create_all(engine)
 
     Session = sessionmaker(bind=engine)
 
     with Session() as session:
-        repository = InterviewRepository(
-            session
-        )
+        repository = InterviewRepository(session)
 
         interview = Interview(
             application_id=1,
@@ -118,48 +96,32 @@ def test_delete_interview():
                 1,
                 10,
                 0,
+                tzinfo=UTC,
             ),
-            interview_type=(
-                InterviewType.ONLINE
-            ),
-            status=(
-                InterviewStatus.SCHEDULED
-            ),
+            interview_type=(InterviewType.ONLINE),
+            status=(InterviewStatus.SCHEDULED),
         )
 
-        created = repository.create(
-            interview
-        )
+        created = repository.create(interview)
 
-        result = repository.delete(
-            created.id
-        )
+        result = repository.delete(created.id)
 
         assert result is True
 
-        assert (
-            repository.get_by_id(
-                created.id
-            )
-            is None
-        )
+        assert repository.get_by_id(created.id) is None
 
     engine.dispose()
 
 
 def test_interview_repository_sorts_by_date():
-    engine = create_engine(
-        "sqlite:///:memory:"
-    )
+    engine = create_engine("sqlite:///:memory:")
 
     Base.metadata.create_all(engine)
 
     Session = sessionmaker(bind=engine)
 
     with Session() as session:
-        repository = InterviewRepository(
-            session
-        )
+        repository = InterviewRepository(session)
 
         repository.create(
             Interview(
@@ -170,13 +132,10 @@ def test_interview_repository_sorts_by_date():
                     1,
                     10,
                     0,
+                    tzinfo=UTC,
                 ),
-                interview_type=(
-                    InterviewType.ONLINE
-                ),
-                status=(
-                    InterviewStatus.SCHEDULED
-                ),
+                interview_type=(InterviewType.ONLINE),
+                status=(InterviewStatus.SCHEDULED),
             )
         )
 
@@ -189,62 +148,47 @@ def test_interview_repository_sorts_by_date():
                     5,
                     10,
                     0,
+                    tzinfo=UTC,
                 ),
-                interview_type=(
-                    InterviewType.PHONE
-                ),
-                status=(
-                    InterviewStatus.SCHEDULED
-                ),
+                interview_type=(InterviewType.PHONE),
+                status=(InterviewStatus.SCHEDULED),
             )
         )
 
-        results = (
-            repository.get_all_sorted(
-                "date"
-            )
-        )
+        results = repository.get_all_sorted("date")
 
         assert len(results) == 2
 
-        assert (
-            results[0].scheduled_at
-            == datetime(
-                2026,
-                8,
-                5,
-                10,
-                0,
-            )
+        assert results[0].scheduled_at == datetime(
+            2026,
+            8,
+            5,
+            10,
+            0,
+            tzinfo=UTC,
         )
 
-        assert (
-            results[1].scheduled_at
-            == datetime(
-                2026,
-                8,
-                1,
-                10,
-                0,
-            )
+        assert results[1].scheduled_at == datetime(
+            2026,
+            8,
+            1,
+            10,
+            0,
+            tzinfo=UTC,
         )
 
     engine.dispose()
 
 
 def test_interview_repository_sorts_by_type():
-    engine = create_engine(
-        "sqlite:///:memory:"
-    )
+    engine = create_engine("sqlite:///:memory:")
 
     Base.metadata.create_all(engine)
 
     Session = sessionmaker(bind=engine)
 
     with Session() as session:
-        repository = InterviewRepository(
-            session
-        )
+        repository = InterviewRepository(session)
 
         repository.create(
             Interview(
@@ -255,13 +199,10 @@ def test_interview_repository_sorts_by_type():
                     5,
                     10,
                     0,
+                    tzinfo=UTC,
                 ),
-                interview_type=(
-                    InterviewType.ONLINE
-                ),
-                status=(
-                    InterviewStatus.SCHEDULED
-                ),
+                interview_type=(InterviewType.ONLINE),
+                status=(InterviewStatus.SCHEDULED),
             )
         )
 
@@ -274,32 +215,19 @@ def test_interview_repository_sorts_by_type():
                     4,
                     10,
                     0,
+                    tzinfo=UTC,
                 ),
-                interview_type=(
-                    InterviewType.PHONE
-                ),
-                status=(
-                    InterviewStatus.SCHEDULED
-                ),
+                interview_type=(InterviewType.PHONE),
+                status=(InterviewStatus.SCHEDULED),
             )
         )
 
-        results = (
-            repository.get_all_sorted(
-                "type"
-            )
-        )
+        results = repository.get_all_sorted("type")
 
         assert len(results) == 2
 
-        assert (
-            results[0].interview_type
-            == "Online"
-        )
+        assert results[0].interview_type == "Online"
 
-        assert (
-            results[1].interview_type
-            == "Phone"
-        )
+        assert results[1].interview_type == "Phone"
 
     engine.dispose()

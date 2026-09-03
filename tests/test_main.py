@@ -22,9 +22,7 @@ def test_main_dashboard_option(
     capsys,
     monkeypatch,
 ):
-    inputs = iter(
-        ["13", "36"]
-    )
+    inputs = iter(["13", "36"])
 
     monkeypatch.setattr(
         "builtins.input",

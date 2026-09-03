@@ -73,9 +73,7 @@ class ApplicationService:
         job_url: str | None = None,
         notes: str | None = None,
     ) -> ApplicationDB | None:
-        application = self.application_repository.get_by_id(
-            application_id
-        )
+        application = self.application_repository.get_by_id(application_id)
 
         if application is None:
             return None
@@ -99,9 +97,7 @@ class ApplicationService:
 
         if deadline is not None:
             if deadline < application.date_applied:
-                raise ValueError(
-                    "Deadline cannot be before the application date"
-                )
+                raise ValueError("Deadline cannot be before the application date")
             application.deadline = deadline
 
         if job_url is not None:
@@ -116,9 +112,7 @@ class ApplicationService:
         self,
         company_id: int,
     ) -> list[ApplicationDB]:
-        return self.application_repository.get_by_company_id(
-            company_id
-        )
+        return self.application_repository.get_by_company_id(company_id)
 
     def get_applications_by_status(
         self,
@@ -127,25 +121,19 @@ class ApplicationService:
         if not status.strip():
             return []
 
-        return self.application_repository.get_by_status(
-            status.strip()
-        )
+        return self.application_repository.get_by_status(status.strip())
 
     def get_applications_by_date(
         self,
         application_date: date,
     ) -> list[ApplicationDB]:
-        return self.application_repository.get_by_date(
-            application_date
-        )
+        return self.application_repository.get_by_date(application_date)
 
     def get_applications_by_deadline(
         self,
         deadline: date,
     ) -> list[ApplicationDB]:
-        return self.application_repository.get_by_deadline(
-            deadline
-        )
+        return self.application_repository.get_by_deadline(deadline)
 
     def get_applications_by_application_type(
         self,
@@ -165,24 +153,24 @@ class ApplicationService:
         company_id: int | None = None,
         date_applied: date | None = None,
     ) -> list[ApplicationDB]:
-       if status is not None:
-           status = status.strip()
+        if status is not None:
+            status = status.strip()
 
-           if not status:
-               status = None
+            if not status:
+                status = None
 
-       if application_type is not None:
-           application_type = application_type.strip()
+        if application_type is not None:
+            application_type = application_type.strip()
 
-           if not application_type:
-               application_type = None
+            if not application_type:
+                application_type = None
 
-       return self.application_repository.filter_applications(
-           status=status,
-           application_type=application_type,
-           company_id=company_id,
-           date_applied=date_applied,
-       )
+        return self.application_repository.filter_applications(
+            status=status,
+            application_type=application_type,
+            company_id=company_id,
+            date_applied=date_applied,
+        )
 
     def get_total_applications(self) -> int:
         return self.application_repository.get_total_count()
@@ -194,9 +182,7 @@ class ApplicationService:
         if not status.strip():
             return 0
 
-        return self.application_repository.count_by_status(
-            status.strip()
-        )
+        return self.application_repository.count_by_status(status.strip())
 
     def get_applications_count_by_type(
         self,
@@ -218,6 +204,7 @@ class ApplicationService:
         self,
     ) -> dict[str, int]:
         return self.application_repository.get_status_counts()
+
     def get_company_statistics(
         self,
     ) -> dict[str, int]:
@@ -227,6 +214,7 @@ class ApplicationService:
         self,
     ) -> dict[str, int]:
         return self.application_repository.get_location_statistics()
+
     def get_dashboard_statistics(self) -> dict:
         total = self.application_repository.get_total_count()
 
@@ -234,26 +222,16 @@ class ApplicationService:
 
         successful_applications = by_status.get("Offer", 0)
 
-        success_rate = (
-            (successful_applications / total) * 100
-            if total > 0
-            else 0.0
-        )
+        success_rate = (successful_applications / total) * 100 if total > 0 else 0.0
 
         return {
             "total": total,
-            "total_companies": len(
-                self.company_repository.get_all()
-            ),
+            "total_companies": len(self.company_repository.get_all()),
             "by_status": by_status,
             "by_application_type": (
-                self.application_repository
-                .get_application_type_counts()
+                self.application_repository.get_application_type_counts()
             ),
-            "by_company": (
-                self.application_repository
-                .get_company_statistics()
-            ),
+            "by_company": (self.application_repository.get_company_statistics()),
             "success_rate": success_rate,
         }
 
@@ -261,10 +239,12 @@ class ApplicationService:
         self,
     ) -> list[ApplicationDB]:
         return self.application_repository.get_all_sorted_by_date()[:5]
+
     def get_monthly_application_counts(
         self,
     ) -> dict[str, int]:
         return self.application_repository.get_monthly_application_counts()
+
     def get_upcoming_deadlines(
         self,
         today: date,
@@ -277,13 +257,12 @@ class ApplicationService:
             today=today,
             limit=limit,
         )
+
     def delete_application(
         self,
         application_id: int,
     ) -> bool:
-        application = self.application_repository.get_by_id(
-            application_id
-        )
+        application = self.application_repository.get_by_id(application_id)
 
         if application is None:
             return False
@@ -291,11 +270,9 @@ class ApplicationService:
         self.application_repository.delete(application)
 
         return True
+
     def get_sorted_applications(
         self,
         field: str,
     ) -> list[ApplicationDB]:
-        return (
-            self.application_repository
-            .get_all_sorted(field)
-        )
+        return self.application_repository.get_all_sorted(field)

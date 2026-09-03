@@ -1,45 +1,45 @@
-from app.cli.company_menu import (
-    add_company,
-    list_companies,
-    view_company,
-    update_company,
-    delete_company,
-    search_companies,
-)
 from app.cli.application_menu import (
     add_application,
-    list_applications,
-    view_application,
-    update_application,
     delete_application,
+    export_applications,
+    filter_applications,
+    import_applications,
+    list_applications,
     search_applications,
     show_dashboard,
-    filter_applications,
-    export_applications,
     sort_applications,
-    import_applications,
+    update_application,
+    view_application,
 )
-from app.cli.interview_menu import (
-    add_interview,
-    list_interviews,
-    view_interview,
-    update_interview,
-    delete_interview,
-    search_interviews,
-    filter_interviews,
-    sort_interviews,
-    export_interviews,
+from app.cli.company_menu import (
+    add_company,
+    delete_company,
+    list_companies,
+    search_companies,
+    update_company,
+    view_company,
 )
 from app.cli.follow_up_menu import (
     add_follow_up,
-    list_follow_ups,
-    view_follow_up,
     complete_follow_up,
-    reopen_follow_up,
     delete_follow_up,
-    upcoming_follow_ups,
-    list_pending_follow_ups,
     list_completed_follow_ups,
+    list_follow_ups,
+    list_pending_follow_ups,
+    reopen_follow_up,
+    upcoming_follow_ups,
+    view_follow_up,
+)
+from app.cli.interview_menu import (
+    add_interview,
+    delete_interview,
+    export_interviews,
+    filter_interviews,
+    list_interviews,
+    search_interviews,
+    sort_interviews,
+    update_interview,
+    view_interview,
 )
 
 
@@ -90,9 +90,7 @@ def run() -> None:
     while True:
         show_menu()
 
-        choice = input(
-            "Choose an option: "
-        ).strip()
+        choice = input("Choose an option: ").strip()
 
         if choice == "1":
             add_company()

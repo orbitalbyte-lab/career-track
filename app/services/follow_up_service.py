@@ -72,14 +72,6 @@ class FollowUpService:
 
         return {
             "total": len(follow_ups),
-            "completed": sum(
-                1
-                for follow_up in follow_ups
-                if follow_up.completed
-            ),
-            "pending": sum(
-                1
-                for follow_up in follow_ups
-                if not follow_up.completed
-            ),
+            "completed": sum(1 for follow_up in follow_ups if follow_up.completed),
+            "pending": sum(1 for follow_up in follow_ups if not follow_up.completed),
         }

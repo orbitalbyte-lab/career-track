@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from app.database.connection import SessionLocal
 from app.models.interview import (
@@ -7,8 +7,8 @@ from app.models.interview import (
     InterviewStatus,
     InterviewType,
 )
-from app.services.interview_service import InterviewService
 from app.services.export_service import ExportService
+from app.services.interview_service import InterviewService
 
 
 def add_interview() -> None:
@@ -16,9 +16,7 @@ def add_interview() -> None:
 
     while True:
         try:
-            application_id = int(
-                input("Application ID: ").strip()
-            )
+            application_id = int(input("Application ID: ").strip())
             break
         except ValueError:
             print("Please enter a valid number.")
@@ -26,10 +24,8 @@ def add_interview() -> None:
     while True:
         try:
             scheduled_at = datetime.fromisoformat(
-                input(
-                    "Interview date and time (YYYY-MM-DD HH:MM): "
-                ).strip()
-            )
+                input("Interview date and time (YYYY-MM-DD HH:MM): ").strip()
+            ).replace(tzinfo=UTC)
             break
         except ValueError:
             print("Please enter the date as YYYY-MM-DD HH:MM.")
@@ -37,9 +33,7 @@ def add_interview() -> None:
     while True:
         try:
             interview_type = InterviewType(
-                input(
-                    "Interview type (Online/Phone/On-site): "
-                ).strip().title()
+                input("Interview type (Online/Phone/On-site): ").strip().title()
             )
             break
         except ValueError:
@@ -47,10 +41,7 @@ def add_interview() -> None:
 
     outcome = InterviewOutcome.PENDING
 
-    notes = (
-        input("Notes (optional): ").strip()
-        or None
-    )
+    notes = input("Notes (optional): ").strip() or None
 
     interview = Interview(
         application_id=application_id,
@@ -65,7 +56,6 @@ def add_interview() -> None:
         interview_service.create_interview(interview)
 
     print("Interview scheduled successfully.")
-
 
 def list_interviews() -> None:
     print("\n--- Interviews ---")
@@ -107,19 +97,12 @@ def view_interview() -> None:
 
         application = getattr(interview, "application", None)
 
-        company = (
-            getattr(application, "company", None)
-            if application
-            else None
-        )
+        company = getattr(application, "company", None) if application else None
 
         print(f"\nInterview ID: {interview.id}")
         print(f"Application ID: {interview.application_id}")
         print(f"Company: {company.name if company else 'N/A'}")
-        print(
-            f"Position: "
-            f"{application.position if application else 'N/A'}"
-        )
+        print(f"Position: {application.position if application else 'N/A'}")
         print(f"Date: {interview.scheduled_at}")
         print(f"Type: {interview.interview_type}")
         print(f"Status: {interview.status}")
@@ -139,9 +122,7 @@ def update_interview() -> None:
     print("Scheduled | Completed | Canceled")
 
     try:
-        status = InterviewStatus(
-            input("New status: ").strip().title()
-        )
+        status = InterviewStatus(input("New status: ").strip().title())
     except ValueError:
         print("Invalid status.")
         return
@@ -149,9 +130,7 @@ def update_interview() -> None:
     print("Pending | Passed | Failed")
 
     try:
-        outcome = InterviewOutcome(
-            input("Interview outcome: ").strip().title()
-        )
+        outcome = InterviewOutcome(input("Interview outcome: ").strip().title())
     except ValueError:
         print("Invalid outcome.")
         return
@@ -184,9 +163,7 @@ def delete_interview() -> None:
     with SessionLocal() as session:
         interview_service = InterviewService(session)
 
-        deleted = interview_service.delete_interview(
-            interview_id
-        )
+        deleted = interview_service.delete_interview(interview_id)
         if not deleted:
             print("Interview not found.")
             return
@@ -219,16 +196,12 @@ def search_interviews() -> None:
 def filter_interviews() -> None:
     print("\n--- Filter Interviews ---")
 
-    status = input(
-        "Status (Scheduled/Completed/Cancelled): "
-    ).strip()
+    status = input("Status (Scheduled/Completed/Cancelled): ").strip()
 
     with SessionLocal() as session:
         interview_service = InterviewService(session)
 
-        interviews = interview_service.get_interviews_by_status(
-            status
-        )
+        interviews = interview_service.get_interviews_by_status(status)
 
         if not interviews:
             print("No interviews found.")
@@ -279,24 +252,16 @@ def sort_interviews() -> None:
                 f"Status: {interview.status} | "
                 f"Date: {interview.scheduled_at}"
             )
+
+
 def export_interviews() -> None:
     print("\n--- Export Interviews ---")
 
     with SessionLocal() as session:
-        interview_service = (
-            InterviewService(session)
-        )
+        interview_service = InterviewService(session)
 
-        exporter = ExportService(
-            interview_service=(
-                interview_service
-            )
-        )
+        exporter = ExportService(interview_service=(interview_service))
 
-        path = (
-            exporter.export_interviews_to_csv()
-        )
+        path = exporter.export_interviews_to_csv()
 
-        print(
-            f"Interviews exported to: {path}"
-        )
+        print(f"Interviews exported to: {path}")

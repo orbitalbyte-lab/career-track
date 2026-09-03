@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -19,10 +19,7 @@ def create_interview(
 ):
     return Interview(
         application_id=1,
-        scheduled_at=(
-            scheduled_at
-            or datetime(2026, 9, 1, 10, 0)
-        ),
+        scheduled_at=(scheduled_at or datetime(2026, 9, 1, 10, 0, tzinfo=UTC)),
         interview_type=interview_type,
         status=status,
     )
@@ -32,14 +29,9 @@ def test_interview_model():
     interview = create_interview()
 
     assert interview.application_id == 1
-    assert (
-        interview.interview_type
-        == InterviewType.ONLINE
-    )
-    assert (
-        interview.status
-        == InterviewStatus.SCHEDULED
-    )
+    assert interview.interview_type == InterviewType.ONLINE
+    assert interview.status == InterviewStatus.SCHEDULED
+
 
 def test_interview_rejects_invalid_application_id():
     with pytest.raises(
@@ -48,7 +40,7 @@ def test_interview_rejects_invalid_application_id():
     ):
         Interview(
             application_id=0,
-            scheduled_at=datetime(2026, 9, 1, 10, 0),
+            scheduled_at=datetime(2026, 9, 1, 10, 0, tzinfo=UTC),
             interview_type=InterviewType.ONLINE,
             status=InterviewStatus.SCHEDULED,
         )
@@ -56,12 +48,12 @@ def test_interview_rejects_invalid_application_id():
 
 def test_interview_rejects_invalid_interview_type():
     with pytest.raises(
-        ValueError,
+        TypeError,
         match="Invalid interview type",
     ):
         Interview(
             application_id=1,
-            scheduled_at=datetime(2026, 9, 1, 10, 0),
+            scheduled_at=datetime(2026, 9, 1, 10, 0, tzinfo=UTC),
             interview_type="Invalid",
             status=InterviewStatus.SCHEDULED,
         )
@@ -69,12 +61,12 @@ def test_interview_rejects_invalid_interview_type():
 
 def test_interview_rejects_invalid_status():
     with pytest.raises(
-        ValueError,
+        TypeError,
         match="Invalid interview status",
     ):
         Interview(
             application_id=1,
-            scheduled_at=datetime(2026, 9, 1, 10, 0),
+            scheduled_at=datetime(2026, 9, 1, 10, 0, tzinfo=UTC),
             interview_type=InterviewType.ONLINE,
             status="Invalid",
         )
@@ -82,16 +74,16 @@ def test_interview_rejects_invalid_status():
 
 def test_interview_rejects_invalid_outcome():
     with pytest.raises(
-        ValueError,
+        TypeError,
         match="Invalid interview outcome",
     ):
         Interview(
             application_id=1,
-            scheduled_at=datetime(2026, 9, 1, 10, 0),
+            scheduled_at=datetime(2026, 9, 1, 10, 0, tzinfo=UTC),
             interview_type=InterviewType.ONLINE,
             status=InterviewStatus.SCHEDULED,
             outcome="Invalid",
-        )    
+        )
 
 
 def test_create_interview(db_session):
@@ -110,14 +102,8 @@ def test_create_interview(db_session):
 def test_get_interviews(db_session):
     service = InterviewService(db_session)
 
-    service.create_interview(
-        create_interview()
-    )
-    service.create_interview(
-        create_interview(
-            interview_type=InterviewType.PHONE
-        )
-    )
+    service.create_interview(create_interview())
+    service.create_interview(create_interview(interview_type=InterviewType.PHONE))
 
     results = service.get_interviews()
 
@@ -127,13 +113,9 @@ def test_get_interviews(db_session):
 def test_get_interview(db_session):
     service = InterviewService(db_session)
 
-    created = service.create_interview(
-        create_interview()
-    )
+    created = service.create_interview(create_interview())
 
-    result = service.get_interview(
-        created.id
-    )
+    result = service.get_interview(created.id)
 
     assert result is not None
     assert result.id == created.id
@@ -152,9 +134,7 @@ def test_get_interview_returns_none_for_missing_id(
 def test_update_interview(db_session):
     service = InterviewService(db_session)
 
-    created = service.create_interview(
-        create_interview()
-    )
+    created = service.create_interview(create_interview())
 
     result = service.update_interview(
         created.id,
@@ -172,9 +152,7 @@ def test_update_interview_defaults_outcome_to_pending(
 ):
     service = InterviewService(db_session)
 
-    created = service.create_interview(
-        create_interview()
-    )
+    created = service.create_interview(create_interview())
 
     result = service.update_interview(
         created.id,
@@ -202,18 +180,12 @@ def test_update_interview_returns_none_for_missing_id(
 def test_delete_interview(db_session):
     service = InterviewService(db_session)
 
-    created = service.create_interview(
-        create_interview()
-    )
+    created = service.create_interview(create_interview())
 
-    result = service.delete_interview(
-        created.id
-    )
+    result = service.delete_interview(created.id)
 
     assert result is True
-    assert service.get_interview(
-        created.id
-    ) is None
+    assert service.get_interview(created.id) is None
 
 
 def test_delete_interview_returns_false_for_missing_id(
@@ -229,25 +201,11 @@ def test_delete_interview_returns_false_for_missing_id(
 def test_get_interview_statistics(db_session):
     service = InterviewService(db_session)
 
-    service.create_interview(
-        create_interview(
-            status=InterviewStatus.SCHEDULED
-        )
-    )
-    service.create_interview(
-        create_interview(
-            status=InterviewStatus.COMPLETED
-        )
-    )
-    service.create_interview(
-        create_interview(
-            status=InterviewStatus.COMPLETED
-        )
-    )
+    service.create_interview(create_interview(status=InterviewStatus.SCHEDULED))
+    service.create_interview(create_interview(status=InterviewStatus.COMPLETED))
+    service.create_interview(create_interview(status=InterviewStatus.COMPLETED))
 
-    statistics = (
-        service.get_interview_statistics()
-    )
+    statistics = service.get_interview_statistics()
 
     assert statistics == {
         "Scheduled": 1,
@@ -258,17 +216,11 @@ def test_get_interview_statistics(db_session):
 def test_get_upcoming_interviews(db_session):
     service = InterviewService(db_session)
 
-    future_date = datetime.now() + timedelta(days=7)
+    future_date = datetime.now(UTC) + timedelta(days=7)
 
-    service.create_interview(
-        create_interview(
-            scheduled_at=future_date
-        )
-    )
+    service.create_interview(create_interview(scheduled_at=future_date))
 
-    results = (
-        service.get_upcoming_interviews()
-    )
+    results = service.get_upcoming_interviews()
 
     assert len(results) >= 1
 
@@ -276,13 +228,9 @@ def test_get_upcoming_interviews(db_session):
 def test_search_interviews(db_session):
     service = InterviewService(db_session)
 
-    service.create_interview(
-        create_interview()
-    )
+    service.create_interview(create_interview())
 
-    results = service.search_interviews(
-        "Scheduled"
-    )
+    results = service.search_interviews("Scheduled")
 
     assert len(results) == 1
     assert results[0].status == "Scheduled"
@@ -291,15 +239,9 @@ def test_search_interviews(db_session):
 def test_search_interviews_by_type(db_session):
     service = InterviewService(db_session)
 
-    service.create_interview(
-        create_interview(
-            interview_type=InterviewType.PHONE
-        )
-    )
+    service.create_interview(create_interview(interview_type=InterviewType.PHONE))
 
-    results = service.search_interviews(
-        "Phone"
-    )
+    results = service.search_interviews("Phone")
 
     assert len(results) == 1
     assert results[0].interview_type == "Phone"
@@ -308,20 +250,10 @@ def test_search_interviews_by_type(db_session):
 def test_get_interviews_by_status(db_session):
     service = InterviewService(db_session)
 
-    service.create_interview(
-        create_interview(
-            status=InterviewStatus.SCHEDULED
-        )
-    )
-    service.create_interview(
-        create_interview(
-            status=InterviewStatus.COMPLETED
-        )
-    )
+    service.create_interview(create_interview(status=InterviewStatus.SCHEDULED))
+    service.create_interview(create_interview(status=InterviewStatus.COMPLETED))
 
-    results = service.get_interviews_by_status(
-        "Scheduled"
-    )
+    results = service.get_interviews_by_status("Scheduled")
 
     assert len(results) == 1
     assert results[0].status == "Scheduled"
@@ -344,9 +276,7 @@ def test_get_interview_analytics(db_session):
         )
     )
 
-    analytics = (
-        service.get_interview_analytics()
-    )
+    analytics = service.get_interview_analytics()
 
     assert analytics["total"] == 2
     assert analytics["completed"] == 1
@@ -357,31 +287,14 @@ def test_get_interview_analytics(db_session):
 def test_get_recent_interviews(db_session):
     service = InterviewService(db_session)
 
-    service.create_interview(
-        create_interview(
-            scheduled_at=datetime(
-                2026, 8, 1, 10, 0
-            )
-        )
-    )
+    service.create_interview(create_interview(scheduled_at=datetime(2026, 8, 1, 10, 0, tzinfo=UTC)))
 
-    service.create_interview(
-        create_interview(
-            scheduled_at=datetime(
-                2026, 8, 5, 10, 0
-            )
-        )
-    )
+    service.create_interview(create_interview(scheduled_at=datetime(2026, 8, 5, 10, 0, tzinfo=UTC)))
 
-    results = (
-        service.get_recent_interviews()
-    )
+    results = service.get_recent_interviews()
 
     assert len(results) == 2
-    assert (
-        results[0].scheduled_at
-        > results[1].scheduled_at
-    )
+    assert results[0].scheduled_at > results[1].scheduled_at
 
 
 def test_get_sorted_interviews_by_date(
@@ -389,30 +302,13 @@ def test_get_sorted_interviews_by_date(
 ):
     service = InterviewService(db_session)
 
-    service.create_interview(
-        create_interview(
-            scheduled_at=datetime(
-                2026, 8, 1, 10, 0
-            )
-        )
-    )
+    service.create_interview(create_interview(scheduled_at=datetime(2026, 8, 1, 10, 0, tzinfo=UTC)))
 
-    service.create_interview(
-        create_interview(
-            scheduled_at=datetime(
-                2026, 8, 5, 10, 0
-            )
-        )
-    )
+    service.create_interview(create_interview(scheduled_at=datetime(2026, 8, 5, 10, 0, tzinfo=UTC)))
 
-    results = service.get_sorted_interviews(
-        "date"
-    )
+    results = service.get_sorted_interviews("date")
 
-    assert (
-        results[0].scheduled_at
-        > results[1].scheduled_at
-    )
+    assert results[0].scheduled_at > results[1].scheduled_at
 
 
 def test_get_sorted_interviews_by_type(
@@ -420,21 +316,11 @@ def test_get_sorted_interviews_by_type(
 ):
     service = InterviewService(db_session)
 
-    service.create_interview(
-        create_interview(
-            interview_type=InterviewType.PHONE
-        )
-    )
+    service.create_interview(create_interview(interview_type=InterviewType.PHONE))
 
-    service.create_interview(
-        create_interview(
-            interview_type=InterviewType.ONLINE
-        )
-    )
+    service.create_interview(create_interview(interview_type=InterviewType.ONLINE))
 
-    results = service.get_sorted_interviews(
-        "type"
-    )
+    results = service.get_sorted_interviews("type")
 
     assert results[0].interview_type == "Online"
     assert results[1].interview_type == "Phone"
@@ -446,16 +332,10 @@ def test_get_this_week_interviews(db_session):
     # The repository determines the current week,
     # so use a datetime that is definitely in the
     # current week.
-    now = datetime.now()
+    now = datetime.now(UTC)
 
-    service.create_interview(
-        create_interview(
-            scheduled_at=now + timedelta(hours=1)
-        )
-    )
+    service.create_interview(create_interview(scheduled_at=now + timedelta(hours=1)))
 
-    results = (
-        service.get_this_week_interviews()
-    )
+    results = service.get_this_week_interviews()
 
     assert len(results) >= 1

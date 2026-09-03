@@ -12,32 +12,21 @@ from app.services.interview_service import (
 class ExportService:
     def __init__(
         self,
-        application_service: (
-            ApplicationService | None
-        ) = None,
-        interview_service: (
-            InterviewService | None
-        ) = None,
+        application_service: (ApplicationService | None) = None,
+        interview_service: (InterviewService | None) = None,
     ) -> None:
-        self.application_service = (
-            application_service
-        )
+        self.application_service = application_service
 
-        self.interview_service = (
-            interview_service
-        )
+        self.interview_service = interview_service
 
     def export_applications_to_csv(
         self,
     ) -> str:
-        applications = (
-            self.application_service
-            .get_applications()
-        )
+        if self.application_service is None:
+            raise RuntimeError("ApplicationService is required for application export.")
 
-        export_path = Path(
-            "exports/applications.csv"
-        )
+        applications = self.application_service.get_applications()
+        export_path = Path("exports/applications.csv")
 
         export_path.parent.mkdir(
             parents=True,
@@ -69,11 +58,7 @@ class ExportService:
             for application in applications:
                 writer.writerow(
                     [
-                        (
-                            application.company.name
-                            if application.company
-                            else "N/A"
-                        ),
+                        (application.company.name if application.company else "N/A"),
                         application.position,
                         application.application_type,
                         application.status,
@@ -90,14 +75,13 @@ class ExportService:
     def export_interviews_to_csv(
         self,
     ) -> str:
-        interviews = (
-            self.interview_service
-            .get_interviews()
-        )
 
-        export_path = Path(
-            "exports/interviews.csv"
-        )
+        if self.interview_service is None:
+            raise RuntimeError("InterviewService is required for interview export.")
+
+        interviews = self.interview_service.get_interviews()
+
+        export_path = Path("exports/interviews.csv")
 
         export_path.parent.mkdir(
             parents=True,
@@ -126,7 +110,7 @@ class ExportService:
                 writer.writerow(
                     [
                         interview.application_id,
-                        interview.scheduled_at,
+                        interview.scheduled_at.strftime("%Y-%m-%d %H:%M:%S"),
                         interview.interview_type,
                         interview.status,
                         interview.notes or "",

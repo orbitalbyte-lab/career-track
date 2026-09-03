@@ -125,25 +125,15 @@ def update_company() -> None:
 
         print("\nPress Enter to keep the current value.")
 
-        name = input(
-            f"Name [{company.name}]: "
-        ).strip()
+        name = input(f"Name [{company.name}]: ").strip()
 
-        industry = input(
-            f"Industry [{company.industry or 'N/A'}]: "
-        ).strip()
+        industry = input(f"Industry [{company.industry or 'N/A'}]: ").strip()
 
-        location = input(
-            f"Location [{company.location or 'N/A'}]: "
-        ).strip()
+        location = input(f"Location [{company.location or 'N/A'}]: ").strip()
 
-        website = input(
-            f"Website [{company.website or 'N/A'}]: "
-        ).strip()
+        website = input(f"Website [{company.website or 'N/A'}]: ").strip()
 
-        notes = input(
-            f"Notes [{company.notes or 'N/A'}]: "
-        ).strip()
+        notes = input(f"Notes [{company.notes or 'N/A'}]: ").strip()
 
         try:
             updated_company = service.update_company(
@@ -188,9 +178,11 @@ def delete_company() -> None:
         print(f"Industry: {company.industry or 'N/A'}")
         print(f"Location: {company.location or 'N/A'}")
 
-        confirmation = input(
-            "Are you sure you want to delete this company? (y/n): "
-        ).strip().lower()
+        confirmation = (
+            input("Are you sure you want to delete this company? (y/n): ")
+            .strip()
+            .lower()
+        )
 
         if confirmation != "y":
             print("Deletion cancelled.")

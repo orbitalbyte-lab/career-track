@@ -1,17 +1,13 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime
-from sqlalchemy import ForeignKey
-from sqlalchemy import String
-from sqlalchemy import Boolean
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
-from sqlalchemy.orm import relationship
+from sqlalchemy import Boolean, ForeignKey, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.connection import Base
 from app.database.models.application import (
     ApplicationDB,
 )
+from app.database.utc_datetime import UTCDateTime
 
 
 class FollowUpDB(Base):
@@ -28,10 +24,9 @@ class FollowUpDB(Base):
     )
 
     follow_up_at: Mapped[datetime] = mapped_column(
-        DateTime,
+        UTCDateTime(),
         nullable=False,
     )
-
     note: Mapped[str] = mapped_column(
         String(2000),
         nullable=False,

@@ -1,16 +1,13 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime
-from sqlalchemy import ForeignKey
-from sqlalchemy import String
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
-from sqlalchemy.orm import relationship
+from sqlalchemy import ForeignKey, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.connection import Base
 from app.database.models.application import (
     ApplicationDB,
 )
+from app.database.utc_datetime import UTCDateTime
 
 
 class InterviewDB(Base):
@@ -26,18 +23,13 @@ class InterviewDB(Base):
         nullable=False,
     )
 
-    scheduled_at: Mapped[datetime] = (
-        mapped_column(
-            DateTime,
-            nullable=False,
-        )
+    scheduled_at: Mapped[datetime] = mapped_column(
+        UTCDateTime(),
+        nullable=False,
     )
-
-    interview_type: Mapped[str] = (
-        mapped_column(
-            String(50),
-            nullable=False,
-        )
+    interview_type: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
     )
 
     status: Mapped[str] = mapped_column(
@@ -51,13 +43,9 @@ class InterviewDB(Base):
         default="Pending",
     )
 
-    notes: Mapped[str | None] = (
-        mapped_column(
-            String(2000),
-            nullable=True,
-        )
+    notes: Mapped[str | None] = mapped_column(
+        String(2000),
+        nullable=True,
     )
 
-    application: Mapped[ApplicationDB] = (
-        relationship()
-    )
+    application: Mapped[ApplicationDB] = relationship()
