@@ -1100,3 +1100,239 @@ def test_import_applications(capsys):
 
     assert "Import Applications" in output
     assert "Imported 2 applications." in output
+def test_show_dashboard_empty_sections(capsys):
+    session = MagicMock()
+
+    application_service = MagicMock()
+    application_service.get_dashboard_statistics.return_value = {
+        "total": 0,
+        "total_companies": 0,
+        "success_rate": 0.0,
+        "by_status": {},
+        "by_application_type": {},
+        "by_company": {},
+    }
+    application_service.get_monthly_application_counts.return_value = {}
+    application_service.get_location_statistics.return_value = {}
+    application_service.get_recent_applications.return_value = []
+    application_service.get_upcoming_deadlines.return_value = []
+
+    interview_service = MagicMock()
+    interview_service.get_interview_statistics.return_value = {}
+    interview_service.get_interview_analytics.return_value = {
+        "total": 0,
+        "completed": 0,
+        "cancelled": 0,
+        "passed": 0,
+        "failed": 0,
+        "pending": 0,
+        "online": 0,
+        "phone": 0,
+        "on_site": 0,
+    }
+    interview_service.get_upcoming_interviews.return_value = []
+    interview_service.get_this_week_interviews.return_value = []
+
+    follow_up_service = MagicMock()
+    follow_up_service.get_follow_up_statistics.return_value = {
+        "total": 0,
+        "completed": 0,
+        "pending": 0,
+    }
+    follow_up_service.get_upcoming_follow_ups.return_value = []
+
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=application_service,
+        ),
+        patch.object(
+            application_menu,
+            "InterviewService",
+            return_value=interview_service,
+        ),
+        patch.object(
+            application_menu,
+            "FollowUpService",
+            return_value=follow_up_service,
+        ),
+    ):
+        application_menu.show_dashboard()
+
+    output = capsys.readouterr().out
+
+    assert "No applications found." in output
+    assert "No upcoming deadlines." in output
+    assert "No interviews found." in output
+    assert "No upcoming interviews found." in output
+    assert "No interviews scheduled this week." in output
+    assert "No upcoming follow-ups." in output
+
+
+def test_show_dashboard_with_upcoming_items(capsys):
+    session = MagicMock()
+
+    application_service = MagicMock()
+    application_service.get_dashboard_statistics.return_value = {
+        "total": 1,
+        "total_companies": 1,
+        "success_rate": 0.0,
+        "by_status": {"Applied": 1},
+        "by_application_type": {"Full-time": 1},
+        "by_company": {"Microsoft": 1},
+    }
+    application_service.get_monthly_application_counts.return_value = {
+        "2026-09": 1,
+    }
+    application_service.get_location_statistics.return_value = {
+        "Remote": 1,
+    }
+
+    recent_application = MagicMock()
+    recent_application.position = "Software Engineer"
+    recent_application.company.name = "Microsoft"
+    recent_application.date_applied = "2026-09-01"
+
+    application_service.get_recent_applications.return_value = [
+        recent_application,
+    ]
+
+    deadline_application = MagicMock()
+    deadline_application.position = "Backend Developer"
+    deadline_application.company.name = "Google"
+    deadline_application.deadline = "2026-09-10"
+    deadline_application.status = "Applied"
+
+    application_service.get_upcoming_deadlines.return_value = [
+        deadline_application,
+    ]
+
+    interview_service = MagicMock()
+    interview_service.get_interview_statistics.return_value = {
+        "Interview": 1,
+    }
+    interview_service.get_interview_analytics.return_value = {
+        "total": 1,
+        "completed": 0,
+        "cancelled": 0,
+        "passed": 0,
+        "failed": 0,
+        "pending": 1,
+        "online": 1,
+        "phone": 0,
+        "on_site": 0,
+    }
+
+    upcoming_interview = MagicMock()
+    upcoming_interview.scheduled_at = "2026-09-05 10:00"
+    upcoming_interview.interview_type = "Technical"
+    upcoming_interview.application.position = "Software Engineer"
+    upcoming_interview.application.company.name = "Microsoft"
+
+    interview_service.get_upcoming_interviews.return_value = [
+        upcoming_interview,
+    ]
+
+    weekly_interview = MagicMock()
+    weekly_interview.scheduled_at = "2026-09-06 14:00"
+    weekly_interview.application.position = "Backend Developer"
+    weekly_interview.application.company.name = "Google"
+
+    interview_service.get_this_week_interviews.return_value = [
+        weekly_interview,
+    ]
+
+    follow_up_service = MagicMock()
+    follow_up_service.get_follow_up_statistics.return_value = {
+        "total": 1,
+        "completed": 0,
+        "pending": 1,
+    }
+
+    upcoming_follow_up = MagicMock()
+    upcoming_follow_up.follow_up_at = "2026-09-04 09:00"
+    upcoming_follow_up.application_id = 1
+    upcoming_follow_up.note = "Send follow-up email"
+
+    follow_up_service.get_upcoming_follow_ups.return_value = [
+        upcoming_follow_up,
+    ]
+
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=application_service,
+        ),
+        patch.object(
+            application_menu,
+            "InterviewService",
+            return_value=interview_service,
+        ),
+        patch.object(
+            application_menu,
+            "FollowUpService",
+            return_value=follow_up_service,
+        ),
+    ):
+        application_menu.show_dashboard()
+
+    output = capsys.readouterr().out
+
+    assert "Software Engineer" in output
+    assert "Microsoft" in output
+    assert "Backend Developer" in output
+    assert "Google" in output
+    assert "Deadline: 2026-09-10" in output
+    assert "Technical" in output
+    assert "Send follow-up email" in output
+
+
+def test_import_applications_file_not_found(capsys):
+    session = MagicMock()
+
+    application_service = MagicMock()
+    importer = MagicMock()
+
+    importer.import_applications_from_csv.side_effect = FileNotFoundError(
+        "CSV file not found."
+    )
+
+    with (
+        patch.object(
+            application_menu,
+            "SessionLocal",
+            return_value=session,
+        ),
+        patch.object(
+            application_menu,
+            "ApplicationService",
+            return_value=application_service,
+        ),
+        patch.object(
+            application_menu,
+            "ImportService",
+            return_value=importer,
+        ),
+        patch(
+            "builtins.input",
+            return_value="missing.csv",
+        ),
+    ):
+        application_menu.import_applications()
+
+    output = capsys.readouterr().out
+
+    assert "Import Applications" in output
+    assert "CSV file not found." in output
