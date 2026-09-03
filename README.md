@@ -1,7 +1,9 @@
+[![CI](https://github.com/orbitalbyte-lab/career-track/actions/workflows/ci.yml/badge.svg)](https://github.com/orbitalbyte-lab/career-track/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/badge/coverage-97.83%25-brightgreen)](https://github.com/orbitalbyte-lab/career-track)
+
 # CareerTrack
 
 A professional job and internship application tracking system built with Python.
-
 CareerTrack helps students, internship seekers, recent graduates, and early-career professionals organize, track, and analyze their job applications, interviews, and follow-ups in one place.
 
 ---
@@ -99,28 +101,31 @@ CareerTrack includes application logging for monitoring important application ev
 * INFO-level application events
 * Dedicated application log directory
 
-### Testing
+## Testing
 
-The project includes a comprehensive automated test suite covering:
+CareerTrack has a comprehensive automated test suite covering:
 
-* Domain models
-* Database integration
-* Repositories
-* Services
-* CLI functionality
-* CSV import/export
-* Interview management
-* Follow-up management
-* Application management
-* Company management
-* Dashboard statistics
-* Resource cleanup
+- Domain models
+- Database integration
+- Repositories
+- Services
+- CLI functionality
+- CSV import/export
+- Interview management
+- Follow-up management
+- Application management
+- Company management
+- Dashboard analytics
+- Resource cleanup
 
-**109 automated tests currently pass successfully.**
+### Test Results
 
-Tests are also verified with Python `ResourceWarning` treated as an error to help detect resource-management problems.
+```text
+268 passed
 
----
+97.83% coverage
+
+95% minimum coverage enforced in CI
 
 ## Technology Stack
 
