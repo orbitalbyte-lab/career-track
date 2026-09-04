@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
-DATABASE_URL = "sqlite:///career_track.db"
+from app.config import settings
 
 
 class Base(DeclarativeBase):
@@ -9,9 +9,10 @@ class Base(DeclarativeBase):
 
 
 engine = create_engine(
-    DATABASE_URL,
+    settings.database_url,
     echo=False,
 )
+
 
 SessionLocal = sessionmaker(
     bind=engine,

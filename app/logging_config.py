@@ -1,12 +1,10 @@
 import logging
-from pathlib import Path
 
-LOG_DIR = Path("logs")
-LOG_FILE = LOG_DIR / "career_track.log"
+from app.config import settings
 
 
 def configure_logging() -> None:
-    LOG_DIR.mkdir(exist_ok=True)
+    settings.log_dir.mkdir(exist_ok=True)
 
     root_logger = logging.getLogger()
 
@@ -16,7 +14,7 @@ def configure_logging() -> None:
         return
 
     file_handler = logging.FileHandler(
-        LOG_FILE,
+        settings.log_file,
         encoding="utf-8",
     )
 
@@ -29,7 +27,7 @@ def configure_logging() -> None:
     file_handler.setFormatter(formatter)
     stream_handler.setFormatter(formatter)
 
-    root_logger.setLevel(logging.INFO)
+    root_logger.setLevel(settings.log_level)
 
     root_logger.addHandler(file_handler)
     root_logger.addHandler(stream_handler)
