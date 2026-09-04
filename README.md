@@ -126,6 +126,7 @@ CareerTrack has a comprehensive automated test suite covering:
 97.83% coverage
 
 95% minimum coverage enforced in CI
+```
 
 ## Technology Stack
 
@@ -377,7 +378,7 @@ python -m pytest tests/test_main.py -vv
 Current test result:
 
 ```text
-109 passed
+268 passed
 ```
 
 ---
@@ -530,7 +531,7 @@ CareerTrack follows modern software engineering practices, including:
 
 ## Development Statistics
 
-* **109 automated tests**
+* **268 automated tests**
 * **All tests passing**
 * **Python 3.13**
 * **SQLite database integration**
