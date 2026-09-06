@@ -9,6 +9,8 @@ description = "A professional job and internship application tracking system bui
 requires-python = ">=3.13,<3.14"
 dependencies = [
     "SQLAlchemy>=2.0,<3.0",
+    "fastapi>=0.116,<1.0",
+    "uvicorn[standard]>=0.35,<1.0",
 ]
 
 [project.optional-dependencies]
