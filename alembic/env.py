@@ -18,7 +18,7 @@ config = context.config
 # Configure Alembic's SQLAlchemy URL from CareerTrack settings.
 config.set_main_option(
     "sqlalchemy.url",
-    settings.database_url,
+    settings.database_url.replace("%", "%%"),
 )
 
 # Configure Python logging from alembic.ini.
