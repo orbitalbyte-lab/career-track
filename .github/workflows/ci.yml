@@ -12,6 +12,24 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: career_track
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d career_track"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/career_track
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -28,8 +46,10 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run Ruff
-        run: ruff check .
+        run: python -m ruff check .
+
+      - name: Run Alembic migrations
+        run: python -m alembic upgrade head
 
       - name: Run tests with coverage
-        run: pytest --cov=app --cov-report=term-missing --cov-fail-under=95
-
+        run: python -m pytest --cov=app --cov-report=term-missing --cov-fail-under=95
