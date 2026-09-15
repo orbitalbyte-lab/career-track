@@ -2,6 +2,9 @@ from fastapi import FastAPI
 
 from app.api.routers.applications import router as applications_router
 from app.api.routers.companies import router as companies_router
+from app.api.routers.follow_ups import router as follow_ups_router
+from app.api.routers.interviews import router as interviews_router
+
 
 app = FastAPI(
     title="CareerTrack API",
@@ -20,3 +23,5 @@ def health_check() -> dict[str, str]:
 
 app.include_router(companies_router)
 app.include_router(applications_router)
+app.include_router(interviews_router)
+app.include_router(follow_ups_router)

@@ -1,0 +1,122 @@
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from app.api.dependencies import get_db
+from app.api.schemas.follow_up import (
+    FollowUpCreate,
+    FollowUpResponse,
+    FollowUpUpdate,
+)
+from app.models.follow_up import FollowUp
+from app.services.follow_up_service import FollowUpService
+
+
+router = APIRouter(
+    prefix="/api/follow-ups",
+    tags=["Follow-Ups"],
+)
+
+
+@router.post(
+    "",
+    response_model=FollowUpResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_follow_up(
+    follow_up: FollowUpCreate,
+    db: Session = Depends(get_db),
+) -> FollowUpResponse:
+    service = FollowUpService(db)
+
+    follow_up_model = FollowUp(
+        application_id=follow_up.application_id,
+        follow_up_at=follow_up.follow_up_at,
+        note=follow_up.note,
+        completed=follow_up.completed,
+    )
+
+    try:
+        return service.create_follow_up(follow_up_model)
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
+
+
+@router.get(
+    "",
+    response_model=list[FollowUpResponse],
+)
+def get_follow_ups(
+    db: Session = Depends(get_db),
+) -> list[FollowUpResponse]:
+    service = FollowUpService(db)
+    return service.get_follow_ups()
+
+
+@router.get(
+    "/{follow_up_id}",
+    response_model=FollowUpResponse,
+)
+def get_follow_up(
+    follow_up_id: int,
+    db: Session = Depends(get_db),
+) -> FollowUpResponse:
+    service = FollowUpService(db)
+    follow_up = service.get_follow_up(follow_up_id)
+
+    if follow_up is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Follow-up not found.",
+        )
+
+    return follow_up
+
+
+@router.put(
+    "/{follow_up_id}",
+    response_model=FollowUpResponse,
+)
+def update_follow_up(
+    follow_up_id: int,
+    follow_up: FollowUpUpdate,
+    db: Session = Depends(get_db),
+) -> FollowUpResponse:
+    service = FollowUpService(db)
+
+    if follow_up.completed:
+        updated_follow_up = service.complete_follow_up(
+            follow_up_id,
+        )
+    else:
+        updated_follow_up = service.reopen_follow_up(
+            follow_up_id,
+        )
+
+    if updated_follow_up is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Follow-up not found.",
+        )
+
+    return updated_follow_up
+
+
+@router.delete(
+    "/{follow_up_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_follow_up(
+    follow_up_id: int,
+    db: Session = Depends(get_db),
+) -> None:
+    service = FollowUpService(db)
+    deleted = service.delete_follow_up(follow_up_id)
+
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Follow-up not found.",
+        )
