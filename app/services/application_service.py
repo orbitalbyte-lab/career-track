@@ -49,8 +49,15 @@ class ApplicationService:
     ) -> ApplicationDB | None:
         return self.application_repository.get_by_id(application_id)
 
-    def get_applications(self) -> list[ApplicationDB]:
-        return self.application_repository.get_all()
+    def get_applications(
+        self,
+        offset: int = 0,
+        limit: int = 20,
+    ) -> list[ApplicationDB]:
+        return self.application_repository.get_page(
+            offset=offset,
+            limit=limit,
+        )
 
     def search_applications(
         self,

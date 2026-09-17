@@ -17,9 +17,20 @@ class CompanyRepository:
     def get_by_id(self, company_id: int) -> CompanyDB | None:
         return self.session.get(CompanyDB, company_id)
 
-    def get_all(self) -> list[CompanyDB]:
-        return self.session.query(CompanyDB).all()
+    def get_all(
+        self,
+        offset: int = 0,
+        limit: int | None = None,
+    ) -> list[CompanyDB]:
+        query = self.session.query(CompanyDB).order_by(CompanyDB.id)
 
+        if offset > 0:
+            query = query.offset(offset)
+
+        if limit is not None:
+            query = query.limit(limit)
+
+        return query.all()
     def search(self, query: str) -> list[CompanyDB]:
         return (
             self.session.query(CompanyDB)

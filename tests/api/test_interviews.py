@@ -70,6 +70,57 @@ def test_create_interview(db_session):
     assert data["outcome"] == "Pending"
     assert data["notes"] == "Technical interview"
 
+def test_create_interview_rejects_invalid_application_id(db_session):
+    client = get_client(db_session)
+
+    response = client.post(
+        "/api/interviews",
+        json={
+            "application_id": 0,
+            "scheduled_at": "2026-09-15T10:00:00Z",
+            "interview_type": "Online",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_create_interview_rejects_naive_datetime(db_session):
+    application = create_application(db_session)
+
+    client = get_client(db_session)
+
+    response = client.post(
+        "/api/interviews",
+        json={
+            "application_id": application.id,
+            "scheduled_at": "2026-09-15T10:00:00",
+            "interview_type": "Online",
+        },
+    )
+
+    assert response.status_code == 422
+    assert "Scheduled time must include a timezone." in str(
+        response.json()
+    )
+
+
+def test_create_interview_rejects_long_notes(db_session):
+    application = create_application(db_session)
+
+    client = get_client(db_session)
+
+    response = client.post(
+        "/api/interviews",
+        json={
+            "application_id": application.id,
+            "scheduled_at": "2026-09-15T10:00:00Z",
+            "interview_type": "Online",
+            "notes": "x" * 2001,
+        },
+    )
+
+    assert response.status_code == 422
 
 def test_get_interviews(db_session):
     application = create_application(db_session)
@@ -140,6 +191,114 @@ def test_get_interview(db_session):
     assert data["application_id"] == application.id
     assert data["interview_type"] == "Online"
     assert data["status"] == "Scheduled"
+
+
+def test_get_interviews_pagination(db_session):
+    application = create_application(db_session)
+
+    interviews = [
+        InterviewDB(
+            application_id=application.id,
+            scheduled_at=datetime(
+                2026,
+                8,
+                index,
+                10,
+                0,
+                tzinfo=timezone.utc,
+            ),
+            interview_type="Online",
+            status="Scheduled",
+            outcome="Pending",
+        )
+        for index in range(1, 26)
+    ]
+
+    db_session.add_all(interviews)
+    db_session.commit()
+
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/interviews?page=2&page_size=10"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 10
+    assert data[0]["scheduled_at"].startswith("2026-08-11")
+    assert data[-1]["scheduled_at"].startswith("2026-08-20")
+
+
+def test_get_interviews_pagination_last_page(db_session):
+    application = create_application(db_session)
+
+    interviews = [
+        InterviewDB(
+            application_id=application.id,
+            scheduled_at=datetime(
+                2026,
+                8,
+                index,
+                10,
+                0,
+                tzinfo=timezone.utc,
+            ),
+            interview_type="Online",
+            status="Scheduled",
+            outcome="Pending",
+        )
+        for index in range(1, 26)
+    ]
+
+    db_session.add_all(interviews)
+    db_session.commit()
+
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/interviews?page=3&page_size=10"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 5
+    assert data[0]["scheduled_at"].startswith("2026-08-21")
+    assert data[-1]["scheduled_at"].startswith("2026-08-25")
+
+
+def test_get_interviews_rejects_invalid_page(db_session):
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/interviews?page=0"
+    )
+
+    assert response.status_code == 422
+
+
+def test_get_interviews_rejects_invalid_page_size(db_session):
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/interviews?page_size=0"
+    )
+
+    assert response.status_code == 422
+
+
+def test_get_interviews_rejects_page_size_over_100(db_session):
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/interviews?page_size=101"
+    )
+
+    assert response.status_code == 422
 
 
 def test_get_interview_not_found(db_session):

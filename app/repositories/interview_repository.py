@@ -29,8 +29,23 @@ class InterviewRepository:
 
         return interview_db
 
-    def get_all(self) -> list[InterviewDB]:
-        return self.session.query(InterviewDB).all()
+    def get_all(
+        self,
+        offset: int = 0,
+        limit: int | None = None,
+    ) -> list[InterviewDB]:
+        query = (
+            self.session.query(InterviewDB)
+            .order_by(InterviewDB.id)
+        )
+
+        if offset > 0:
+            query = query.offset(offset)
+
+        if limit is not None:
+            query = query.limit(limit)
+
+        return query.all()
 
     def get_by_id(
         self,

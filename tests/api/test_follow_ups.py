@@ -102,6 +102,112 @@ def test_get_follow_ups(db_session):
     assert data[0]["completed"] is False
 
 
+def test_get_follow_ups_pagination(db_session):
+    application = create_application(db_session)
+
+    follow_ups = [
+        FollowUpDB(
+            application_id=application.id,
+            follow_up_at=datetime(
+                2026,
+                8,
+                index,
+                10,
+                0,
+                tzinfo=timezone.utc,
+            ),
+            note=f"Follow-up {index}",
+            completed=False,
+        )
+        for index in range(1, 26)
+    ]
+
+    db_session.add_all(follow_ups)
+    db_session.commit()
+
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/follow-ups?page=2&page_size=10"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 10
+    assert data[0]["note"] == "Follow-up 11"
+    assert data[-1]["note"] == "Follow-up 20"
+
+
+def test_get_follow_ups_pagination_last_page(db_session):
+    application = create_application(db_session)
+
+    follow_ups = [
+        FollowUpDB(
+            application_id=application.id,
+            follow_up_at=datetime(
+                2026,
+                8,
+                index,
+                10,
+                0,
+                tzinfo=timezone.utc,
+            ),
+            note=f"Follow-up {index}",
+            completed=False,
+        )
+        for index in range(1, 26)
+    ]
+
+    db_session.add_all(follow_ups)
+    db_session.commit()
+
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/follow-ups?page=3&page_size=10"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 5
+    assert data[0]["note"] == "Follow-up 21"
+    assert data[-1]["note"] == "Follow-up 25"
+
+
+def test_get_follow_ups_rejects_invalid_page(db_session):
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/follow-ups?page=0"
+    )
+
+    assert response.status_code == 422
+
+
+def test_get_follow_ups_rejects_invalid_page_size(db_session):
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/follow-ups?page_size=0"
+    )
+
+    assert response.status_code == 422
+
+
+def test_get_follow_ups_rejects_page_size_over_100(db_session):
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/follow-ups?page_size=101"
+    )
+
+    assert response.status_code == 422
+
+
 def test_get_follow_up(db_session):
     application = create_application(db_session)
 
@@ -275,6 +381,59 @@ def test_delete_follow_up_not_found(db_session):
         "detail": "Follow-up not found."
     }
 
+def test_create_follow_up_rejects_invalid_application_id(db_session):
+    client = get_client(db_session)
+
+    response = client.post(
+        "/api/follow-ups",
+        json={
+            "application_id": 0,
+            "follow_up_at": "2026-09-20T10:00:00Z",
+            "note": "Follow up with recruiter",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_create_follow_up_rejects_naive_datetime(db_session):
+    application = create_application(db_session)
+
+    client = get_client(db_session)
+
+    response = client.post(
+        "/api/follow-ups",
+        json={
+            "application_id": application.id,
+            "follow_up_at": "2026-09-20T10:00:00",
+            "note": "Follow up with recruiter",
+        },
+    )
+
+    assert response.status_code == 422
+    assert "Follow-up time must include a timezone." in str(
+        response.json()
+    )
+
+
+def test_create_follow_up_rejects_empty_note(db_session):
+    application = create_application(db_session)
+
+    client = get_client(db_session)
+
+    response = client.post(
+        "/api/follow-ups",
+        json={
+            "application_id": application.id,
+            "follow_up_at": "2026-09-20T10:00:00Z",
+            "note": "   ",
+        },
+    )
+
+    assert response.status_code == 422
+    assert "Follow-up note cannot be empty." in str(
+        response.json()
+    )
 
 @pytest.fixture(autouse=True)
 def clear_dependency_overrides():

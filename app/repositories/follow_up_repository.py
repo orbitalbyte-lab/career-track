@@ -27,9 +27,23 @@ class FollowUpRepository:
 
         return follow_up_db
 
-    def get_all(self) -> list[FollowUpDB]:
-        return self.session.query(FollowUpDB).order_by(FollowUpDB.follow_up_at).all()
+    def get_all(
+        self,
+        offset: int = 0,
+        limit: int | None = None,
+    ) -> list[FollowUpDB]:
+        query = (
+            self.session.query(FollowUpDB)
+            .order_by(FollowUpDB.follow_up_at)
+        )
 
+        if offset > 0:
+            query = query.offset(offset)
+
+        if limit is not None:
+            query = query.limit(limit)
+
+        return query.all()
     def get_by_id(
         self,
         follow_up_id: int,

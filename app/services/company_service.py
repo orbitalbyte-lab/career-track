@@ -34,9 +34,15 @@ class CompanyService:
     def get_company(self, company_id: int) -> CompanyDB | None:
         return self.repository.get_by_id(company_id)
 
-    def get_companies(self) -> list[CompanyDB]:
-        return self.repository.get_all()
-
+    def get_companies(
+        self,
+        offset: int = 0,
+        limit: int | None = None,
+    ) -> list[CompanyDB]:
+        return self.repository.get_all(
+            offset=offset,
+            limit=limit,
+        )
     def search_companies(self, query: str) -> list[CompanyDB]:
         query = query.strip()
 

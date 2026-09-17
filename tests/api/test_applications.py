@@ -59,6 +59,29 @@ def test_create_application(db_session):
     assert data["application_type"] == "Internship"
     assert data["status"] == "Applied"
 
+def test_create_application_rejects_deadline_before_application_date(
+    db_session,
+):
+    company = create_company(db_session)
+
+    client = get_client(db_session)
+
+    response = client.post(
+        "/api/applications",
+        json={
+            "company_id": company.id,
+            "position": "Software Engineering Intern",
+            "application_type": "Internship",
+            "date_applied": "2026-08-10",
+            "status": "Applied",
+            "deadline": "2026-08-05",
+        },
+    )
+
+    assert response.status_code == 422
+    assert "Deadline cannot be before the application date." in str(
+        response.json()
+    )
 
 def test_create_application_company_not_found(db_session):
     client = get_client(db_session)
@@ -108,6 +131,100 @@ def test_get_applications(db_session):
     assert data[0]["id"] == 1
     assert data[0]["company_id"] == company.id
     assert data[0]["position"] == "Software Engineering Intern"
+
+
+def test_get_applications_pagination(db_session):
+    company = create_company(db_session)
+
+    applications = [
+        ApplicationDB(
+            company_id=company.id,
+            position=f"Position {index}",
+            application_type="Internship",
+            date_applied=date(2026, 8, index),
+            status="Applied",
+        )
+        for index in range(1, 26)
+    ]
+
+    db_session.add_all(applications)
+    db_session.commit()
+
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/applications?page=2&page_size=10"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 10
+    assert data[0]["position"] == "Position 15"
+    assert data[-1]["position"] == "Position 6"
+
+
+def test_get_applications_pagination_last_page(db_session):
+    company = create_company(db_session)
+
+    applications = [
+        ApplicationDB(
+            company_id=company.id,
+            position=f"Position {index}",
+            application_type="Internship",
+            date_applied=date(2026, 8, index),
+            status="Applied",
+        )
+        for index in range(1, 26)
+    ]
+
+    db_session.add_all(applications)
+    db_session.commit()
+
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/applications?page=3&page_size=10"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 5
+    assert data[0]["position"] == "Position 5"
+    assert data[-1]["position"] == "Position 1"
+
+
+def test_get_applications_rejects_invalid_page(db_session):
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/applications?page=0"
+    )
+
+    assert response.status_code == 422
+
+
+def test_get_applications_rejects_invalid_page_size(db_session):
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/applications?page_size=0"
+    )
+
+    assert response.status_code == 422
+
+
+def test_get_applications_rejects_page_size_over_100(db_session):
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/applications?page_size=101"
+    )
+
+    assert response.status_code == 422
 
 
 def test_get_application(db_session):

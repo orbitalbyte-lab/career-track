@@ -17,8 +17,15 @@ class FollowUpService:
     ) -> FollowUpDB:
         return self.repository.create(follow_up)
 
-    def get_follow_ups(self) -> list[FollowUpDB]:
-        return self.repository.get_all()
+    def get_follow_ups(
+        self,
+        offset: int = 0,
+        limit: int | None = None,
+    ) -> list[FollowUpDB]:
+        return self.repository.get_all(
+            offset=offset,
+            limit=limit,
+        )
 
     def get_follow_up(
         self,

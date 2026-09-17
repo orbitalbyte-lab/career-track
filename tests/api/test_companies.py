@@ -58,6 +58,84 @@ def test_get_companies(db_session):
     assert data[0]["name"] == "Microsoft"
 
 
+def test_get_companies_pagination(db_session):
+    companies = [
+        CompanyDB(name=f"Company {index}")
+        for index in range(1, 26)
+    ]
+
+    db_session.add_all(companies)
+    db_session.commit()
+
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/companies?page=2&page_size=10"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 10
+    assert data[0]["name"] == "Company 11"
+    assert data[-1]["name"] == "Company 20"
+
+
+def test_get_companies_pagination_last_page(db_session):
+    companies = [
+        CompanyDB(name=f"Company {index}")
+        for index in range(1, 26)
+    ]
+
+    db_session.add_all(companies)
+    db_session.commit()
+
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/companies?page=3&page_size=10"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 5
+    assert data[0]["name"] == "Company 21"
+    assert data[-1]["name"] == "Company 25"
+
+
+def test_get_companies_rejects_invalid_page(db_session):
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/companies?page=0"
+    )
+
+    assert response.status_code == 422
+
+
+def test_get_companies_rejects_invalid_page_size(db_session):
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/companies?page_size=0"
+    )
+
+    assert response.status_code == 422
+
+
+def test_get_companies_rejects_page_size_over_100(db_session):
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/companies?page_size=101"
+    )
+
+    assert response.status_code == 422
+
+
 def test_get_company(db_session):
     company = CompanyDB(
         name="Microsoft",

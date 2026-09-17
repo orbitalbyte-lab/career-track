@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_db
@@ -45,11 +45,18 @@ def create_interview(
     response_model=list[InterviewResponse],
 )
 def get_interviews(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
     db: Session = Depends(get_db),
 ) -> list[InterviewResponse]:
     service = InterviewService(db)
 
-    return service.get_interviews()
+    offset = (page - 1) * page_size
+
+    return service.get_interviews(
+        offset=offset,
+        limit=page_size,
+    )
 
 
 @router.get(

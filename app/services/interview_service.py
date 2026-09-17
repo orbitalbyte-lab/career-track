@@ -15,9 +15,15 @@ class InterviewService:
     ) -> InterviewDB:
         return self.repository.create(interview)
 
-    def get_interviews(self) -> list[InterviewDB]:
-        return self.repository.get_all()
-
+    def get_interviews(
+        self,
+        offset: int = 0,
+        limit: int | None = None,
+    ) -> list[InterviewDB]:
+        return self.repository.get_all(
+            offset=offset,
+            limit=limit,
+        )
     def get_interview(
         self,
         interview_id: int,

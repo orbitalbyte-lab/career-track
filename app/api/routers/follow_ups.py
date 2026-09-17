@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_db
@@ -49,10 +49,18 @@ def create_follow_up(
     response_model=list[FollowUpResponse],
 )
 def get_follow_ups(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
     db: Session = Depends(get_db),
 ) -> list[FollowUpResponse]:
     service = FollowUpService(db)
-    return service.get_follow_ups()
+
+    offset = (page - 1) * page_size
+
+    return service.get_follow_ups(
+        offset=offset,
+        limit=page_size,
+    )
 
 
 @router.get(

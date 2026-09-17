@@ -23,6 +23,19 @@ class ApplicationRepository:
     def get_all(self) -> list[ApplicationDB]:
         return self.session.query(ApplicationDB).all()
 
+    def get_page(
+        self,
+        offset: int = 0,
+        limit: int = 20,
+    ) -> list[ApplicationDB]:
+        return (
+            self.session.query(ApplicationDB)
+            .order_by(ApplicationDB.date_applied.desc())
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
+
     def get_all_sorted_by_date(
         self,
     ) -> list[ApplicationDB]:

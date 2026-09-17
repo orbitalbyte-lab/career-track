@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_db
@@ -51,12 +51,18 @@ def create_application(
     response_model=list[ApplicationResponse],
 )
 def get_applications(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
     db: Session = Depends(get_db),
 ) -> list[ApplicationResponse]:
     service = ApplicationService(db)
 
-    return service.get_applications()
+    offset = (page - 1) * page_size
 
+    return service.get_applications(
+        offset=offset,
+        limit=page_size,
+    )
 
 @router.get(
     "/{application_id}",

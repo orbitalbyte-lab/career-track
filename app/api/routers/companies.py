@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_db
@@ -47,12 +47,18 @@ def create_company(
     response_model=list[CompanyResponse],
 )
 def get_companies(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
     db: Session = Depends(get_db),
 ) -> list[CompanyResponse]:
     service = CompanyService(db)
 
-    return service.get_companies()
+    offset = (page - 1) * page_size
 
+    return service.get_companies(
+        offset=offset,
+        limit=page_size,
+    )
 
 @router.get(
     "/{company_id}",
