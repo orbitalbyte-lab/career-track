@@ -1,0 +1,94 @@
+from datetime import timedelta
+
+import jwt
+
+from app.security.jwt import (
+    ALGORITHM,
+    create_access_token,
+    decode_access_token,
+)
+
+
+TEST_SECRET_KEY = (
+    "test-secret-key-for-jwt-hs256-with-32-plus-bytes"
+)
+
+TEST_OTHER_SECRET_KEY = (
+    "different-test-secret-key-for-jwt-hs256"
+)
+
+
+def test_create_access_token_contains_subject(monkeypatch):
+    monkeypatch.setenv(
+        "JWT_SECRET_KEY",
+        TEST_SECRET_KEY,
+    )
+
+    token = create_access_token("123")
+
+    payload = jwt.decode(
+        token,
+        TEST_SECRET_KEY,
+        algorithms=[ALGORITHM],
+    )
+
+    assert payload["sub"] == "123"
+    assert "iat" in payload
+    assert "exp" in payload
+
+
+def test_decode_access_token_returns_payload(monkeypatch):
+    monkeypatch.setenv(
+        "JWT_SECRET_KEY",
+        TEST_SECRET_KEY,
+    )
+
+    token = create_access_token("123")
+
+    payload = decode_access_token(token)
+
+    assert payload is not None
+    assert payload["sub"] == "123"
+
+
+def test_decode_access_token_rejects_invalid_signature(monkeypatch):
+    monkeypatch.setenv(
+        "JWT_SECRET_KEY",
+        TEST_SECRET_KEY,
+    )
+
+    token = create_access_token("123")
+
+    monkeypatch.setenv(
+        "JWT_SECRET_KEY",
+        TEST_OTHER_SECRET_KEY,
+    )
+
+    assert decode_access_token(token) is None
+
+
+def test_decode_access_token_rejects_expired_token(monkeypatch):
+    monkeypatch.setenv(
+        "JWT_SECRET_KEY",
+        TEST_SECRET_KEY,
+    )
+
+    token = create_access_token(
+        "123",
+        expires_delta=timedelta(seconds=-1),
+    )
+
+    assert decode_access_token(token) is None
+
+
+def test_create_access_token_requires_secret(monkeypatch):
+    monkeypatch.delenv("JWT_SECRET_KEY", raising=False)
+
+    try:
+        create_access_token("123")
+    except RuntimeError as exc:
+        assert "JWT_SECRET_KEY" in str(exc)
+    else:
+        raise AssertionError(
+            "Expected RuntimeError when JWT_SECRET_KEY is missing."
+        )
