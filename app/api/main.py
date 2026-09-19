@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from app.api.routers.applications import router as applications_router
+from app.api.routers.auth import router as auth_router
 from app.api.routers.companies import router as companies_router
 from app.api.routers.follow_ups import router as follow_ups_router
 from app.api.routers.interviews import router as interviews_router
@@ -21,6 +22,7 @@ def health_check() -> dict[str, str]:
     return {"status": "ok"}
 
 
+app.include_router(auth_router)
 app.include_router(companies_router)
 app.include_router(applications_router)
 app.include_router(interviews_router)
