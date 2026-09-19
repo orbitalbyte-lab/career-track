@@ -159,16 +159,16 @@ class ApplicationService:
         application_type: str | None = None,
         company_id: int | None = None,
         date_applied: date | None = None,
+        offset: int = 0,
+        limit: int = 20,
     ) -> list[ApplicationDB]:
         if status is not None:
             status = status.strip()
-
             if not status:
                 status = None
 
         if application_type is not None:
             application_type = application_type.strip()
-
             if not application_type:
                 application_type = None
 
@@ -177,8 +177,9 @@ class ApplicationService:
             application_type=application_type,
             company_id=company_id,
             date_applied=date_applied,
+            offset=offset,
+            limit=limit,
         )
-
     def get_total_applications(self) -> int:
         return self.application_repository.get_total_count()
 

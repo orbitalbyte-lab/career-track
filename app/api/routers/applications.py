@@ -1,3 +1,5 @@
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -7,8 +9,8 @@ from app.api.schemas.application import (
     ApplicationResponse,
     ApplicationUpdate,
 )
+from app.models.application import ApplicationStatus, ApplicationType
 from app.services.application_service import ApplicationService
-
 
 router = APIRouter(
     prefix="/api/applications",
@@ -53,13 +55,25 @@ def create_application(
 def get_applications(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
+    status: ApplicationStatus | None = Query(default=None),
+    application_type: ApplicationType | None = Query(default=None),
+    company_id: int | None = Query(default=None, gt=0),
+    date_applied: date | None = None,
     db: Session = Depends(get_db),
 ) -> list[ApplicationResponse]:
     service = ApplicationService(db)
 
     offset = (page - 1) * page_size
 
-    return service.get_applications(
+    return service.filter_applications(
+        status=status.value if status is not None else None,
+        application_type=(
+            application_type.value
+            if application_type is not None
+            else None
+        ),
+        company_id=company_id,
+        date_applied=date_applied,
         offset=offset,
         limit=page_size,
     )

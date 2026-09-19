@@ -132,6 +132,296 @@ def test_get_applications(db_session):
     assert data[0]["company_id"] == company.id
     assert data[0]["position"] == "Software Engineering Intern"
 
+def test_get_applications_filters_by_status(db_session):
+    company = create_company(db_session)
+
+    applied_application = ApplicationDB(
+        company_id=company.id,
+        position="Software Engineering Intern",
+        application_type="Internship",
+        date_applied=date(2026, 9, 5),
+        status="Applied",
+        location="Redmond, WA",
+        job_url="https://www.microsoft.com/",
+    )
+
+    wishlist_application = ApplicationDB(
+        company_id=company.id,
+        position="Backend Engineering Intern",
+        application_type="Internship",
+        date_applied=date(2026, 9, 4),
+        status="Wishlist",
+        location="Seattle, WA",
+        job_url="https://www.google.com/",
+    )
+
+    db_session.add_all(
+        [
+            applied_application,
+            wishlist_application,
+        ]
+    )
+    db_session.commit()
+
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/applications?status=Applied"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 1
+    assert data[0]["position"] == "Software Engineering Intern"
+    assert data[0]["status"] == "Applied"
+
+def test_get_applications_filters_by_application_type(db_session):
+    company = create_company(db_session)
+
+    internship_application = ApplicationDB(
+        company_id=company.id,
+        position="Software Engineering Intern",
+        application_type="Internship",
+        date_applied=date(2026, 9, 5),
+        status="Applied",
+        location="Redmond, WA",
+        job_url="https://www.microsoft.com/",
+    )
+
+    scholarship_application = ApplicationDB(
+        company_id=company.id,
+        position="Scholarship Program",
+        application_type="Scholarship",
+        date_applied=date(2026, 9, 4),
+        status="Wishlist",
+        location="Seattle, WA",
+        job_url="https://www.google.com/",
+    )
+
+    db_session.add_all(
+        [
+            internship_application,
+            scholarship_application,
+        ]
+    )
+    db_session.commit()
+
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/applications?application_type=Internship"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 1
+    assert data[0]["position"] == "Software Engineering Intern"
+    assert data[0]["application_type"] == "Internship"
+
+def test_get_applications_filters_by_company(db_session):
+    microsoft = create_company(db_session)
+    google = create_company(db_session)
+
+    microsoft.name = "Microsoft"
+    google.name = "Google"
+
+    db_session.commit()
+
+    microsoft_application = ApplicationDB(
+        company_id=microsoft.id,
+        position="Software Engineering Intern",
+        application_type="Internship",
+        date_applied=date(2026, 9, 5),
+        status="Applied",
+        location="Redmond, WA",
+        job_url="https://www.microsoft.com/",
+    )
+
+    google_application = ApplicationDB(
+        company_id=google.id,
+        position="Backend Engineering Intern",
+        application_type="Internship",
+        date_applied=date(2026, 9, 4),
+        status="Applied",
+        location="Mountain View, CA",
+        job_url="https://www.google.com/",
+    )
+
+    db_session.add_all(
+        [
+            microsoft_application,
+            google_application,
+        ]
+    )
+    db_session.commit()
+
+    client = get_client(db_session)
+
+    response = client.get(
+        f"/api/applications?company_id={microsoft.id}"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 1
+    assert data[0]["company_id"] == microsoft.id
+    assert data[0]["position"] == "Software Engineering Intern"
+
+def test_get_applications_filters_by_date_applied(db_session):
+    company = create_company(db_session)
+
+    matching_application = ApplicationDB(
+        company_id=company.id,
+        position="Software Engineering Intern",
+        application_type="Internship",
+        date_applied=date(2026, 9, 5),
+        status="Applied",
+        location="Redmond, WA",
+        job_url="https://www.microsoft.com/",
+    )
+
+    other_application = ApplicationDB(
+        company_id=company.id,
+        position="Backend Engineering Intern",
+        application_type="Internship",
+        date_applied=date(2026, 9, 4),
+        status="Applied",
+        location="Seattle, WA",
+        job_url="https://www.google.com/",
+    )
+
+    db_session.add_all(
+        [
+            matching_application,
+            other_application,
+        ]
+    )
+    db_session.commit()
+
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/applications?date_applied=2026-09-05"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 1
+    assert data[0]["position"] == "Software Engineering Intern"
+    assert data[0]["date_applied"] == "2026-09-05"
+
+def test_get_applications_combined_filters_with_pagination(
+    db_session,
+):
+    company = create_company(db_session)
+
+    applications = [
+        ApplicationDB(
+            company_id=company.id,
+            position=f"Intern {index}",
+            application_type="Internship",
+            date_applied=date(2026, 9, 10 - index),
+            status="Applied",
+            location="Redmond, WA",
+            job_url="https://www.microsoft.com/",
+        )
+        for index in range(1, 6)
+    ]
+
+    wishlist_application = ApplicationDB(
+        company_id=company.id,
+        position="Wishlist Application",
+        application_type="Internship",
+        date_applied=date(2026, 9, 5),
+        status="Wishlist",
+        location="Seattle, WA",
+        job_url="https://www.google.com/",
+    )
+
+    db_session.add_all(
+        applications + [wishlist_application]
+    )
+    db_session.commit()
+
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/applications"
+        "?status=Applied"
+        "&application_type=Internship"
+        "&page=2"
+        "&page_size=2"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 2
+    assert data[0]["position"] == "Intern 3"
+    assert data[1]["position"] == "Intern 4"
+
+    for application in data:
+        assert application["status"] == "Applied"
+        assert application["application_type"] == "Internship"
+
+def test_get_applications_returns_empty_for_no_filter_matches(
+    db_session,
+):
+    company = create_company(db_session)
+
+    application = ApplicationDB(
+        company_id=company.id,
+        position="Software Engineering Intern",
+        application_type="Internship",
+        date_applied=date(2026, 9, 5),
+        status="Applied",
+        location="Redmond, WA",
+        job_url="https://www.microsoft.com/",
+    )
+
+    db_session.add(application)
+    db_session.commit()
+
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/applications?status=Offer"
+    )
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+def test_get_applications_rejects_invalid_status_filter(
+    db_session,
+):
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/applications?status=InvalidStatus"
+    )
+
+    assert response.status_code == 422
+
+
+def test_get_applications_rejects_invalid_application_type_filter(
+    db_session,
+):
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/applications?application_type=InvalidType"
+    )
+
+    assert response.status_code == 422
 
 def test_get_applications_pagination(db_session):
     company = create_company(db_session)

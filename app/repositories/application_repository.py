@@ -121,22 +121,38 @@ class ApplicationRepository:
         application_type: str | None = None,
         company_id: int | None = None,
         date_applied: date | None = None,
+        offset: int = 0,
+        limit: int = 20,
     ) -> list[ApplicationDB]:
         query = self.session.query(ApplicationDB)
 
         if status is not None:
-            query = query.filter(ApplicationDB.status == status)
+            query = query.filter(
+                ApplicationDB.status == status
+            )
 
         if application_type is not None:
-            query = query.filter(ApplicationDB.application_type == application_type)
+            query = query.filter(
+                ApplicationDB.application_type == application_type
+            )
 
         if company_id is not None:
-            query = query.filter(ApplicationDB.company_id == company_id)
+            query = query.filter(
+                ApplicationDB.company_id == company_id
+            )
 
         if date_applied is not None:
-            query = query.filter(ApplicationDB.date_applied == date_applied)
+            query = query.filter(
+                ApplicationDB.date_applied == date_applied
+            )
 
-        return query.order_by(ApplicationDB.date_applied.desc()).all()
+        return (
+            query
+            .order_by(ApplicationDB.date_applied.desc())
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
 
     def search(
         self,
