@@ -15,7 +15,32 @@ TEST_SECRET_KEY = (
 
 def get_client(db_session):
     app.dependency_overrides[get_db] = lambda: db_session
+
+    user = UserDB(
+        email="application-user@example.com",
+        password_hash="test-hash",
+        is_active=True,
+    )
+
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+
+    token = create_access_token(str(user.id))
+
+    client = TestClient(app)
+
+    client.headers.update(
+        {
+            "Authorization": f"Bearer {token}",
+        }
+    )
+
+    return client
+def get_unauthenticated_client(db_session):
+    app.dependency_overrides[get_db] = lambda: db_session
     return TestClient(app)
+
 
 def get_authenticated_client(
     db_session,
@@ -65,7 +90,7 @@ def create_company(db_session):
 def test_create_application_requires_authentication(
     db_session,
 ):
-    client = get_client(db_session)
+    client = get_unauthenticated_client(db_session)
 
     response = client.post(
         "/api/applications",
@@ -90,10 +115,7 @@ def test_create_application(
 ):
     company = create_company(db_session)
 
-    client = get_authenticated_client(
-        db_session,
-        monkeypatch,
-    )
+    client = get_client(db_session)
 
     response = client.post(
         "/api/applications",
@@ -126,10 +148,7 @@ def test_create_application_rejects_deadline_before_application_date(
 ):
     company = create_company(db_session)
 
-    client = get_authenticated_client(
-        db_session,
-        monkeypatch,
-    )
+    client = get_client(db_session)
 
     response = client.post(
         "/api/applications",
@@ -152,10 +171,7 @@ def test_create_application_company_not_found(
     db_session,
     monkeypatch,
 ):
-    client = get_authenticated_client(
-        db_session,
-        monkeypatch,
-    )
+    client = get_client(db_session)
 
     response = client.post(
         "/api/applications",
@@ -719,6 +735,12 @@ def test_delete_application_not_found(db_session):
 
 
 @pytest.fixture(autouse=True)
-def clear_dependency_overrides():
+def clear_dependency_overrides(monkeypatch):
+    monkeypatch.setenv(
+        "JWT_SECRET_KEY",
+        TEST_SECRET_KEY,
+    )
+
     yield
+
     app.dependency_overrides.clear()

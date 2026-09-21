@@ -15,13 +15,13 @@ from app.services.application_service import ApplicationService
 router = APIRouter(
     prefix="/api/applications",
     tags=["Applications"],
+    dependencies=[Depends(get_current_user)],
 )
 
 @router.post(
     "",
     response_model=ApplicationResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(get_current_user)],
 )
 def create_application(
     application: ApplicationCreate,
