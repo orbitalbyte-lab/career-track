@@ -4,6 +4,7 @@ from fastapi.testclient import TestClient
 from app.api.dependencies import get_db
 from app.api.main import app
 from app.database.models.user import UserDB
+from app.security.jwt import decode_access_token
 from app.security.passwords import verify_password
 
 
@@ -47,7 +48,11 @@ def test_register_user_stores_hashed_password(db_session):
 
     assert response.status_code == 201
 
-    user = db_session.query(UserDB).first()
+    user = (
+        db_session.query(UserDB)
+        .filter(UserDB.email == "test@example.com")
+        .first()
+    )
 
     assert user is not None
     assert user.password_hash != "TestPassword123!"
@@ -113,6 +118,156 @@ def test_register_user_rejects_invalid_email(db_session):
     assert response.status_code == 422
 
 
+def test_login_user_returns_access_token(
+    db_session,
+    monkeypatch,
+):
+    monkeypatch.setenv(
+        "JWT_SECRET_KEY",
+        "test-secret-key-for-api-login-hs256-with-32-bytes-minimum",
+    )
+
+    client = get_client(db_session)
+
+    register_response = client.post(
+        "/api/auth/register",
+        json={
+            "email": "test@example.com",
+            "password": "TestPassword123!",
+        },
+    )
+
+    assert register_response.status_code == 201
+
+    user_id = register_response.json()["id"]
+
+    response = client.post(
+        "/api/auth/login",
+        json={
+            "email": "test@example.com",
+            "password": "TestPassword123!",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["access_token"]
+    assert data["token_type"] == "bearer"
+
+    payload = decode_access_token(data["access_token"])
+
+    assert payload is not None
+    assert payload["sub"] == str(user_id)
+
+
+def test_login_user_rejects_wrong_password(
+    db_session,
+    monkeypatch,
+):
+    monkeypatch.setenv(
+        "JWT_SECRET_KEY",
+        "test-secret-key-for-api-login-hs256-with-32-bytes-minimum",
+    )
+
+    client = get_client(db_session)
+
+    register_response = client.post(
+        "/api/auth/register",
+        json={
+            "email": "test@example.com",
+            "password": "TestPassword123!",
+        },
+    )
+
+    assert register_response.status_code == 201
+
+    response = client.post(
+        "/api/auth/login",
+        json={
+            "email": "test@example.com",
+            "password": "WrongPassword123!",
+        },
+    )
+
+    assert response.status_code == 401
+    assert response.headers["WWW-Authenticate"] == "Bearer"
+    assert response.json() == {
+        "detail": "Invalid email or password.",
+    }
+
+
+def test_login_user_rejects_unknown_email(
+    db_session,
+    monkeypatch,
+):
+    monkeypatch.setenv(
+        "JWT_SECRET_KEY",
+        "test-secret-key-for-api-login-hs256-with-32-bytes-minimum",
+    )
+
+    client = get_client(db_session)
+
+    response = client.post(
+        "/api/auth/login",
+        json={
+            "email": "unknown@example.com",
+            "password": "TestPassword123!",
+        },
+    )
+
+    assert response.status_code == 401
+    assert response.headers["WWW-Authenticate"] == "Bearer"
+    assert response.json() == {
+        "detail": "Invalid email or password.",
+    }
+
+
+def test_login_user_rejects_inactive_user(
+    db_session,
+    monkeypatch,
+):
+    monkeypatch.setenv(
+        "JWT_SECRET_KEY",
+        "test-secret-key-for-api-login-hs256-with-32-bytes-minimum",
+    )
+
+    client = get_client(db_session)
+
+    register_response = client.post(
+        "/api/auth/register",
+        json={
+            "email": "inactive@example.com",
+            "password": "TestPassword123!",
+        },
+    )
+
+    assert register_response.status_code == 201
+
+    user = (
+        db_session.query(UserDB)
+        .filter(UserDB.email == "inactive@example.com")
+        .first()
+    )
+    assert user is not None
+
+    user.is_active = False
+    db_session.commit()
+
+    response = client.post(
+        "/api/auth/login",
+        json={
+            "email": "inactive@example.com",
+            "password": "TestPassword123!",
+        },
+    )
+
+    assert response.status_code == 401
+    assert response.headers["WWW-Authenticate"] == "Bearer"
+    assert response.json() == {
+        "detail": "Invalid email or password.",
+    }
 @pytest.fixture(autouse=True)
 def clear_dependency_overrides():
     yield
