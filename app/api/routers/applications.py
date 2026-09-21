@@ -3,7 +3,7 @@ from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import get_db
+from app.api.dependencies import get_current_user, get_db
 from app.api.schemas.application import (
     ApplicationCreate,
     ApplicationResponse,
@@ -17,11 +17,11 @@ router = APIRouter(
     tags=["Applications"],
 )
 
-
 @router.post(
     "",
     response_model=ApplicationResponse,
     status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(get_current_user)],
 )
 def create_application(
     application: ApplicationCreate,

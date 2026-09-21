@@ -7,12 +7,46 @@ from app.api.dependencies import get_db
 from app.api.main import app
 from app.database.models.application import ApplicationDB
 from app.database.models.company import CompanyDB
-
+from app.database.models.user import UserDB
+from app.security.jwt import create_access_token
+TEST_SECRET_KEY = (
+    "test-secret-key-for-application-auth-hs256-with-32-bytes-minimum"
+)
 
 def get_client(db_session):
     app.dependency_overrides[get_db] = lambda: db_session
     return TestClient(app)
 
+def get_authenticated_client(
+    db_session,
+    monkeypatch,
+):
+    monkeypatch.setenv(
+        "JWT_SECRET_KEY",
+        TEST_SECRET_KEY,
+    )
+
+    user = UserDB(
+        email="application-user@example.com",
+        password_hash="test-hash",
+        is_active=True,
+    )
+
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+
+    token = create_access_token(str(user.id))
+
+    client = get_client(db_session)
+
+    client.headers.update(
+        {
+            "Authorization": f"Bearer {token}",
+        }
+    )
+
+    return client
 
 def create_company(db_session):
     company = CompanyDB(
@@ -28,11 +62,38 @@ def create_company(db_session):
 
     return company
 
+def test_create_application_requires_authentication(
+    db_session,
+):
+    client = get_client(db_session)
 
-def test_create_application(db_session):
+    response = client.post(
+        "/api/applications",
+        json={
+            "company_id": 999,
+            "position": "Software Engineering Intern",
+            "application_type": "Internship",
+            "date_applied": "2026-09-05",
+            "status": "Applied",
+        },
+    )
+
+    assert response.status_code == 401
+    assert response.headers["WWW-Authenticate"] == "Bearer"
+    assert response.json() == {
+        "detail": "Could not validate credentials."
+    }
+
+def test_create_application(
+    db_session,
+    monkeypatch,
+):
     company = create_company(db_session)
 
-    client = get_client(db_session)
+    client = get_authenticated_client(
+        db_session,
+        monkeypatch,
+    )
 
     response = client.post(
         "/api/applications",
@@ -61,10 +122,14 @@ def test_create_application(db_session):
 
 def test_create_application_rejects_deadline_before_application_date(
     db_session,
+    monkeypatch,
 ):
     company = create_company(db_session)
 
-    client = get_client(db_session)
+    client = get_authenticated_client(
+        db_session,
+        monkeypatch,
+    )
 
     response = client.post(
         "/api/applications",
@@ -83,8 +148,14 @@ def test_create_application_rejects_deadline_before_application_date(
         response.json()
     )
 
-def test_create_application_company_not_found(db_session):
-    client = get_client(db_session)
+def test_create_application_company_not_found(
+    db_session,
+    monkeypatch,
+):
+    client = get_authenticated_client(
+        db_session,
+        monkeypatch,
+    )
 
     response = client.post(
         "/api/applications",
