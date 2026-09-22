@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import get_db
+from app.api.dependencies import get_current_user, get_db
 from app.api.schemas.follow_up import (
     FollowUpCreate,
     FollowUpResponse,
@@ -13,7 +13,8 @@ from app.services.follow_up_service import FollowUpService
 
 router = APIRouter(
     prefix="/api/follow-ups",
-    tags=["Follow-Ups"],
+    tags=["Follow-ups"],
+    dependencies=[Depends(get_current_user)],
 )
 
 

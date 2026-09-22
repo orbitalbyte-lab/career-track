@@ -8,12 +8,40 @@ from app.api.main import app
 from app.database.models.application import ApplicationDB
 from app.database.models.company import CompanyDB
 from app.database.models.follow_up import FollowUpDB
+from app.database.models.user import UserDB
+from app.security.jwt import create_access_token
 
+TEST_SECRET_KEY = (
+    "test-secret-key-for-follow-ups-hs256-with-32-bytes-minimum"
+)
 
 def get_client(db_session):
     app.dependency_overrides[get_db] = lambda: db_session
-    return TestClient(app)
 
+    user = UserDB(
+        email="follow-up-user@example.com",
+        password_hash="test-hash",
+        is_active=True,
+    )
+
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+
+    token = create_access_token(str(user.id))
+
+    client = TestClient(app)
+
+    client.headers.update(
+        {
+            "Authorization": f"Bearer {token}",
+        }
+    )
+
+    return client
+def get_unauthenticated_client(db_session):
+    app.dependency_overrides[get_db] = lambda: db_session
+    return TestClient(app)
 
 def create_application(db_session):
     company = CompanyDB(
@@ -41,6 +69,26 @@ def create_application(db_session):
 
     return application
 
+def test_create_follow_up_requires_authentication(
+    db_session,
+):
+    client = get_unauthenticated_client(db_session)
+
+    response = client.post(
+        "/api/follow-ups",
+        json={
+            "application_id": 999,
+            "follow_up_at": "2026-09-20T10:00:00Z",
+            "note": "Follow up with recruiter",
+            "completed": False,
+        },
+    )
+
+    assert response.status_code == 401
+    assert response.headers["WWW-Authenticate"] == "Bearer"
+    assert response.json() == {
+        "detail": "Could not validate credentials."
+    }
 
 def test_create_follow_up(db_session):
     application = create_application(db_session)
@@ -436,6 +484,12 @@ def test_create_follow_up_rejects_empty_note(db_session):
     )
 
 @pytest.fixture(autouse=True)
-def clear_dependency_overrides():
+def clear_dependency_overrides(monkeypatch):
+    monkeypatch.setenv(
+        "JWT_SECRET_KEY",
+        TEST_SECRET_KEY,
+    )
+
     yield
+
     app.dependency_overrides.clear()
