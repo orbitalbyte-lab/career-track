@@ -1,9 +1,12 @@
+from typing import TYPE_CHECKING
 from datetime import UTC, datetime
 
 from sqlalchemy import Boolean, DateTime, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.connection import Base
+if TYPE_CHECKING:
+    from app.database.models.company import CompanyDB
 
 
 class UserDB(Base):
@@ -43,4 +46,9 @@ class UserDB(Base):
         nullable=False,
         default=lambda: datetime.now(UTC).replace(tzinfo=None),
         onupdate=lambda: datetime.now(UTC).replace(tzinfo=None),
+    )
+
+    companies: Mapped[list["CompanyDB"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
     )
