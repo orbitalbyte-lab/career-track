@@ -4,12 +4,62 @@ from fastapi.testclient import TestClient
 from app.api.dependencies import get_db
 from app.api.main import app
 from app.database.models.company import CompanyDB
-
+from app.database.models.user import UserDB
+from app.security.jwt import create_access_token
+TEST_SECRET_KEY = (
+    "test-secret-key-for-companies-hs256-with-32-bytes-minimum"
+)
 
 def get_client(db_session):
     app.dependency_overrides[get_db] = lambda: db_session
+
+    user = UserDB(
+        email="company-user@example.com",
+        password_hash="test-hash",
+        is_active=True,
+    )
+
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+
+    token = create_access_token(str(user.id))
+
+    client = TestClient(app)
+
+    client.headers.update(
+        {
+            "Authorization": f"Bearer {token}",
+        }
+    )
+
+    return client
+
+def get_unauthenticated_client(db_session):
+    app.dependency_overrides[get_db] = lambda: db_session
     return TestClient(app)
 
+def test_create_company_requires_authentication(
+    db_session,
+):
+    client = get_unauthenticated_client(db_session)
+
+    response = client.post(
+        "/api/companies",
+        json={
+            "name": "Microsoft",
+            "website": "https://www.microsoft.com/",
+            "industry": "Technology",
+            "location": "Redmond, WA",
+            "notes": "Software engineering opportunities",
+        },
+    )
+
+    assert response.status_code == 401
+    assert response.headers["WWW-Authenticate"] == "Bearer"
+    assert response.json() == {
+        "detail": "Could not validate credentials."
+    }
 
 def test_create_company(db_session):
     client = get_client(db_session)
@@ -236,7 +286,6 @@ def test_delete_company(db_session):
     assert response.status_code == 204
     assert db_session.get(CompanyDB, 1) is None
 
-
 def test_delete_company_not_found(db_session):
     client = get_client(db_session)
 
@@ -249,6 +298,12 @@ def test_delete_company_not_found(db_session):
 
 
 @pytest.fixture(autouse=True)
-def clear_dependency_overrides():
+def clear_dependency_overrides(monkeypatch):
+    monkeypatch.setenv(
+        "JWT_SECRET_KEY",
+        TEST_SECRET_KEY,
+    )
+
     yield
+
     app.dependency_overrides.clear()

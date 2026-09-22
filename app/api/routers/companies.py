@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import get_db
+from app.api.dependencies import get_current_user, get_db
 from app.api.schemas.company import (
     CompanyCreate,
     CompanyResponse,
@@ -13,6 +13,7 @@ from app.services.company_service import CompanyService
 router = APIRouter(
     prefix="/api/companies",
     tags=["Companies"],
+    dependencies=[Depends(get_current_user)],
 )
 
 
