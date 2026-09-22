@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import get_db
+from app.api.dependencies import get_current_user, get_db
 from app.api.schemas.interview import (
     InterviewCreate,
     InterviewResponse,
@@ -14,8 +14,8 @@ from app.services.interview_service import InterviewService
 router = APIRouter(
     prefix="/api/interviews",
     tags=["Interviews"],
+    dependencies=[Depends(get_current_user)],
 )
-
 
 @router.post(
     "",
