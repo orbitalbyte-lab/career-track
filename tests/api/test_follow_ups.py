@@ -28,6 +28,17 @@ def get_client(db_session):
     db_session.commit()
     db_session.refresh(user)
 
+    unowned_companies = (
+        db_session.query(CompanyDB)
+        .filter(CompanyDB.user_id.is_(None))
+        .all()
+    )
+
+    for company in unowned_companies:
+        company.user_id = user.id
+
+    db_session.commit()
+
     token = create_access_token(str(user.id))
 
     client = TestClient(app)
@@ -89,6 +100,360 @@ def test_create_follow_up_requires_authentication(
     assert response.json() == {
         "detail": "Could not validate credentials."
     }
+
+def test_user_cannot_create_follow_up_for_another_users_application(
+    db_session,
+):
+    owner_client = get_client(db_session)
+
+    company_response = owner_client.post(
+        "/api/companies",
+        json={
+            "name": "Private Follow-up Company",
+            "website": "https://example.com",
+        },
+    )
+
+    assert company_response.status_code == 201
+
+    application_response = owner_client.post(
+        "/api/applications",
+        json={
+            "company_id": company_response.json()["id"],
+            "position": "Private Software Engineering Intern",
+            "application_type": "Internship",
+            "date_applied": "2026-09-05",
+            "status": "Applied",
+        },
+    )
+
+    assert application_response.status_code == 201
+
+    application_id = application_response.json()["id"]
+
+    other_user = UserDB(
+        email="other-follow-up-user@example.com",
+        password_hash="test-hash",
+        is_active=True,
+    )
+
+    db_session.add(other_user)
+    db_session.commit()
+    db_session.refresh(other_user)
+
+    token = create_access_token(str(other_user.id))
+
+    other_client = TestClient(app)
+    other_client.headers.update(
+        {
+            "Authorization": f"Bearer {token}",
+        }
+    )
+
+    response = other_client.post(
+        "/api/follow-ups",
+        json={
+            "application_id": application_id,
+            "follow_up_at": "2026-09-20T10:00:00Z",
+            "note": "Unauthorized follow-up",
+            "completed": False,
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "detail": "Application not found."
+    }
+
+def test_user_cannot_list_another_users_follow_up(
+    db_session,
+):
+    owner_client = get_client(db_session)
+
+    company_response = owner_client.post(
+        "/api/companies",
+        json={
+            "name": "Private List Company",
+            "website": "https://example.com",
+        },
+    )
+
+    assert company_response.status_code == 201
+
+    application_response = owner_client.post(
+        "/api/applications",
+        json={
+            "company_id": company_response.json()["id"],
+            "position": "Private List Position",
+            "application_type": "Internship",
+            "date_applied": "2026-09-05",
+            "status": "Applied",
+        },
+    )
+
+    assert application_response.status_code == 201
+
+    follow_up_response = owner_client.post(
+        "/api/follow-ups",
+        json={
+            "application_id": application_response.json()["id"],
+            "follow_up_at": "2026-09-20T10:00:00Z",
+            "note": "Private follow-up",
+            "completed": False,
+        },
+    )
+
+    assert follow_up_response.status_code == 201
+
+    other_user = UserDB(
+        email="other-list-user@example.com",
+        password_hash="test-hash",
+        is_active=True,
+    )
+
+    db_session.add(other_user)
+    db_session.commit()
+    db_session.refresh(other_user)
+
+    other_token = create_access_token(
+        str(other_user.id)
+    )
+
+    other_client = TestClient(app)
+    other_client.headers.update(
+        {
+            "Authorization": f"Bearer {other_token}",
+        }
+    )
+
+    response = other_client.get("/api/follow-ups")
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+def test_user_cannot_access_another_users_follow_up(
+    db_session,
+):
+    owner_client = get_client(db_session)
+
+    company_response = owner_client.post(
+        "/api/companies",
+        json={
+            "name": "Private Read Company",
+            "website": "https://example.com",
+        },
+    )
+
+    assert company_response.status_code == 201
+
+    application_response = owner_client.post(
+        "/api/applications",
+        json={
+            "company_id": company_response.json()["id"],
+            "position": "Private Read Position",
+            "application_type": "Internship",
+            "date_applied": "2026-09-05",
+            "status": "Applied",
+        },
+    )
+
+    assert application_response.status_code == 201
+
+    follow_up_response = owner_client.post(
+        "/api/follow-ups",
+        json={
+            "application_id": application_response.json()["id"],
+            "follow_up_at": "2026-09-20T10:00:00Z",
+            "note": "Private read follow-up",
+            "completed": False,
+        },
+    )
+
+    assert follow_up_response.status_code == 201
+
+    follow_up_id = follow_up_response.json()["id"]
+
+    other_user = UserDB(
+        email="other-read-user@example.com",
+        password_hash="test-hash",
+        is_active=True,
+    )
+
+    db_session.add(other_user)
+    db_session.commit()
+    db_session.refresh(other_user)
+
+    other_token = create_access_token(
+        str(other_user.id)
+    )
+
+    other_client = TestClient(app)
+    other_client.headers.update(
+        {
+            "Authorization": f"Bearer {other_token}",
+        }
+    )
+
+    response = other_client.get(
+        f"/api/follow-ups/{follow_up_id}"
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Follow-up not found."
+    }
+
+def test_user_cannot_update_another_users_follow_up(
+    db_session,
+):
+    owner_client = get_client(db_session)
+
+    company_response = owner_client.post(
+        "/api/companies",
+        json={
+            "name": "Private Update Company",
+            "website": "https://example.com",
+        },
+    )
+
+    assert company_response.status_code == 201
+
+    application_response = owner_client.post(
+        "/api/applications",
+        json={
+            "company_id": company_response.json()["id"],
+            "position": "Private Update Position",
+            "application_type": "Internship",
+            "date_applied": "2026-09-05",
+            "status": "Applied",
+        },
+    )
+
+    assert application_response.status_code == 201
+
+    follow_up_response = owner_client.post(
+        "/api/follow-ups",
+        json={
+            "application_id": application_response.json()["id"],
+            "follow_up_at": "2026-09-20T10:00:00Z",
+            "note": "Private update follow-up",
+            "completed": False,
+        },
+    )
+
+    assert follow_up_response.status_code == 201
+
+    follow_up_id = follow_up_response.json()["id"]
+
+    other_user = UserDB(
+        email="other-update-user@example.com",
+        password_hash="test-hash",
+        is_active=True,
+    )
+
+    db_session.add(other_user)
+    db_session.commit()
+    db_session.refresh(other_user)
+
+    other_token = create_access_token(
+        str(other_user.id)
+    )
+
+    other_client = TestClient(app)
+    other_client.headers.update(
+        {
+            "Authorization": f"Bearer {other_token}",
+        }
+    )
+
+    response = other_client.put(
+        f"/api/follow-ups/{follow_up_id}",
+        json={
+            "completed": True,
+        },
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Follow-up not found."
+    }
+
+def test_user_cannot_delete_another_users_follow_up(
+    db_session,
+):
+    owner_client = get_client(db_session)
+
+    company_response = owner_client.post(
+        "/api/companies",
+        json={
+            "name": "Private Delete Company",
+            "website": "https://example.com",
+        },
+    )
+
+    assert company_response.status_code == 201
+
+    application_response = owner_client.post(
+        "/api/applications",
+        json={
+            "company_id": company_response.json()["id"],
+            "position": "Private Delete Position",
+            "application_type": "Internship",
+            "date_applied": "2026-09-05",
+            "status": "Applied",
+        },
+    )
+
+    assert application_response.status_code == 201
+
+    follow_up_response = owner_client.post(
+        "/api/follow-ups",
+        json={
+            "application_id": application_response.json()["id"],
+            "follow_up_at": "2026-09-20T10:00:00Z",
+            "note": "Private delete follow-up",
+            "completed": False,
+        },
+    )
+
+    assert follow_up_response.status_code == 201
+
+    follow_up_id = follow_up_response.json()["id"]
+
+    other_user = UserDB(
+        email="other-delete-user@example.com",
+        password_hash="test-hash",
+        is_active=True,
+    )
+
+    db_session.add(other_user)
+    db_session.commit()
+    db_session.refresh(other_user)
+
+    other_token = create_access_token(
+        str(other_user.id)
+    )
+
+    other_client = TestClient(app)
+    other_client.headers.update(
+        {
+            "Authorization": f"Bearer {other_token}",
+        }
+    )
+
+    response = other_client.delete(
+        f"/api/follow-ups/{follow_up_id}"
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Follow-up not found."
+    }
+
+    assert db_session.get(
+        FollowUpDB,
+        follow_up_id,
+    ) is not None
 
 def test_create_follow_up(db_session):
     application = create_application(db_session)
