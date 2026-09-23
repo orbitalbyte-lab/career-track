@@ -27,9 +27,19 @@ class ApplicationRepository:
         self,
         offset: int = 0,
         limit: int = 20,
+        user_id: int | None = None,
     ) -> list[ApplicationDB]:
+        query = self.session.query(ApplicationDB)
+
+        if user_id is not None:
+            query = (
+                query
+                .join(ApplicationDB.company)
+                .filter(CompanyDB.user_id == user_id)
+            )
+
         return (
-            self.session.query(ApplicationDB)
+            query
             .order_by(ApplicationDB.date_applied.desc())
             .offset(offset)
             .limit(limit)
@@ -123,8 +133,16 @@ class ApplicationRepository:
         date_applied: date | None = None,
         offset: int = 0,
         limit: int = 20,
+        user_id: int | None = None,
     ) -> list[ApplicationDB]:
         query = self.session.query(ApplicationDB)
+
+        if user_id is not None:
+            query = (
+                query
+                .join(ApplicationDB.company)
+                .filter(CompanyDB.user_id == user_id)
+            )
 
         if status is not None:
             query = query.filter(
@@ -199,11 +217,23 @@ class ApplicationRepository:
     def get_by_id(
         self,
         application_id: int,
+        user_id: int | None = None,
     ) -> ApplicationDB | None:
-        return self.session.get(
-            ApplicationDB,
-            application_id,
-        )
+        if user_id is None:
+            return self.session.get(
+                ApplicationDB,
+                application_id,
+            )
+
+        return (
+            self.session.query(ApplicationDB)
+            .join(ApplicationDB.company)
+            .filter(
+                ApplicationDB.id == application_id,
+                CompanyDB.user_id == user_id,
+            )
+            .first()
+    )
 
     def get_total_count(self) -> int:
         return self.session.query(ApplicationDB).count()

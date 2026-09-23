@@ -23,8 +23,15 @@ class ApplicationService:
         deadline: date | None = None,
         job_url: str | None = None,
         notes: str | None = None,
+        user_id: int | None = None,
     ) -> ApplicationDB:
-        company = self.company_repository.get_by_id(company_id)
+        if user_id is None:
+            company = self.company_repository.get_by_id(company_id)
+        else:
+            company = self.company_repository.get_by_id_for_user(
+                company_id=company_id,
+                user_id=user_id,
+            )
 
         if company is None:
             raise ValueError("Company not found")
@@ -46,17 +53,22 @@ class ApplicationService:
     def get_application(
         self,
         application_id: int,
+        user_id: int | None = None,
     ) -> ApplicationDB | None:
-        return self.application_repository.get_by_id(application_id)
-
+        return self.application_repository.get_by_id(
+            application_id=application_id,
+            user_id=user_id,
+        )
     def get_applications(
         self,
         offset: int = 0,
         limit: int = 20,
+        user_id: int | None = None,
     ) -> list[ApplicationDB]:
         return self.application_repository.get_page(
             offset=offset,
             limit=limit,
+            user_id=user_id,
         )
 
     def search_applications(
@@ -79,8 +91,12 @@ class ApplicationService:
         deadline: date | None = None,
         job_url: str | None = None,
         notes: str | None = None,
+        user_id: int | None = None,
     ) -> ApplicationDB | None:
-        application = self.application_repository.get_by_id(application_id)
+        application = self.application_repository.get_by_id(
+            application_id=application_id,
+            user_id=user_id,
+        )
 
         if application is None:
             return None
@@ -161,6 +177,7 @@ class ApplicationService:
         date_applied: date | None = None,
         offset: int = 0,
         limit: int = 20,
+        user_id: int | None = None,
     ) -> list[ApplicationDB]:
         if status is not None:
             status = status.strip()
@@ -269,8 +286,12 @@ class ApplicationService:
     def delete_application(
         self,
         application_id: int,
+        user_id: int | None = None,
     ) -> bool:
-        application = self.application_repository.get_by_id(application_id)
+        application = self.application_repository.get_by_id(
+            application_id=application_id,
+            user_id=user_id,
+        )
 
         if application is None:
             return False

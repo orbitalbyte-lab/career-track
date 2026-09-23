@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_current_user, get_db
+from app.database.models.user import UserDB
 from app.api.schemas.application import (
     ApplicationCreate,
     ApplicationResponse,
@@ -15,7 +16,6 @@ from app.services.application_service import ApplicationService
 router = APIRouter(
     prefix="/api/applications",
     tags=["Applications"],
-    dependencies=[Depends(get_current_user)],
 )
 
 @router.post(
@@ -25,6 +25,7 @@ router = APIRouter(
 )
 def create_application(
     application: ApplicationCreate,
+    current_user: UserDB = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> ApplicationResponse:
     service = ApplicationService(db)
@@ -40,6 +41,7 @@ def create_application(
             deadline=application.deadline,
             job_url=application.job_url,
             notes=application.notes,
+            user_id=current_user.id,
         )
     except ValueError as exc:
         raise HTTPException(
@@ -59,6 +61,7 @@ def get_applications(
     application_type: ApplicationType | None = Query(default=None),
     company_id: int | None = Query(default=None, gt=0),
     date_applied: date | None = None,
+    current_user: UserDB = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> list[ApplicationResponse]:
     service = ApplicationService(db)
@@ -76,6 +79,7 @@ def get_applications(
         date_applied=date_applied,
         offset=offset,
         limit=page_size,
+        user_id=current_user.id,
     )
 
 @router.get(
@@ -84,12 +88,15 @@ def get_applications(
 )
 def get_application(
     application_id: int,
+    current_user: UserDB = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> ApplicationResponse:
     service = ApplicationService(db)
 
-    application = service.get_application(application_id)
-
+    application = service.get_application(
+        application_id=application_id,
+        user_id=current_user.id,
+    )
     if application is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -106,6 +113,7 @@ def get_application(
 def update_application(
     application_id: int,
     application: ApplicationUpdate,
+    current_user: UserDB = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> ApplicationResponse:
     service = ApplicationService(db)
@@ -113,6 +121,7 @@ def update_application(
     try:
         updated_application = service.update_application(
             application_id=application_id,
+            user_id=current_user.id,
             position=application.position,
             application_type=(
                 application.application_type.value
@@ -151,12 +160,15 @@ def update_application(
 )
 def delete_application(
     application_id: int,
+    current_user: UserDB = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> None:
     service = ApplicationService(db)
 
-    deleted = service.delete_application(application_id)
-
+    deleted = service.delete_application(
+        application_id=application_id,
+        user_id=current_user.id,
+    )
     if not deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
