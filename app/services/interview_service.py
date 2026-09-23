@@ -3,54 +3,76 @@ from app.models.interview import Interview
 from app.repositories.interview_repository import (
     InterviewRepository,
 )
+from app.repositories.application_repository import (
+    ApplicationRepository,
+)
 
 
 class InterviewService:
     def __init__(self, session) -> None:
         self.repository = InterviewRepository(session)
-
+        self.application_repository = ApplicationRepository(session)
     def create_interview(
         self,
         interview: Interview,
+        user_id: int | None = None,
     ) -> InterviewDB:
+        if user_id is not None:
+            application = self.application_repository.get_by_id(
+                application_id=interview.application_id,
+                user_id=user_id,
+            )
+
+            if application is None:
+                raise ValueError("Application not found.")
+
         return self.repository.create(interview)
 
     def get_interviews(
         self,
         offset: int = 0,
         limit: int | None = None,
+        user_id: int | None = None,
     ) -> list[InterviewDB]:
         return self.repository.get_all(
             offset=offset,
             limit=limit,
+            user_id=user_id,
         )
     def get_interview(
         self,
         interview_id: int,
+        user_id: int | None = None,
     ) -> InterviewDB | None:
-        return self.repository.get_by_id(interview_id)
-
+        return self.repository.get_by_id(
+            interview_id=interview_id,
+            user_id=user_id,
+        )
     def update_interview(
         self,
         interview_id: int,
         status: str,
         outcome: str | None = None,
+        user_id: int | None = None,
     ) -> InterviewDB | None:
         if outcome is None:
             outcome = "Pending"
 
         return self.repository.update(
-            interview_id,
-            status,
-            outcome,
+            interview_id=interview_id,
+            status=status,
+            outcome=outcome,
+            user_id=user_id,
         )
-
     def delete_interview(
         self,
         interview_id: int,
+        user_id: int | None = None,
     ) -> bool:
-        return self.repository.delete(interview_id)
-
+        return self.repository.delete(
+            interview_id=interview_id,
+            user_id=user_id,
+        )
     def get_interview_statistics(
         self,
     ) -> dict[str, int]:

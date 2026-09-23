@@ -27,6 +27,17 @@ def get_client(db_session):
     db_session.commit()
     db_session.refresh(user)
 
+    unowned_companies = (
+        db_session.query(CompanyDB)
+        .filter(CompanyDB.user_id.is_(None))
+        .all()
+    )
+
+    for company in unowned_companies:
+        company.user_id = user.id
+
+    db_session.commit()
+
     token = create_access_token(str(user.id))
 
     client = TestClient(app)
@@ -90,6 +101,150 @@ def test_create_interview_requires_authentication(
     assert response.headers["WWW-Authenticate"] == "Bearer"
     assert response.json() == {
         "detail": "Could not validate credentials."
+    }
+
+def test_user_cannot_create_interview_for_another_users_application(
+    db_session,
+):
+    owner_client = get_client(db_session)
+
+    company_response = owner_client.post(
+        "/api/companies",
+        json={
+            "name": "Private Interview Company",
+            "website": "https://example.com",
+        },
+    )
+
+    assert company_response.status_code == 201
+
+    company_id = company_response.json()["id"]
+
+    application_response = owner_client.post(
+        "/api/applications",
+        json={
+            "company_id": company_id,
+            "position": "Private Software Engineering Intern",
+            "application_type": "Internship",
+            "date_applied": "2026-09-05",
+            "status": "Applied",
+        },
+    )
+
+    assert application_response.status_code == 201
+
+    application_id = application_response.json()["id"]
+
+    other_user = UserDB(
+        email="other-interview-user@example.com",
+        password_hash="test-hash",
+        is_active=True,
+    )
+
+    db_session.add(other_user)
+    db_session.commit()
+    db_session.refresh(other_user)
+
+    other_token = create_access_token(str(other_user.id))
+
+    other_client = TestClient(app)
+    other_client.headers.update(
+        {
+            "Authorization": f"Bearer {other_token}",
+        }
+    )
+
+    response = other_client.post(
+        "/api/interviews",
+        json={
+            "application_id": application_id,
+            "scheduled_at": "2026-09-15T10:00:00Z",
+            "interview_type": "Online",
+            "status": "Scheduled",
+            "outcome": "Pending",
+            "notes": "Technical interview",
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "detail": "Application not found."
+    }
+
+def test_user_cannot_access_another_users_interview(
+    db_session,
+):
+    owner_client = get_client(db_session)
+
+    company_response = owner_client.post(
+        "/api/companies",
+        json={
+            "name": "Private Interview Read Company",
+            "website": "https://example.com",
+        },
+    )
+
+    assert company_response.status_code == 201
+
+    company_id = company_response.json()["id"]
+
+    application_response = owner_client.post(
+        "/api/applications",
+        json={
+            "company_id": company_id,
+            "position": "Private Interview Position",
+            "application_type": "Internship",
+            "date_applied": "2026-09-05",
+            "status": "Applied",
+        },
+    )
+
+    assert application_response.status_code == 201
+
+    application_id = application_response.json()["id"]
+
+    interview_response = owner_client.post(
+        "/api/interviews",
+        json={
+            "application_id": application_id,
+            "scheduled_at": "2026-09-15T10:00:00Z",
+            "interview_type": "Online",
+            "status": "Scheduled",
+            "outcome": "Pending",
+            "notes": "Private technical interview",
+        },
+    )
+
+    assert interview_response.status_code == 201
+
+    interview_id = interview_response.json()["id"]
+
+    other_user = UserDB(
+        email="another-interview-user@example.com",
+        password_hash="test-hash",
+        is_active=True,
+    )
+
+    db_session.add(other_user)
+    db_session.commit()
+    db_session.refresh(other_user)
+
+    other_token = create_access_token(str(other_user.id))
+
+    other_client = TestClient(app)
+    other_client.headers.update(
+        {
+            "Authorization": f"Bearer {other_token}",
+        }
+    )
+
+    response = other_client.get(
+        f"/api/interviews/{interview_id}"
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Interview not found."
     }
 
 def test_create_interview(db_session):

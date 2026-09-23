@@ -2,6 +2,8 @@ from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
+from app.database.models.application import ApplicationDB
+from app.database.models.company import CompanyDB
 from app.database.models.interview import InterviewDB
 from app.models.interview import Interview
 
@@ -33,11 +35,19 @@ class InterviewRepository:
         self,
         offset: int = 0,
         limit: int | None = None,
+        user_id: int | None = None,
     ) -> list[InterviewDB]:
-        query = (
-            self.session.query(InterviewDB)
-            .order_by(InterviewDB.id)
-        )
+        query = self.session.query(InterviewDB)
+
+        if user_id is not None:
+            query = (
+                query
+                .join(InterviewDB.application)
+                .join(ApplicationDB.company)
+                .filter(CompanyDB.user_id == user_id)
+            )
+
+        query = query.order_by(InterviewDB.id)
 
         if offset > 0:
             query = query.offset(offset)
@@ -50,17 +60,33 @@ class InterviewRepository:
     def get_by_id(
         self,
         interview_id: int,
+        user_id: int | None = None,
     ) -> InterviewDB | None:
-        return self.session.query(InterviewDB).filter_by(id=interview_id).first()
+        query = self.session.query(InterviewDB).filter(
+            InterviewDB.id == interview_id
+        )
+
+        if user_id is not None:
+            query = (
+                query
+                .join(InterviewDB.application)
+                .join(ApplicationDB.company)
+                .filter(CompanyDB.user_id == user_id)
+            )
+
+        return query.first()
 
     def update(
         self,
         interview_id: int,
         status: str,
         outcome: str,
+        user_id: int | None = None,
     ) -> InterviewDB | None:
-        interview = self.get_by_id(interview_id)
-
+        interview = self.get_by_id(
+            interview_id=interview_id,
+            user_id=user_id,
+        )
         if interview is None:
             return None
 
@@ -75,8 +101,12 @@ class InterviewRepository:
     def delete(
         self,
         interview_id: int,
+        user_id: int | None = None,
     ) -> bool:
-        interview = self.get_by_id(interview_id)
+        interview = self.get_by_id(
+            interview_id=interview_id,
+            user_id=user_id,
+        )
 
         if interview is None:
             return False
