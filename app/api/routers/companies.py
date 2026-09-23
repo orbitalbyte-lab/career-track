@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_current_user, get_db
+from app.database.models.user import UserDB
 from app.api.schemas.company import (
     CompanyCreate,
     CompanyResponse,
@@ -13,7 +14,6 @@ from app.services.company_service import CompanyService
 router = APIRouter(
     prefix="/api/companies",
     tags=["Companies"],
-    dependencies=[Depends(get_current_user)],
 )
 
 
@@ -24,12 +24,14 @@ router = APIRouter(
 )
 def create_company(
     company: CompanyCreate,
+    current_user: UserDB = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> CompanyResponse:
     service = CompanyService(db)
 
     try:
         return service.create_company(
+            user_id=current_user.id,
             name=company.name,
             website=company.website,
             industry=company.industry,
@@ -50,6 +52,7 @@ def create_company(
 def get_companies(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
+    current_user: UserDB = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> list[CompanyResponse]:
     service = CompanyService(db)
@@ -59,6 +62,7 @@ def get_companies(
     return service.get_companies(
         offset=offset,
         limit=page_size,
+        user_id=current_user.id,
     )
 
 @router.get(
@@ -67,10 +71,14 @@ def get_companies(
 )
 def get_company(
     company_id: int,
+    current_user: UserDB = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> CompanyResponse:
     service = CompanyService(db)
-    company = service.get_company(company_id)
+    company = service.get_company(
+        company_id=company_id,
+        user_id=current_user.id,
+    )
 
     if company is None:
         raise HTTPException(
@@ -88,6 +96,7 @@ def get_company(
 def update_company(
     company_id: int,
     company: CompanyUpdate,
+    current_user: UserDB = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> CompanyResponse:
     service = CompanyService(db)
@@ -95,6 +104,7 @@ def update_company(
     try:
         updated_company = service.update_company(
             company_id=company_id,
+            user_id=current_user.id,
             name=company.name,
             website=company.website,
             industry=company.industry,
@@ -122,12 +132,16 @@ def update_company(
 )
 def delete_company(
     company_id: int,
+    current_user: UserDB = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> None:
     service = CompanyService(db)
 
     try:
-        deleted = service.delete_company(company_id)
+        deleted = service.delete_company(
+            company_id=company_id,
+            user_id=current_user.id,
+        )
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

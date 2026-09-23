@@ -11,6 +11,7 @@ class CompanyService:
     def create_company(
         self,
         name: str,
+        user_id: int | None = None,
         website: str | None = None,
         industry: str | None = None,
         location: str | None = None,
@@ -22,6 +23,7 @@ class CompanyService:
             raise ValueError("Company name cannot be empty.")
 
         company = CompanyDB(
+            user_id=user_id,
             name=name,
             website=website.strip() if website else None,
             industry=industry.strip() if industry else None,
@@ -31,25 +33,52 @@ class CompanyService:
 
         return self.repository.create(company)
 
-    def get_company(self, company_id: int) -> CompanyDB | None:
-        return self.repository.get_by_id(company_id)
+    def get_company(
+        self,
+        company_id: int,
+        user_id: int | None = None,
+    ) -> CompanyDB | None:
+        if user_id is None:
+            return self.repository.get_by_id(company_id)
 
+        return self.repository.get_by_id_for_user(
+            company_id=company_id,
+            user_id=user_id,
+        )
     def get_companies(
         self,
         offset: int = 0,
         limit: int | None = None,
+        user_id: int | None = None,
     ) -> list[CompanyDB]:
-        return self.repository.get_all(
+        if user_id is None:
+            return self.repository.get_all(
+                offset=offset,
+                limit=limit,
+            )
+
+        return self.repository.get_all_for_user(
+            user_id=user_id,
             offset=offset,
             limit=limit,
         )
-    def search_companies(self, query: str) -> list[CompanyDB]:
+    def search_companies(
+        self,
+        query: str,
+        user_id: int | None = None,
+    ) -> list[CompanyDB]:
         query = query.strip()
 
         if not query:
             return []
 
-        return self.repository.search(query)
+        if user_id is None:
+            return self.repository.search(query)
+
+        return self.repository.search_for_user(
+            query=query,
+            user_id=user_id,
+        )
 
     def update_company(
         self,
@@ -59,8 +88,15 @@ class CompanyService:
         industry: str | None = None,
         location: str | None = None,
         notes: str | None = None,
+        user_id: int | None = None,
     ) -> CompanyDB | None:
-        company = self.repository.get_by_id(company_id)
+        if user_id is None:
+            company = self.repository.get_by_id(company_id)
+        else:
+            company = self.repository.get_by_id_for_user(
+                company_id=company_id,
+                user_id=user_id,
+            )
 
         if company is None:
             return None
@@ -84,8 +120,18 @@ class CompanyService:
 
         return self.repository.update(company)
 
-    def delete_company(self, company_id: int) -> bool:
-        company = self.repository.get_by_id(company_id)
+    def delete_company(
+        self,
+        company_id: int,
+        user_id: int | None = None,
+    ) -> bool:
+        if user_id is None:
+            company = self.repository.get_by_id(company_id)
+        else:
+            company = self.repository.get_by_id_for_user(
+                company_id=company_id,
+                user_id=user_id,
+            )
 
         if company is None:
             return False

@@ -23,6 +23,17 @@ def get_client(db_session):
     db_session.commit()
     db_session.refresh(user)
 
+    unowned_companies = (
+        db_session.query(CompanyDB)
+        .filter(CompanyDB.user_id.is_(None))
+        .all()
+    )
+
+    for company in unowned_companies:
+        company.user_id = user.id
+
+    db_session.commit()
+
     token = create_access_token(str(user.id))
 
     client = TestClient(app)
@@ -59,6 +70,53 @@ def test_create_company_requires_authentication(
     assert response.headers["WWW-Authenticate"] == "Bearer"
     assert response.json() == {
         "detail": "Could not validate credentials."
+    }
+
+def test_user_cannot_access_another_users_company(
+    db_session,
+):
+    owner_client = get_client(db_session)
+
+    create_response = owner_client.post(
+        "/api/companies",
+        json={
+            "name": "Private Company",
+            "website": "https://example.com",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    company_id = create_response.json()["id"]
+
+    other_user = UserDB(
+        email="other-user@example.com",
+        password_hash="test-hash",
+        is_active=True,
+    )
+
+    db_session.add(other_user)
+    db_session.commit()
+    db_session.refresh(other_user)
+
+    other_token = create_access_token(
+        str(other_user.id)
+    )
+
+    other_client = TestClient(app)
+    other_client.headers.update(
+        {
+            "Authorization": f"Bearer {other_token}",
+        }
+    )
+
+    response = other_client.get(
+        f"/api/companies/{company_id}"
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Company not found."
     }
 
 def test_create_company(db_session):
