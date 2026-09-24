@@ -272,3 +272,70 @@ def test_login_user_rejects_inactive_user(
 def clear_dependency_overrides():
     yield
     app.dependency_overrides.clear()
+
+def test_get_current_user_profile(
+    db_session,
+    monkeypatch,
+):
+    monkeypatch.setenv(
+        "JWT_SECRET_KEY",
+        "test-secret-key-for-api-me-hs256-with-32-bytes-minimum",
+    )
+
+    client = get_client(db_session)
+
+    register_response = client.post(
+        "/api/auth/register",
+        json={
+            "email": "me@example.com",
+            "password": "TestPassword123!",
+        },
+    )
+
+    assert register_response.status_code == 201
+
+    login_response = client.post(
+        "/api/auth/login",
+        json={
+            "email": "me@example.com",
+            "password": "TestPassword123!",
+        },
+    )
+
+    assert login_response.status_code == 200
+
+    token = login_response.json()["access_token"]
+
+    client.headers.update(
+        {
+            "Authorization": f"Bearer {token}",
+        }
+    )
+
+    response = client.get("/api/auth/me")
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["id"] == register_response.json()["id"]
+    assert data["email"] == "me@example.com"
+    assert data["is_active"] is True
+    assert "password" not in data
+    assert "password_hash" not in data
+
+
+def test_get_current_user_profile_requires_authentication(
+    db_session,
+):
+    client = get_client(db_session)
+
+    client.headers.pop("Authorization", None)
+
+    response = client.get("/api/auth/me")
+
+    assert response.status_code == 401
+    assert response.headers["WWW-Authenticate"] == "Bearer"
+    assert response.json() == {
+        "detail": "Could not validate credentials."
+    }
