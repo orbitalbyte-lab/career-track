@@ -825,6 +825,29 @@ def test_get_applications_rejects_invalid_application_type_filter(
 
     assert response.status_code == 422
 
+def test_get_applications_rejects_invalid_company_id(
+    db_session,
+):
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/applications?company_id=0"
+    )
+
+    assert response.status_code == 422
+
+
+def test_get_applications_rejects_invalid_date_applied(
+    db_session,
+):
+    client = get_client(db_session)
+
+    response = client.get(
+        "/api/applications?date_applied=not-a-date"
+    )
+
+    assert response.status_code == 422
+
 def test_get_applications_pagination(db_session):
     company = create_company(db_session)
 
