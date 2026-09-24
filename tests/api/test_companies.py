@@ -119,6 +119,164 @@ def test_user_cannot_access_another_users_company(
         "detail": "Company not found."
     }
 
+def test_user_cannot_list_another_users_company(
+    db_session,
+):
+    owner_client = get_client(db_session)
+
+    create_response = owner_client.post(
+        "/api/companies",
+        json={
+            "name": "Private List Company",
+            "website": "https://example.com",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    other_user = UserDB(
+        email="other-company-list-user@example.com",
+        password_hash="test-hash",
+        is_active=True,
+    )
+
+    db_session.add(other_user)
+    db_session.commit()
+    db_session.refresh(other_user)
+
+    other_token = create_access_token(
+        str(other_user.id)
+    )
+
+    other_client = TestClient(app)
+    other_client.headers.update(
+        {
+            "Authorization": f"Bearer {other_token}",
+        }
+    )
+
+    response = other_client.get(
+        "/api/companies"
+    )
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+def test_user_cannot_update_another_users_company(
+    db_session,
+):
+    owner_client = get_client(db_session)
+
+    create_response = owner_client.post(
+        "/api/companies",
+        json={
+            "name": "Private Update Company",
+            "website": "https://example.com",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    company_id = create_response.json()["id"]
+
+    other_user = UserDB(
+        email="other-company-update-user@example.com",
+        password_hash="test-hash",
+        is_active=True,
+    )
+
+    db_session.add(other_user)
+    db_session.commit()
+    db_session.refresh(other_user)
+
+    other_token = create_access_token(
+        str(other_user.id)
+    )
+
+    other_client = TestClient(app)
+    other_client.headers.update(
+        {
+            "Authorization": f"Bearer {other_token}",
+        }
+    )
+
+    response = other_client.put(
+        f"/api/companies/{company_id}",
+        json={
+            "name": "Hacked Company Name",
+            "website": "https://attacker.example.com",
+        },
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Company not found."
+    }
+
+    saved_company = db_session.get(
+        CompanyDB,
+        company_id,
+    )
+
+    assert saved_company is not None
+    assert saved_company.name == "Private Update Company"
+    assert saved_company.website == "https://example.com"
+
+def test_user_cannot_delete_another_users_company(
+    db_session,
+):
+    owner_client = get_client(db_session)
+
+    create_response = owner_client.post(
+        "/api/companies",
+        json={
+            "name": "Private Delete Company",
+            "website": "https://example.com",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    company_id = create_response.json()["id"]
+
+    other_user = UserDB(
+        email="other-company-delete-user@example.com",
+        password_hash="test-hash",
+        is_active=True,
+    )
+
+    db_session.add(other_user)
+    db_session.commit()
+    db_session.refresh(other_user)
+
+    other_token = create_access_token(
+        str(other_user.id)
+    )
+
+    other_client = TestClient(app)
+    other_client.headers.update(
+        {
+            "Authorization": f"Bearer {other_token}",
+        }
+    )
+
+    response = other_client.delete(
+        f"/api/companies/{company_id}"
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Company not found."
+    }
+
+    saved_company = db_session.get(
+        CompanyDB,
+        company_id,
+    )
+
+    assert saved_company is not None
+    assert saved_company.name == "Private Delete Company"
+
 def test_create_company(db_session):
     client = get_client(db_session)
 
