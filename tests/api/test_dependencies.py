@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 import pytest
+import jwt
 from fastapi import HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
 
@@ -187,6 +188,65 @@ def test_get_current_user_rejects_non_bearer_scheme(
 
     credentials = HTTPAuthorizationCredentials(
         scheme="Basic",
+        credentials=token,
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        get_current_user(
+            credentials=credentials,
+            db=db_session,
+        )
+
+    assert exc_info.value.status_code == 401
+    assert exc_info.value.headers["WWW-Authenticate"] == "Bearer"
+
+def test_get_current_user_rejects_token_without_subject(
+    db_session,
+    monkeypatch,
+):
+    monkeypatch.setenv(
+        "JWT_SECRET_KEY",
+        TEST_SECRET_KEY,
+    )
+
+    token = jwt.encode(
+        {},
+        TEST_SECRET_KEY,
+        algorithm="HS256",
+    )
+
+    credentials = HTTPAuthorizationCredentials(
+        scheme="Bearer",
+        credentials=token,
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        get_current_user(
+            credentials=credentials,
+            db=db_session,
+        )
+
+    assert exc_info.value.status_code == 401
+    assert exc_info.value.headers["WWW-Authenticate"] == "Bearer"
+
+
+def test_get_current_user_rejects_non_numeric_subject(
+    db_session,
+    monkeypatch,
+):
+    monkeypatch.setenv(
+        "JWT_SECRET_KEY",
+        TEST_SECRET_KEY,
+    )
+
+    token = jwt.encode(
+        {"sub": "not-a-user-id"},
+        TEST_SECRET_KEY,
+        algorithm="HS256",
+    )
+
+    credentials = HTTPAuthorizationCredentials(
+        scheme="Bearer",
         credentials=token,
     )
 
