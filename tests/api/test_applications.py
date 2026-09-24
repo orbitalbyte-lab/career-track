@@ -238,6 +238,192 @@ def test_user_cannot_access_another_users_application(
         "detail": "Application not found.",
     }
 
+def test_user_cannot_list_another_users_application(
+    db_session,
+):
+    owner_client = get_client(db_session)
+
+    company_response = owner_client.post(
+        "/api/companies",
+        json={
+            "name": "Private Application List Company",
+            "website": "https://example.com",
+        },
+    )
+
+    assert company_response.status_code == 201
+
+    application_response = owner_client.post(
+        "/api/applications",
+        json={
+            "company_id": company_response.json()["id"],
+            "position": "Private List Position",
+            "application_type": "Internship",
+            "date_applied": "2026-09-05",
+            "status": "Applied",
+        },
+    )
+
+    assert application_response.status_code == 201
+
+    other_user = UserDB(
+        email="other-application-list-user@example.com",
+        password_hash="test-hash",
+        is_active=True,
+    )
+
+    db_session.add(other_user)
+    db_session.commit()
+    db_session.refresh(other_user)
+
+    token = create_access_token(str(other_user.id))
+
+    other_client = TestClient(app)
+    other_client.headers.update(
+        {
+            "Authorization": f"Bearer {token}",
+        }
+    )
+
+    response = other_client.get("/api/applications")
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+def test_user_cannot_update_another_users_application(
+    db_session,
+):
+    owner_client = get_client(db_session)
+
+    company_response = owner_client.post(
+        "/api/companies",
+        json={
+            "name": "Private Application Update Company",
+            "website": "https://example.com",
+        },
+    )
+
+    assert company_response.status_code == 201
+
+    application_response = owner_client.post(
+        "/api/applications",
+        json={
+            "company_id": company_response.json()["id"],
+            "position": "Private Update Position",
+            "application_type": "Internship",
+            "date_applied": "2026-09-05",
+            "status": "Applied",
+        },
+    )
+
+    assert application_response.status_code == 201
+
+    application_id = application_response.json()["id"]
+
+    other_user = UserDB(
+        email="other-application-update-user@example.com",
+        password_hash="test-hash",
+        is_active=True,
+    )
+
+    db_session.add(other_user)
+    db_session.commit()
+    db_session.refresh(other_user)
+
+    token = create_access_token(str(other_user.id))
+
+    other_client = TestClient(app)
+    other_client.headers.update(
+        {
+            "Authorization": f"Bearer {token}",
+        }
+    )
+
+    response = other_client.put(
+        f"/api/applications/{application_id}",
+        json={
+            "position": "Hacked Position",
+            "status": "Offer",
+        },
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Application not found.",
+    }
+
+    saved_application = db_session.get(
+        ApplicationDB,
+        application_id,
+    )
+
+    assert saved_application is not None
+    assert saved_application.position == "Private Update Position"
+    assert saved_application.status == "Applied"
+
+def test_user_cannot_delete_another_users_application(
+    db_session,
+):
+    owner_client = get_client(db_session)
+
+    company_response = owner_client.post(
+        "/api/companies",
+        json={
+            "name": "Private Application Delete Company",
+            "website": "https://example.com",
+        },
+    )
+
+    assert company_response.status_code == 201
+
+    application_response = owner_client.post(
+        "/api/applications",
+        json={
+            "company_id": company_response.json()["id"],
+            "position": "Private Delete Position",
+            "application_type": "Internship",
+            "date_applied": "2026-09-05",
+            "status": "Applied",
+        },
+    )
+
+    assert application_response.status_code == 201
+
+    application_id = application_response.json()["id"]
+
+    other_user = UserDB(
+        email="other-application-delete-user@example.com",
+        password_hash="test-hash",
+        is_active=True,
+    )
+
+    db_session.add(other_user)
+    db_session.commit()
+    db_session.refresh(other_user)
+
+    token = create_access_token(str(other_user.id))
+
+    other_client = TestClient(app)
+    other_client.headers.update(
+        {
+            "Authorization": f"Bearer {token}",
+        }
+    )
+
+    response = other_client.delete(
+        f"/api/applications/{application_id}"
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Application not found.",
+    }
+
+    assert db_session.get(
+        ApplicationDB,
+        application_id,
+    ) is not None
+
 def test_create_application(
     db_session,
     monkeypatch,

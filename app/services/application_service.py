@@ -196,6 +196,7 @@ class ApplicationService:
             date_applied=date_applied,
             offset=offset,
             limit=limit,
+            user_id=user_id,
         )
     def get_total_applications(self) -> int:
         return self.application_repository.get_total_count()
