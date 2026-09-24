@@ -1022,6 +1022,36 @@ def test_update_application(db_session):
     assert data["location"] == "Redmond, Washington"
     assert data["notes"] == "Updated through API tests"
 
+def test_update_application_rejects_deadline_before_application_date(
+    db_session,
+):
+    company = create_company(db_session)
+
+    application = ApplicationDB(
+        company_id=company.id,
+        position="Software Engineering Intern",
+        application_type="Internship",
+        date_applied=date(2026, 9, 5),
+        status="Applied",
+    )
+
+    db_session.add(application)
+    db_session.commit()
+
+    client = get_client(db_session)
+
+    response = client.put(
+        "/api/applications/1",
+        json={
+            "date_applied": "2026-09-10",
+            "deadline": "2026-09-05",
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "detail": "Deadline cannot be before the application date"
+    }
 
 def test_update_application_not_found(db_session):
     client = get_client(db_session)
