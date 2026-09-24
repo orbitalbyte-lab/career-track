@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import pytest
 from fastapi import HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
@@ -142,3 +144,57 @@ def test_get_current_user_rejects_inactive_user(
         )
 
     assert exc_info.value.status_code == 401
+
+def test_get_current_user_rejects_expired_token(
+    db_session,
+    monkeypatch,
+):
+    monkeypatch.setenv(
+        "JWT_SECRET_KEY",
+        TEST_SECRET_KEY,
+    )
+
+    token = create_access_token(
+        "1",
+        expires_delta=timedelta(seconds=-1),
+    )
+
+    credentials = HTTPAuthorizationCredentials(
+        scheme="Bearer",
+        credentials=token,
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        get_current_user(
+            credentials=credentials,
+            db=db_session,
+        )
+
+    assert exc_info.value.status_code == 401
+    assert exc_info.value.headers["WWW-Authenticate"] == "Bearer"
+
+
+def test_get_current_user_rejects_non_bearer_scheme(
+    db_session,
+    monkeypatch,
+):
+    monkeypatch.setenv(
+        "JWT_SECRET_KEY",
+        TEST_SECRET_KEY,
+    )
+
+    token = create_access_token("1")
+
+    credentials = HTTPAuthorizationCredentials(
+        scheme="Basic",
+        credentials=token,
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        get_current_user(
+            credentials=credentials,
+            db=db_session,
+        )
+
+    assert exc_info.value.status_code == 401
+    assert exc_info.value.headers["WWW-Authenticate"] == "Bearer"
