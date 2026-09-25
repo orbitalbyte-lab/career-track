@@ -339,3 +339,29 @@ def test_get_current_user_profile_requires_authentication(
     assert response.json() == {
         "detail": "Could not validate credentials."
     }
+def test_login_user_rejects_short_password(db_session):
+    client = get_client(db_session)
+
+    response = client.post(
+        "/api/auth/login",
+        json={
+            "email": "test@example.com",
+            "password": "short",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_login_user_rejects_empty_email(db_session):
+    client = get_client(db_session)
+
+    response = client.post(
+        "/api/auth/login",
+        json={
+            "email": "",
+            "password": "TestPassword123!",
+        },
+    )
+
+    assert response.status_code == 422
