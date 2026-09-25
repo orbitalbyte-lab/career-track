@@ -117,6 +117,32 @@ def test_register_user_rejects_invalid_email(db_session):
 
     assert response.status_code == 422
 
+def test_register_user_rejects_malformed_email(db_session):
+    client = get_client(db_session)
+
+    response = client.post(
+        "/api/auth/register",
+        json={
+            "email": "user@.com",
+            "password": "TestPassword123!",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_register_user_rejects_double_at_email(db_session):
+    client = get_client(db_session)
+
+    response = client.post(
+        "/api/auth/register",
+        json={
+            "email": "user@@example.com",
+            "password": "TestPassword123!",
+        },
+    )
+
+    assert response.status_code == 422
 
 def test_login_user_returns_access_token(
     db_session,
