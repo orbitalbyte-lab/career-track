@@ -6,6 +6,7 @@ __pycache__/
 
 .env
 .env.*
+!.env.example
 
 .pytest_cache/
 
@@ -16,19 +17,19 @@ __pycache__/
 
 .DS_Store
 Thumbs.db
+
 # Local SQLite database
 career_track.db
 
 # Generated application exports
 exports/
+
 # Generated packaging metadata
 *.egg-info/
 
 logs/
+
 # Test coverage
 .coverage
 coverage.xml
-htmlcov/
-# Test coverage output
-.coverage
 htmlcov/
