@@ -1,25 +1,29 @@
 [![CI](https://github.com/orbitalbyte-lab/career-track/actions/workflows/ci.yml/badge.svg)](https://github.com/orbitalbyte-lab/career-track/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-97.83%25-brightgreen)](https://github.com/orbitalbyte-lab/career-track)
 
 # CareerTrack
 
-A professional job and internship application tracking system built with Python.
-CareerTrack helps students, internship seekers, recent graduates, and early-career professionals organize, track, and analyze their job applications, interviews, and follow-ups in one place.
+CareerTrack is a Python-based job and internship application tracking system designed for students, internship seekers, recent graduates, and early-career professionals.
 
----
+It provides a command-line interface and REST API for managing companies, applications, interviews, and follow-ups, with authentication, user ownership isolation, analytics, CSV import/export, database migrations, automated testing, and continuous integration.
 
-## Screenshots
+## Highlights
 
-Coming soon.
-
-Future versions will include screenshots of:
-
-* Company management
-* Application management
-* Interview management
-* Follow-up management
-* Dashboard analytics
+* Company, application, interview, and follow-up management
+* REST API built with FastAPI
+* JWT-based authentication
+* Password hashing with Argon2
+* User ownership and resource isolation
+* Application filtering, sorting, and analytics
+* Interview and follow-up tracking
 * CSV import and export
+* SQLAlchemy ORM
+* Alembic database migrations
+* PostgreSQL integration tests
+* Automated CI with GitHub Actions
+* 430 automated tests
+* 97.18% test coverage
+* Ruff code-quality checks
+* Python 3.13
 
 ---
 
@@ -27,53 +31,64 @@ Future versions will include screenshots of:
 
 ### Company Management
 
-* Add companies
+* Create companies
 * View companies
 * Update companies
 * Delete companies
 * Search companies
-* Store company website, industry, location, and notes
+* Store website, industry, location, and notes
+* Restrict company access to the authenticated owner
 
 ### Application Management
 
-* Add applications
+* Create applications
 * View applications
 * Update applications
 * Delete applications
 * Search applications
-* Filter applications
+* Filter applications by:
+
+  * status
+  * application type
+  * company
+  * application date
 * Sort applications
-* Track application status
-* Track application type
-* Track application deadlines
+* Track deadlines
+* Validate application dates and deadlines
 * Store job URLs and notes
-* Filter applications by company, status, type, and date
+* Restrict applications to the owning user
 
 ### Interview Management
 
 * Create interviews
 * View interviews
+* Update interview status and outcome
 * Delete interviews
 * Search interviews
-* Sort interviews by scheduled date
-* Sort interviews by interview type
-* Track interview status
+* Sort interviews
 * Track interview type
-* Track scheduled interview dates
+* Track interview status
+* Track scheduled date and time
+* Require timezone-aware interview timestamps
+* Restrict interviews to the owning user
 
 ### Follow-up Management
 
 * Create follow-up reminders
 * View follow-ups
+* Update completion status
 * Complete follow-ups
-* Reopen completed follow-ups
+* Reopen follow-ups
 * Delete follow-ups
 * View pending follow-ups
 * View completed follow-ups
 * View upcoming follow-ups
-* Track follow-up statistics
+* Require timezone-aware follow-up timestamps
+* Restrict follow-ups to the owning user
 
 ### Dashboard and Analytics
+
+CareerTrack provides application and interview analytics including:
 
 * Total applications
 * Applications by status
@@ -82,151 +97,273 @@ Future versions will include screenshots of:
 * Monthly application statistics
 * Location statistics
 * Upcoming application deadlines
-* Success rate
-* Application filtering and sorting
+* Application success rate
+* Interview statistics
+* Filtering and sorting support
 
-### CSV Support
+### CSV Import and Export
 
 * Export applications to CSV
 * Import applications from CSV
 * Export interview data to CSV
 
-### Logging
+### Authentication and Security
 
-CareerTrack includes application logging for monitoring important application events and errors.
+* User registration
+* User login
+* JWT access tokens
+* Authenticated `/me` endpoint
+* Password hashing using Argon2
+* Password verification
+* Expired-token rejection
+* Invalid-signature rejection
+* Bearer authentication enforcement
+* Inactive-user rejection
+* Malformed JWT claim rejection
+* User-level ownership isolation
 
-* File-based logging
-* Console logging
-* Timestamped log messages
-* INFO-level application events
-* Dedicated application log directory
+### API Validation
 
-## Testing
+The REST API validates request data at the boundary using Pydantic, including:
 
-CareerTrack has a comprehensive automated test suite covering:
+* Email format validation
+* Password length limits
+* String length limits
+* Positive resource IDs
+* Enum validation
+* Date validation
+* Timezone-aware datetime validation
+* Job URL validation
+* Application deadline validation
+* Pagination limits
 
-- Domain models
-- Database integration
-- Repositories
-- Services
-- CLI functionality
-- CSV import/export
-- Interview management
-- Follow-up management
-- Application management
-- Company management
-- Dashboard analytics
-- Resource cleanup
+---
 
-### Test Results
+## REST API
 
-```text
-268 passed
+The API is implemented with FastAPI.
 
-97.83% coverage
+### Authentication
 
-95% minimum coverage enforced in CI
-```
+POST /api/auth/register
+POST /api/auth/login
+GET  /api/auth/me
 
-## Technology Stack
+### Companies
 
-| Technology  | Purpose                      |
-| ----------- | ---------------------------- |
-| Python 3.13 | Core programming language    |
-| SQLite      | Database                     |
-| SQLAlchemy  | ORM and database interaction |
-| Pytest      | Automated testing            |
-| Setuptools  | Python package management    |
-| Git         | Version control              |
-| GitHub      | Source code hosting          |
+POST   /api/companies
+GET    /api/companies
+GET    /api/companies/{company_id}
+PUT    /api/companies/{company_id}
+DELETE /api/companies/{company_id}
+
+### Applications
+
+POST   /api/applications
+GET    /api/applications
+GET    /api/applications/{application_id}
+PUT    /api/applications/{application_id}
+DELETE /api/applications/{application_id}
+
+### Interviews
+
+POST   /api/interviews
+GET    /api/interviews
+GET    /api/interviews/{interview_id}
+PUT    /api/interviews/{interview_id}
+DELETE /api/interviews/{interview_id}
+
+### Follow-ups
+
+POST   /api/follow-ups
+GET    /api/follow-ups
+GET    /api/follow-ups/{follow_up_id}
+PUT    /api/follow-ups/{follow_up_id}
+DELETE /api/follow-ups/{follow_up_id}
+
+### Health and Documentation
+
+GET /health
+GET /docs
+GET /openapi.json
+
+When the application is running locally, interactive Swagger documentation is available at:
+
+http://127.0.0.1:8000/docs
+
+---
+
+## Authentication Flow
+
+CareerTrack uses JWT-based authentication.
+
+User
+  │
+  ├── Register
+  │      ↓
+  │   Password hashed with Argon2
+  │      ↓
+  │   User stored in database
+  │
+  └── Login
+         ↓
+      Credentials verified
+         ↓
+      JWT access token
+         ↓
+      Authorization: Bearer <token>
+         ↓
+      Current authenticated user
+
+Protected resources use the authenticated user's ID to enforce ownership.
+
+A user cannot read, update, delete, or create dependent resources under another user's companies or applications.
 
 ---
 
 ## Architecture
 
-CareerTrack follows a layered architecture designed to keep responsibilities separated.
+CareerTrack uses a layered architecture with a separate API layer and CLI layer.
 
-```text
-CLI Layer
-   ↓
-Service Layer
-   ↓
-Repository Layer
-   ↓
-Database Layer
-```
+                    ┌─────────────────────┐
+                    │      REST API       │
+                    │      FastAPI        │
+                    └──────────┬──────────┘
+                               │
+                    ┌──────────▼──────────┐
+                    │    Service Layer    │
+                    │  Business Logic     │
+                    └──────────┬──────────┘
+                               │
+                    ┌──────────▼──────────┐
+                    │ Repository Layer    │
+                    │ Database Operations │
+                    └──────────┬──────────┘
+                               │
+                    ┌──────────▼──────────┐
+                    │   Database Layer    │
+                    │ SQLAlchemy / DB     │
+                    └─────────────────────┘
+
+CLI ───────────────► Service Layer
+
+### API Layer
+
+app/api/
+├── dependencies.py
+├── main.py
+├── routers/
+│   ├── auth.py
+│   ├── companies.py
+│   ├── applications.py
+│   ├── interviews.py
+│   └── follow_ups.py
+└── schemas/
+    ├── auth.py
+    ├── token.py
+    ├── company.py
+    ├── application.py
+    ├── interview.py
+    └── follow_up.py
+
+Responsibilities:
+
+* HTTP routing
+* Authentication dependencies
+* Request validation
+* Response serialization
+* HTTP error handling
+
+### Security Layer
+
+
+app/security/
+├── jwt.py
+└── passwords.py
+
+Responsibilities:
+
+* JWT creation and validation
+* Secure password hashing
+* Password verification
+
+### Service Layer
+
+
+app/services/
+├── application_service.py
+├── auth_service.py
+├── company_service.py
+├── export_service.py
+├── follow_up_service.py
+├── import_service.py
+└── interview_service.py
+
+Responsibilities:
+
+* Business rules
+* Validation that depends on existing data
+* Ownership checks
+* Coordination between repositories
+
+### Repository Layer
+
+app/repositories/
+├── application_repository.py
+├── company_repository.py
+├── follow_up_repository.py
+├── interview_repository.py
+└── user_repository.py
+
+Responsibilities:
+
+* Database queries
+* CRUD operations
+* Filtering
+* Sorting
+* Ownership-aware data access
+
+### Database Layer
+
+app/database/
+├── connection.py
+├── init_db.py
+└── models/
+    ├── user.py
+    ├── company.py
+    ├── application.py
+    ├── interview.py
+    └── follow_up.py
+
+### Domain Models
+
+app/models/
+├── application.py
+├── company.py
+├── follow_up.py
+└── interview.py
 
 ### CLI Layer
 
-Handles user interaction and command-line menus.
-
-```text
 app/cli/
 ├── application_menu.py
 ├── company_menu.py
 ├── follow_up_menu.py
 ├── interview_menu.py
 └── menu.py
-```
-
-### Service Layer
-
-Contains application business logic.
-
-```text
-app/services/
-├── application_service.py
-├── company_service.py
-├── export_service.py
-├── follow_up_service.py
-├── import_service.py
-└── interview_service.py
-```
-
-### Repository Layer
-
-Handles database operations.
-
-```text
-app/repositories/
-├── application_repository.py
-├── company_repository.py
-├── follow_up_repository.py
-└── interview_repository.py
-```
-
-### Database Layer
-
-Contains SQLAlchemy database configuration and database models.
-
-```text
-app/database/
-├── connection.py
-├── init_db.py
-└── models/
-    ├── application.py
-    ├── company.py
-    ├── follow_up.py
-    └── interview.py
-```
-
-### Domain Models
-
-```text
-app/models/
-├── application.py
-├── company.py
-├── follow_up.py
-└── interview.py
-```
 
 ---
 
 ## Project Structure
 
-```text
 career-track/
 ├── app/
+│   ├── api/
+│   │   ├── dependencies.py
+│   │   ├── main.py
+│   │   ├── routers/
+│   │   └── schemas/
+│   │
 │   ├── cli/
 │   │   ├── application_menu.py
 │   │   ├── company_menu.py
@@ -238,61 +375,161 @@ career-track/
 │   │   ├── connection.py
 │   │   ├── init_db.py
 │   │   └── models/
-│   │       ├── application.py
-│   │       ├── company.py
-│   │       ├── follow_up.py
-│   │       └── interview.py
 │   │
 │   ├── models/
-│   │   ├── application.py
-│   │   ├── company.py
-│   │   ├── follow_up.py
-│   │   └── interview.py
-│   │
 │   ├── repositories/
-│   │   ├── application_repository.py
-│   │   ├── company_repository.py
-│   │   ├── follow_up_repository.py
-│   │   └── interview_repository.py
-│   │
+│   ├── security/
 │   ├── services/
-│   │   ├── application_service.py
-│   │   ├── company_service.py
-│   │   ├── export_service.py
-│   │   ├── follow_up_service.py
-│   │   ├── import_service.py
-│   │   └── interview_service.py
-│   │
+│   ├── config.py
 │   ├── logging_config.py
 │   └── main.py
+│
+├── alembic/
+│   ├── versions/
+│   ├── env.py
+│   └── script.py.mako
 │
 ├── docs/
 │   ├── database-design.md
 │   └── requirements.md
 │
 ├── tests/
-│   ├── conftest.py
+│   ├── api/
+│   ├── integration/
+│   ├── security/
 │   ├── data/
-│   │   └── sample.csv
-│   ├── test_application.py
-│   ├── test_company.py
-│   ├── test_database.py
-│   ├── test_export_service.py
-│   ├── test_follow_up.py
-│   ├── test_follow_up_repository.py
-│   ├── test_follow_up_service.py
-│   ├── test_import_service.py
-│   ├── test_interview_repository.py
-│   ├── test_interview_service.py
-│   ├── test_main.py
-│   ├── test_repositories.py
-│   └── test_services.py
+│   └── unit and service tests
+│
+├── .github/
+│   └── workflows/
+│       └── ci.yml
 │
 ├── .gitignore
 ├── pyproject.toml
-├── README.md
-└── requirements.txt
-```
+├── requirements.txt
+└── README.md
+
+---
+
+## Technology Stack
+
+| Technology      | Purpose                               |
+| --------------- | ------------------------------------- |
+| Python 3.13     | Application language                  |
+| FastAPI         | REST API                              |
+| Pydantic        | Request and response validation       |
+| SQLAlchemy      | ORM and database access               |
+| Alembic         | Database migrations                   |
+| PostgreSQL      | Relational database integration       |
+| SQLite          | Lightweight local/test database usage |
+| PyJWT           | JWT authentication                    |
+| pwdlib + Argon2 | Password hashing                      |
+| Pytest          | Automated testing                     |
+| pytest-cov      | Coverage reporting                    |
+| Ruff            | Linting and code quality              |
+| Setuptools      | Python packaging                      |
+| Git             | Version control                       |
+| GitHub Actions  | Continuous integration                |
+
+---
+
+## Database Design
+
+### User
+
+| Field         | Type     | Description             |
+| ------------- | -------- | ----------------------- |
+| id            | Integer  | Primary key             |
+| email         | String   | Unique normalized email |
+| password_hash | String   | Secure password hash    |
+| is_active     | Boolean  | Account status          |
+| created_at    | DateTime | Creation timestamp      |
+| updated_at    | DateTime | Last update timestamp   |
+
+### Company
+
+| Field    | Type    | Description      |
+| -------- | ------- | ---------------- |
+| id       | Integer | Primary key      |
+| user_id  | Integer | Owning user      |
+| name     | String  | Company name     |
+| website  | String  | Company website  |
+| industry | String  | Industry         |
+| location | String  | Location         |
+| notes    | Text    | Additional notes |
+
+### Application
+
+| Field            | Type    | Description                   |
+| ---------------- | ------- | ----------------------------- |
+| id               | Integer | Primary key                   |
+| company_id       | Integer | Related company               |
+| position         | String  | Job or internship position    |
+| application_type | String  | Internship, scholarship, etc. |
+| date_applied     | Date    | Application date              |
+| deadline         | Date    | Application deadline          |
+| status           | String  | Current application status    |
+| location         | String  | Position location             |
+| job_url          | String  | Job listing URL               |
+| notes            | Text    | Additional notes              |
+
+### Interview
+
+| Field          | Type     | Description              |
+| -------------- | -------- | ------------------------ |
+| id             | Integer  | Primary key              |
+| application_id | Integer  | Related application      |
+| scheduled_at   | DateTime | Scheduled interview time |
+| interview_type | String   | Interview type           |
+| status         | String   | Interview status         |
+| outcome        | String   | Interview outcome        |
+| notes          | Text     | Additional notes         |
+
+### Follow-up
+
+| Field          | Type     | Description         |
+| -------------- | -------- | ------------------- |
+| id             | Integer  | Primary key         |
+| application_id | Integer  | Related application |
+| follow_up_at   | DateTime | Reminder time       |
+| note           | Text     | Follow-up note      |
+| completed      | Boolean  | Completion status   |
+
+---
+
+## Application Statuses
+
+CareerTrack supports:
+
+Wishlist
+Applied
+Under Review
+Interview
+Offer
+Rejected
+Withdrawn
+
+---
+
+## Database Migrations
+
+Alembic is used for schema migrations.
+
+Create a migration:
+
+python -m alembic revision --autogenerate -m "describe change"
+
+Apply migrations:
+
+python -m alembic upgrade head
+
+Check the current database revision:
+
+python -m alembic current
+
+Verify that the model and migration state are synchronized:
+
+python -m alembic check
 
 ---
 
@@ -300,269 +537,254 @@ career-track/
 
 ### 1. Clone the repository
 
-```bash
 git clone https://github.com/orbitalbyte-lab/career-track.git
-```
-
-### 2. Move into the project directory
-
-```bash
 cd career-track
-```
 
-### 3. Create a virtual environment
+### 2. Create a virtual environment
 
-```bash
 python -m venv .venv
-```
 
-### 4. Activate the virtual environment
+### 3. Activate the environment
 
-**Windows PowerShell**
+Windows PowerShell:
 
-```powershell
 .venv\Scripts\Activate.ps1
-```
 
-### 5. Install the project
+### 4. Install the project with development dependencies
 
-```bash
-pip install -e .
-```
+python -m pip install -e ".[dev]"
+
+The project dependencies are declared in `pyproject.toml`.
 
 ---
 
-## Running the Application
+## Environment Variables
 
-Start CareerTrack with:
+### JWT Secret
 
-```bash
+Generate a secure local secret:
+
+$env:JWT_SECRET_KEY = (python -c "import secrets; print(secrets.token_hex(32))")
+
+The application requires `JWT_SECRET_KEY` when creating or decoding access tokens.
+
+Never commit a real secret to Git.
+
+### PostgreSQL
+
+The PostgreSQL connection is configured through:
+
+DATABASE_URL
+
+Example:
+
+postgresql+psycopg://postgres:postgres@localhost:5432/career_track
+
+Use environment-specific credentials rather than committing production credentials to the repository.
+
+---
+
+## Running the CLI
+
+Start the command-line application with:
+
 python -m app.main
-```
 
-The CLI provides functionality for:
+The CLI provides:
 
 * Company management
 * Application management
 * Interview management
 * Follow-up management
 * Dashboard analytics
+* Searching
+* Filtering
+* Sorting
 * CSV import
 * CSV export
-* Application searching
-* Application filtering
-* Application sorting
 
 ---
 
-## Running the Tests
+## Running the API
+
+Start the FastAPI development server with:
+
+uvicorn app.api.main:app --reload
+
+The API will be available at:
+
+http://127.0.0.1:8000
+
+Swagger UI:
+
+http://127.0.0.1:8000/docs
+
+OpenAPI specification:
+
+http://127.0.0.1:8000/openapi.json
+
+Health endpoint:
+
+http://127.0.0.1:8000/health
+
+---
+
+## Testing
 
 Run the complete test suite:
 
-```bash
-python -m pytest -q
-```
+python -m pytest -v
 
-Run the complete test suite while treating resource warnings as errors:
+Run with coverage:
 
-```bash
-python -W error::ResourceWarning -m pytest -q
-```
+python -m pytest --cov=app --cov-report=term-missing
 
-Run a specific test file:
+Run the same coverage gate used by CI:
 
-```bash
-python -m pytest tests/test_main.py -vv
-```
+python -m pytest --cov=app --cov-report=term-missing --cov-fail-under=95
 
-Current test result:
+Run a specific test module:
 
-```text
-268 passed
-```
+python -m pytest tests/api/test_auth.py -v
 
----
+Run linting:
 
-## Database Design
+ruff check .
 
-### Company
+Check dependencies:
 
-| Field    | Type    |
-| -------- | ------- |
-| id       | Integer |
-| name     | String  |
-| website  | String  |
-| industry | String  |
-| location | String  |
-| notes    | Text    |
-
-### Application
-
-| Field            | Type    |
-| ---------------- | ------- |
-| id               | Integer |
-| company_id       | Integer |
-| position         | String  |
-| application_type | String  |
-| date_applied     | Date    |
-| deadline         | Date    |
-| status           | String  |
-| location         | String  |
-| job_url          | String  |
-| notes            | Text    |
-
-### Interview
-
-| Field          | Type     |
-| -------------- | -------- |
-| id             | Integer  |
-| application_id | Integer  |
-| scheduled_at   | DateTime |
-| interview_type | String   |
-| status         | String   |
-
-### Follow-up
-
-| Field          | Type     |
-| -------------- | -------- |
-| id             | Integer  |
-| application_id | Integer  |
-| follow_up_at   | DateTime |
-| note           | Text     |
-| completed      | Boolean  |
+python -m pip check
 
 ---
 
-## Application Statuses
+## Current Test Status
 
-CareerTrack supports the following application statuses:
+The current project baseline is:
 
-* Wishlist
-* Applied
-* Under Review
-* Interview
-* Offer
-* Rejected
-* Withdrawn
+430 tests passed
 
----
+97.18% total coverage
 
-## Interview Management
+95% minimum coverage enforced by CI
 
-CareerTrack supports multiple interview stages and types, allowing users to track interviews associated with applications.
+0 test warnings
 
-Interview information includes:
+The test suite covers:
 
-* Scheduled date and time
-* Interview type
-* Interview status
-* Related application
-
----
-
-## Follow-up Management
-
-Follow-ups help users remember important actions after submitting applications or completing interviews.
-
-Examples include:
-
-* Email recruiter
-* Send additional documents
-* Follow up after interview
-* Check application status
-* Contact hiring manager
-
-Follow-ups can be marked as completed and reopened when necessary.
+* API endpoints
+* Authentication
+* JWT validation
+* Password hashing
+* User ownership isolation
+* Domain models
+* Database integration
+* PostgreSQL integration
+* Repositories
+* Services
+* CLI functionality
+* CSV import/export
+* Analytics
+* Validation
+* Resource cleanup
+* Health and OpenAPI endpoints
 
 ---
 
-## Data Import and Export
+## Continuous Integration
 
-CareerTrack supports CSV-based data management.
+GitHub Actions runs the project checks on pushes and pull requests targeting `master`.
 
-### Export
+The CI pipeline:
 
-Application and interview information can be exported for:
+1. Creates a PostgreSQL service
+2. Sets up Python 3.13
+3. Installs the project and development dependencies
+4. Runs Ruff
+5. Applies Alembic migrations
+6. Runs the full test suite
+7. Enforces a minimum 95% coverage threshold
 
-* Backup
-* Analysis
-* Sharing
-* External processing
+Workflow:
 
-### Import
-
-Applications can also be imported from CSV files.
+.github/workflows/ci.yml
 
 ---
 
 ## Logging
 
-Application logs are stored locally during development.
+CareerTrack includes application logging for important events and errors.
 
-```text
+Development logs are stored locally:
+
 logs/
 └── career_track.log
-```
 
-Generated logs and other local development artifacts are excluded from version control through `.gitignore`.
+Local logs and development artifacts are excluded from version control.
 
 ---
 
 ## Development Practices
 
-CareerTrack follows modern software engineering practices, including:
+The project follows software engineering practices including:
 
 * Layered architecture
+* Separation of concerns
 * Repository pattern
 * Service layer
-* Separation of concerns
 * Domain models
-* Database abstraction
+* API schemas
+* Authentication and authorization
 * Automated testing
-* Test fixtures
+* High test coverage
+* Database migrations
+* PostgreSQL integration testing
+* Static analysis with Ruff
+* CI with GitHub Actions
 * Resource cleanup
-* Logging
-* Git version control
-* Incremental feature development
+* Incremental development
 * Documentation-driven development
-* CSV data import/export
-
----
-
-## Development Statistics
-
-* **268 automated tests**
-* **All tests passing**
-* **Python 3.13**
-* **SQLite database integration**
-* **SQLAlchemy ORM**
-* **CSV import/export**
-* **Interview management**
-* **Follow-up management**
-* **Application logging**
-* **Repository and service architecture**
-* **GitHub version control**
+* Git-based version control
 
 ---
 
 ## Future Improvements
 
-Planned future improvements include:
+Potential future development areas include:
 
-* User authentication
-* User accounts and profiles
 * Email notifications
-* Resume management
-* Resume/CV attachment support
-* AI-powered job matching
-* AI-powered resume analysis
-* Web interface
-* REST API
-* Cloud database support
-* Cloud deployment
-* Advanced analytics dashboard
-* Automated follow-up notifications
+* Resume and CV management
+* Resume attachment storage
+* AI-assisted job matching
+* AI-assisted resume analysis
+* Web frontend
+* Advanced analytics visualization
 * Calendar integration
+* Automated reminder notifications
+* Cloud deployment
+* Additional API features
+* Role-based administration
+
+---
+
+## Project Status
+
+CareerTrack is an actively developed portfolio project demonstrating practical Python software engineering concepts across:
+
+Python
+├── CLI development
+├── REST API development
+├── Authentication
+├── Authorization
+├── Database design
+├── ORM usage
+├── Repository patterns
+├── Service-layer architecture
+├── Automated testing
+├── Security testing
+├── Database migrations
+├── PostgreSQL integration
+├── CI/CD
+└── Documentation
 
 ---
 
