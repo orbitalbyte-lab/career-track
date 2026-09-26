@@ -365,6 +365,24 @@ def test_get_current_user_profile_requires_authentication(
     assert response.json() == {
         "detail": "Could not validate credentials."
     }
+def test_get_current_user_profile_rejects_basic_auth(
+    db_session,
+):
+    client = get_client(db_session)
+
+    client.headers.update(
+        {
+            "Authorization": "Basic invalid-credentials",
+        }
+    )
+
+    response = client.get("/api/auth/me")
+
+    assert response.status_code == 401
+    assert response.headers["WWW-Authenticate"] == "Bearer"
+    assert response.json() == {
+        "detail": "Could not validate credentials."
+    }
 def test_login_user_rejects_short_password(db_session):
     client = get_client(db_session)
 
