@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: career-track-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: career_track
+      POSTGRES_USER: career_track
+      POSTGRES_PASSWORD: career_track_dev
+    ports:
+      - "5433:5432"
+    volumes:
+      - career_track_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U career_track -d career_track"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  career_track_postgres_data:
