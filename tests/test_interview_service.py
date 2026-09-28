@@ -329,12 +329,19 @@ def test_get_sorted_interviews_by_type(
 def test_get_this_week_interviews(db_session):
     service = InterviewService(db_session)
 
-    # The repository determines the current week,
-    # so use a datetime that is definitely in the
-    # current week.
+    # Put the interview safely inside the current UTC week.
     now = datetime.now(UTC)
+    start_of_week = now - timedelta(days=now.weekday())
+    start_of_week = start_of_week.replace(
+        hour=12,
+        minute=0,
+        second=0,
+        microsecond=0,
+    )
 
-    service.create_interview(create_interview(scheduled_at=now + timedelta(hours=1)))
+    service.create_interview(
+        create_interview(scheduled_at=start_of_week + timedelta(days=2))
+    )
 
     results = service.get_this_week_interviews()
 
