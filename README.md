@@ -20,7 +20,7 @@ It provides a command-line interface and REST API for managing companies, applic
 * Alembic database migrations
 * PostgreSQL integration tests
 * Automated CI with GitHub Actions
-* 430 automated tests
+* 431 automated tests
 * 97.18% test coverage
 * Ruff code-quality checks
 * Python 3.13
@@ -584,6 +584,96 @@ Use environment-specific credentials rather than committing production credentia
 
 ---
 
+## Docker PostgreSQL Development Environment
+
+CareerTrack includes a Docker Compose configuration for running PostgreSQL locally during development and integration testing.
+
+### Prerequisites
+
+Install:
+
+* Docker Desktop
+* Docker Compose
+* Python 3.13
+
+Make sure Docker Desktop is running before starting PostgreSQL.
+
+### Start PostgreSQL
+
+From the project root:
+
+```powershell
+docker compose up -d
+```
+
+Check the container status:
+
+```powershell
+docker compose ps
+```
+
+The PostgreSQL service should show as `healthy`.
+
+PostgreSQL is exposed locally on port `5433`.
+
+### Configure the database connection
+
+For the current PowerShell session:
+
+```powershell
+$env:DATABASE_URL="postgresql+psycopg://career_track:career_track_dev@localhost:5433/career_track"
+```
+
+The credentials in `docker-compose.yml` are intended for local development only.
+
+### Apply database migrations
+
+After starting PostgreSQL:
+
+```powershell
+python -m alembic upgrade head
+```
+
+Check the current migration:
+
+```powershell
+python -m alembic current
+```
+
+The database should be at the latest Alembic revision.
+
+### Run PostgreSQL integration tests
+
+```powershell
+python -m pytest tests\integration\test_postgresql.py -v
+```
+
+These tests verify:
+
+* PostgreSQL connectivity
+* Required database tables
+* Company CRUD operations
+
+### Stop PostgreSQL
+
+To stop the development database:
+
+```powershell
+docker compose down
+```
+
+The PostgreSQL data is stored in a Docker volume, so stopping the containers does not remove the database.
+
+To remove the containers and development database volume:
+
+```powershell
+docker compose down -v
+```
+
+Use `-v` only when you intentionally want to reset the local PostgreSQL database.
+
+---
+
 ## Running the CLI
 
 Start the command-line application with:
@@ -661,13 +751,11 @@ python -m pip check
 
 The current project baseline is:
 
-430 tests passed
+431 tests passed
 
 97.18% total coverage
 
 95% minimum coverage enforced by CI
-
-0 test warnings
 
 The test suite covers:
 
