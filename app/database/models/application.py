@@ -1,10 +1,15 @@
 from datetime import date
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Date, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.connection import Base
 from app.database.models.company import CompanyDB
+
+if TYPE_CHECKING:
+    from app.database.models.follow_up import FollowUpDB
+    from app.database.models.interview import InterviewDB
 
 
 class ApplicationDB(Base):
@@ -59,4 +64,14 @@ class ApplicationDB(Base):
 
     company: Mapped[CompanyDB] = relationship(
         back_populates="applications",
+    )
+
+    interviews: Mapped[list["InterviewDB"]] = relationship(
+        back_populates="application",
+        cascade="all, delete-orphan",
+    )
+
+    follow_ups: Mapped[list["FollowUpDB"]] = relationship(
+        back_populates="application",
+        cascade="all, delete-orphan",
     )

@@ -4,9 +4,7 @@ from sqlalchemy import Boolean, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.connection import Base
-from app.database.models.application import (
-    ApplicationDB,
-)
+from app.database.models.application import ApplicationDB
 from app.database.utc_datetime import UTCDateTime
 
 
@@ -27,6 +25,7 @@ class FollowUpDB(Base):
         UTCDateTime(),
         nullable=False,
     )
+
     note: Mapped[str] = mapped_column(
         String(2000),
         nullable=False,
@@ -38,4 +37,6 @@ class FollowUpDB(Base):
         default=False,
     )
 
-    application: Mapped[ApplicationDB] = relationship()
+    application: Mapped[ApplicationDB] = relationship(
+        back_populates="follow_ups",
+    )

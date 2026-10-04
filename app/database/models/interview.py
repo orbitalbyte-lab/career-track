@@ -4,9 +4,7 @@ from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.connection import Base
-from app.database.models.application import (
-    ApplicationDB,
-)
+from app.database.models.application import ApplicationDB
 from app.database.utc_datetime import UTCDateTime
 
 
@@ -27,6 +25,7 @@ class InterviewDB(Base):
         UTCDateTime(),
         nullable=False,
     )
+
     interview_type: Mapped[str] = mapped_column(
         String(50),
         nullable=False,
@@ -48,4 +47,6 @@ class InterviewDB(Base):
         nullable=True,
     )
 
-    application: Mapped[ApplicationDB] = relationship()
+    application: Mapped[ApplicationDB] = relationship(
+        back_populates="interviews",
+    )
