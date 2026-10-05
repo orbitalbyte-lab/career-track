@@ -13,6 +13,7 @@ import { apiFetch } from "../lib/api";
 
 import { serverApiFetch } from "../lib/server-api";
 import NewApplicationButton from "../components/NewApplicationButton";
+import LogoutButton from "../components/LogoutButton";
 
 const navigation = [
   { label: "Dashboard", icon: LayoutDashboard, active: true, href: "/" },
@@ -22,7 +23,6 @@ const navigation = [
   { label: "Follow-ups", icon: Activity, href: "/follow-ups" },
   { label: "Analytics", icon: BarChart3, href: "/analytics" },
 ];
-
 type Application = {
   id: number;
   company_id: number;
@@ -159,10 +159,7 @@ export default async function Home() {
           </nav>
 
           <div className="border-t border-slate-200 p-4">
-            <button className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950">
-              <span>⚙</span>
-              Settings
-            </button>
+            <LogoutButton />
           </div>
         </aside>
 
