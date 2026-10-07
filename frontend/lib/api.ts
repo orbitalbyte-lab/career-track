@@ -8,10 +8,25 @@ export async function apiFetch<T>(
   path: string,
   options?: RequestInit,
 ): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, options);
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_URL}${path}`, options);
+  } catch {
+    throw new Error(
+      "Unable to connect to the server. Please make sure CareerTrack is running.",
+    );
+  }
 
   if (!response.ok) {
-    throw new Error(`API request failed: ${response.status}`);
+    const data = await response.json().catch(() => null);
+
+    const detail =
+      data && typeof data.detail === "string"
+        ? data.detail
+        : `API request failed: ${response.status}`;
+
+    throw new Error(detail);
   }
 
   return response.json();
