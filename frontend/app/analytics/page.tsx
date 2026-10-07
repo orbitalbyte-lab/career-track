@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic";
 
 type Application = {
   id: number;
+  position: string;
   status: string;
   date_applied: string;
   company_id: number;
